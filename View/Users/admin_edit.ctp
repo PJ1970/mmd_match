@@ -134,6 +134,12 @@
 									<?php echo $this->Form->input('dob',array('type'=>'text','class'=>'datepicker form-control','label'=>false,'div'=>false,'placeholder'=>"Date Of Birth",'required'=>true)); ?>
 								</div>
 							</div>-->
+              <div class="form-group">
+                <label>Nick Name</label>
+                <div>
+                <?php echo $this->Form->input('nickname',array('type'=>'text','class'=>'form-control','label'=>false,'div'=>false,'placeholder'=>"Enter Nick name")); ?>
+                </div>
+              </div>
 							<div class="form-group">
 								<label>E-Mail</label>
 								<div>
@@ -151,6 +157,7 @@
                             <label>Password</label>
                             <div>
 							 <?php echo $this->Form->input('password',array('type'=>'password','class'=>'form-control','label'=>false,'div'=>false,'placeholder'=>"Enter a Password",'required'=>true)); ?>
+               <span style="color:#000099; font-style: italic;">Password must be between 8 to 16 characters long and contain at least one uppercase, one lowercase, one number, and one special character.</span>
                              <!-- <input parsley-type="url" type="url" class="form-control" required placeholder="URL"/>-->
                             </div>
                           </div>

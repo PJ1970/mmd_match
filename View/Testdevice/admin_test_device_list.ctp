@@ -59,14 +59,15 @@
 							<td><?php echo $data['TestDevice']['mac_address']; ?>
 							<td><?php echo $data['TestDevice']['bt_mac_address']; ?></td>
 							<td><?php echo $name=$this->custom->getOfficeName($data['TestDevice']['office_id']); ?></td>
-							<td>
-							<?php
+							<td><?php 
 							if($data['TestDevice']['device_type']==6){
 							    echo 'PICO_G2_IHU';
 							}else	if($data['TestDevice']['device_type']==5){
 							    echo 'PICO_NEO_3';
 							}else	if($data['TestDevice']['device_type']==4){
 							    echo 'PICO_G2';
+							}else	if($data['TestDevice']['device_type']==8){
+							    echo 'PICO_G3';
 							}else if($data['TestDevice']['device_type']==3){
 							    echo 'Quest';
 							}else if($data['TestDevice']['device_type']==2){
@@ -84,6 +85,11 @@
 								&nbsp;&nbsp;<?php echo $this->Html->link('<i class="fa fa-pencil" aria-hidden="true"></i>',array('controller'=>'testdevice','action'=>'admin_edit', $data['TestDevice']['id']),array('escape'=>false,'title'=>'Edit'));?>
 								
 								&nbsp;&nbsp;<?php echo $this->Html->link('<i class="fa fa-trash-o"></i>',array('controller'=>'testdevice','action'=>'admin_delete',$data['TestDevice']['id']),array('escape'=>false,'title'=>'Delete','confirm'=>'Are you sure you want to delete?'));?>
+
+								<?php if($data['TestDevice']['lock_time']){
+								echo "&nbsp;&nbsp;";
+								 	echo $this->Html->link('<i class="fa fa-lock" aria-hidden="true"></i>',array('controller'=>'testdevice','action'=>'admin_unlocl', $data['TestDevice']['id']),array('escape'=>false,'title'=>'Unlocl Device'));
+							} ?>
 							</td>
 						</tr>
 						<?php }

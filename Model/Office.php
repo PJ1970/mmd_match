@@ -7,6 +7,10 @@ class Office extends AppModel {
         'Officereport' => array(
             'className' => 'Officereport',
 			'foreignKey' => 'office_id'
+		),
+		'Officelanguage' => array(
+            'className' => 'Officelanguage',
+			'foreignKey' => 'office_id'
 		)
     );
      public $belongsTo = array(

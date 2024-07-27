@@ -58,7 +58,7 @@
 								<a type="button" title="View" subAdminId="<?php echo $data['User']['id'];?>" class="SubAdminDetail" data-toggle="modal" data-target="#subAdminView"><i class="fa fa-eye" aria-hidden="true"></i></a>
 								
 							&nbsp;&nbsp;	<?php echo $this->Html->link('<i class="fa fa-pencil" aria-hidden="true"></i>',array('controller'=>'staff','action'=>'admin_edit', $data['User']['id']),array('escape'=>false,'title'=>'Edit'));?>
-							&nbsp;&nbsp;	<?php echo $this->Html->link('<i class="fa fa-trash-o"></i>',array('controller'=>'staff','action'=>'admin_delete',$data['User']['id']),array('escape'=>false,'title'=>'Delete','confirm'=>'If you delete staff its associated patients will be assigned to related Admin/Subadmin. Are you sure you want to delete?'));?>
+							&nbsp;&nbsp;	<?php echo $this->Html->link('<i class="fa fa-trash-o"></i>',array('controller'=>'staff','action'=>'admin_delete',$data['User']['id']),array('escape'=>false,'title'=>'Delete','confirm'=>'Are you sure you want to delete?'));?>
 							
 							<?php $Admin = $this->Session->read('Auth.Admin'); if($Admin['user_type']=="Admin") { ?>
 							
@@ -66,7 +66,12 @@
 							
 							&nbsp;&nbsp; <?php echo $this->Html->link('<i class="fa fa-key"></i>',array('controller'=>'staff','action'=>'admin_resetpassword',$data['User']['id']),array('escape'=>false,'title'=>'Reset Password'));
 							
-							} ?>
+							}
+							if($data['User']['lock_time'] && ($Admin['user_type']=="Admin" || $Admin['user_type']=="Subadmin")){
+								echo "&nbsp;&nbsp;";
+								 	echo $this->Html->link('<i class="fa fa-lock" aria-hidden="true"></i>',array('controller'=>'staff','action'=>'admin_unlocl', $data['User']['id']),array('escape'=>false,'title'=>'Unlocl User'));
+							}
+							 ?>
 							
 								</td>
 							</tr>

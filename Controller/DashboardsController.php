@@ -52,7 +52,7 @@ class DashboardsController extends AppController {
 		}
     }
 	//This function is for dashboard of Admin,Subadmin,Staff
-	public function admin_index($msg=null){
+	public function admin_index($msg=null){ 
 		if(!$this->Auth->loggedIn()){
 			return $this->redirect(array('controller'=>'users','action'=>'admin_login'));
 		}
@@ -68,10 +68,6 @@ class DashboardsController extends AppController {
 			$Admin['Office']['session_backup']=1;
 			$this->Session->write('Auth.Admin.Office.session_backup', 1);
 		}  
-		$report_datas = '';
-		$totalPatient = '';
-		$Notifications = '';
-		$totalStaffUser = '';
 		 date_default_timezone_set('US/Eastern');
 		  // $datetime =date('Y-m-d H:i:s');
 		  // $tz_from = $Admin['time_zone']; 
@@ -93,12 +89,24 @@ class DashboardsController extends AppController {
 		$vtReportsCount = $this->VtTest->find('count',array('conditions'=>array('VtTest.staff_id'=>$all_staff_ids)));
 		$vfReportsCount = $vfFdtVsReports+$actReportsCount+$daReportsCount+$pupReportsCount+$stbReportsCount+$vtReportsCount;
 		$conditions=array('Pointdata.is_delete' => '0');
+		$pointdataYear=array('Pointdata.is_delete' => '0');
+		$ActTestYear=array('ActTest.is_delete' => '0');
+		$DarkAdaptionYear=array('DarkAdaption.is_delete' => '0');
+		$PupTestYear=array('PupTest.is_delete' => '0');
+		$StbTestYear=array('StbTest.is_delete' => '0');
+		$VtTestYear=array('VtTest.is_delete' => '0');
 		if($Admin['user_type'] == 'Admin') {
 			if(!empty($this->Session->read('Search.office'))){
-						$office_id['User']['office_id'] =  $this->Session->read('Search.office');
-						$staffuserAdmin=$this->User->find('list',array('conditions'=>array('User.office_id'=>$office_id['User']['office_id']),'fields'=>array('User.id')));
-						//pr($staffuserAdmin); die;
-						$conditions[]['Pointdata.staff_id']=$staffuserAdmin;
+			$office_id['User']['office_id'] =  $this->Session->read('Search.office');
+			$staffuserAdmin=$this->User->find('list',array('conditions'=>array('User.office_id'=>$office_id['User']['office_id']),'fields'=>array('User.id')));
+			//pr($staffuserAdmin); die;
+			$conditions[]['Pointdata.staff_id']=$staffuserAdmin;
+			$pointdataYear[]['Pointdata.staff_id']=$staffuserAdmin;
+			$ActTestYear[]['ActTest.staff_id']=$staffuserAdmin;
+			$DarkAdaptionYear[]['DarkAdaption.staff_id']=$staffuserAdmin;
+			$PupTestYear[]['PupTest.staff_id']=$staffuserAdmin;
+			$StbTestYear[]['StbTest.staff_id']=$staffuserAdmin;
+			$VtTestYear[]['VtTest.staff_id']=$staffuserAdmin;
 					}
 		} elseif($Admin['user_type'] == 'Subadmin') {
 			$office_id=$this->User->find('first',array('conditions'=>array('User.id'=>$Admin['id'],'User.user_type'=>'Subadmin'),'fields'=>array('User.office_id')));
@@ -109,6 +117,12 @@ class DashboardsController extends AppController {
 			
 			// Calculate Total Records..
 			$conditions[]['Pointdata.staff_id']=$staffuser;
+			$pointdataYear[]['Pointdata.staff_id']=$staffuser;
+			$ActTestYear[]['ActTest.staff_id']=$staffuser;
+			$DarkAdaptionYear[]['DarkAdaption.staff_id']=$staffuser;
+			$PupTestYear[]['PupTest.staff_id']=$staffuser;
+			$StbTestYear[]['StbTest.staff_id']=$staffuser;
+			$VtTestYear[]['VtTest.staff_id']=$staffuser;
 		}else{
 			$office_id=$this->User->find('first',array('conditions'=>array('User.id'=>$Admin['id'],'User.user_type'=>'Staffuser'),'fields'=>array('User.office_id')));
 

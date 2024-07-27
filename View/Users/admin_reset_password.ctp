@@ -15,6 +15,7 @@
 			<label>New Password</label>
 			<?php //echo $this->Form->input('email',array('type'=>'text','class'=>'form-control','label'=>false,'div'=>false)); ?> 
 			<?php echo $this->Form->input('password',array('type'=>'password','class'=>'form-control','label'=>false,'div'=>false)); ?> 
+      <span style="color:#000099; font-style: italic;">Password must be between 8 to 16 characters long and contain at least one uppercase, one lowercase, one number, and one special character.</span><br>
 			<label>Confirm Password</label>
 			<?php //echo $this->Form->input('email',array('type'=>'text','class'=>'form-control','label'=>false,'div'=>false)); ?> 
 			<?php echo $this->Form->input('confirm_password',array('type'=>'password','class'=>'form-control','label'=>false,'div'=>false)); ?> 

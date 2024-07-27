@@ -1,4 +1,4 @@
-<script src="https://cdn.ckeditor.com/4.11.2/standard/ckeditor.js"></script>
+<link rel="stylesheet" href="https://cdn.ckeditor.com/ckeditor5/42.0.2/ckeditor5.css">
 <div class="content">
       <div class="">
 	 
@@ -51,7 +51,50 @@
         </div>
       </div>
     </div>
-	 <script>
-			CKEDITOR.replace( 'data[Cms][content]' );
-	</script>
+	
+ <script type="importmap">
+            {
+                "imports": {
+                    "ckeditor5": "https://cdn.ckeditor.com/ckeditor5/42.0.2/ckeditor5.js",
+                    "ckeditor5/": "https://cdn.ckeditor.com/ckeditor5/42.0.2/"
+                }
+            }
+        </script>
+        <script type="module">
+            import {
+                ClassicEditor,
+                Essentials, Paragraph, Bold, Italic, Underline, Strikethrough, Subscript, Superscript, Code, Link,
+            List, Indent, BlockQuote, MediaEmbed, ImageUpload, Highlight, FontSize, FontFamily,
+            FontColor, FontBackgroundColor, Alignment, RemoveFormat, HorizontalLine, PageBreak, SpecialCharacters,
+            FindAndReplace, SourceEditing
+            } from 'ckeditor5';
+
+            ClassicEditor
+                .create( document.querySelector( '#CmsContent' ), {
+                    plugins: [ Essentials, Paragraph, Bold, Italic, Underline, Strikethrough, Subscript, Superscript, Code, Link,
+            List, Indent, BlockQuote, MediaEmbed, ImageUpload, Highlight, FontSize, FontFamily,
+            FontColor, FontBackgroundColor, Alignment, RemoveFormat, HorizontalLine, PageBreak, SpecialCharacters,
+            FindAndReplace, SourceEditing ],
+                    toolbar: [
+            'undo', 'redo', '|', 
+            'bold', 'italic', 'underline', 'strikethrough', '|',
+            'fontSize', 'fontFamily', 'fontColor', 'fontBackgroundColor', '|',
+            'link', 'bulletedList', 'numberedList', 'blockQuote', '|',
+                'mediaEmbed', '|',
+            'alignment', 'removeFormat', 'horizontalLine', 'specialCharacters', '|',
+            'sourceEditing'
+                    ]
+                } )
+                .then( editor => {
+                    window.editor = editor;
+                } )
+                .catch( error => {
+                    console.error( error );
+                } ); 
+        </script>
+        <style>
+.ck-editor__editable_inline {
+    min-height: 200px;
+}
+</style>
  

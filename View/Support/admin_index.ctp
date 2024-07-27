@@ -37,7 +37,9 @@
 							<?php echo $this->Form->input('status',array('options' =>$type_option,'empty'=>'Select Status','div'=>false,'legend'=>false,'class' => 'form-control','label' => false, 'data-live-search' => 'true', 'data-selected-text-format' => 'count > 3')); ?>
 					</div>
                     <?php } ?>  
-
+                    <div class="col-md-1"style="margin-top: 20px;">
+							<?php echo $this->Form->input('page_no',array('div' => false,'label' => false,'value'=>'@$page_no','type' =>'number','class' => 'form-control','placeholder' => 'Page No','maxlength' => '100', 'required'=>false)); ?>
+						</div>
 					<?php echo $this->Form->end(); ?>
 					       
 					<div class="form-group m-b-0 col-md-2">

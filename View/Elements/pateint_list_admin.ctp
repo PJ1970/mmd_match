@@ -58,6 +58,9 @@
 						<!--<div class="col-md-1">
 							<a href="javascript:void(0);" id="clear-date" class="btn btn-primary waves-effect waves-light searchBtn" > Clear Date </a>
 						</div>-->
+						<div class="col-md-1"style="margin-top: 20px;">
+							<?php echo $this->Form->input('page_no',array('div' => false,'label' => false,'value'=>'@$page_no','type' =>'number','class' => 'form-control','placeholder' => 'Page No','maxlength' => '100', 'required'=>false)); ?>
+						</div>
 						<div class="col-md-1">
 							<button style="margin-top: 20px;" type="submit" class="btn btn-primary waves-effect waves-light searchBtn" > Search </button>
 						</div>
@@ -149,16 +152,16 @@
 								    <i class="mdi mdi-view-list"></i>
 								  </button>
 								  <ul class="dropdown-menu" aria-labelledby="dLabel">
-								    	<li><?php echo "<a style='cursor: pointer;' href='".WWW_BASE."admin/unityreports/unity_reports_list/VF?search=".$data['Patient']['id']."' title='View VF Reports' target='_blank'>VF</a>"; ?></li> 
-								    	<li><?php echo "<a style='cursor: pointer;' href='".WWW_BASE."admin/unityreports/unity_reports_list/VS?search=".$data['Patient']['id']."' title='View VS Reports' target='_blank'>VS</a>"; ?></li>
-								    	<li><?php echo "<a style='cursor: pointer;' href='".WWW_BASE."admin/unityreports/unity_reports_list/FDT?search=".$data['Patient']['id']."' title='View FDT Reports' target='_blank'>FDT</a>"; ?></li>
-								    	<li><?php echo "<a style='cursor: pointer;' href='".WWW_BASE."admin/act/act_list?search=".$data['Patient']['id']."' title='View ACT Reports' target='_blank'>ACT</a>"; ?></li>
+								    	<li><?php echo "<a style='cursor: pointer;' href='".WWW_BASE."admin/unityreports/unity_reports_list/VF?patientreport=".$data['Patient']['id']."' title='View VF Reports' target='_blank'>VF</a>"; ?></li> 
+								    	<li><?php echo "<a style='cursor: pointer;' href='".WWW_BASE."admin/unityreports/unity_reports_list/VS?patientreport=".$data['Patient']['id']."' title='View VS Reports' target='_blank'>VS</a>"; ?></li>
+								    	<li><?php echo "<a style='cursor: pointer;' href='".WWW_BASE."admin/unityreports/unity_reports_list/FDT?patientreport=".$data['Patient']['id']."' title='View FDT Reports' target='_blank'>FDT</a>"; ?></li>
+								    	<li><?php echo "<a style='cursor: pointer;' href='".WWW_BASE."admin/act/act_list?patientreport=".$data['Patient']['id']."' title='View ACT Reports' target='_blank'>ACT</a>"; ?></li>
 
 
-								    	<li><?php echo "<a style='cursor: pointer;' href='".WWW_BASE."admin/vt/vt_list?search=".$data['Patient']['id']."' title='View VT Reports' target='_blank'>VT</a>"; ?></li>
-								    	<li><?php echo "<a style='cursor: pointer;' href='".WWW_BASE."admin/pup/pup_list?search=".$data['Patient']['id']."' title='View PUP Reports' target='_blank'>PUP</a>"; ?></li>
-								    	<li><?php echo "<a style='cursor: pointer;' href='".WWW_BASE."admin/darkadaptations/dark_adaptations_list?search=".$data['Patient']['id']."' title='View DA Reports' target='_blank'>DA</a>"; ?></li>
-								    	<li><?php echo "<a style='cursor: pointer;' href='".WWW_BASE."admin/stb/stb_list?search=".$data['Patient']['id']."' title='View STB Reports' target='_blank'>STB</a>"; ?></li>
+								    	<li><?php echo "<a style='cursor: pointer;' href='".WWW_BASE."admin/vt/vt_list?patientreport=".$data['Patient']['id']."' title='View VT Reports' target='_blank'>VT</a>"; ?></li>
+								    	<li><?php echo "<a style='cursor: pointer;' href='".WWW_BASE."admin/pup/pup_list?patientreport=".$data['Patient']['id']."' title='View PUP Reports' target='_blank'>PUP</a>"; ?></li>
+								    	<li><?php echo "<a style='cursor: pointer;' href='".WWW_BASE."admin/darkadaptations/dark_adaptations_list?patientreport=".$data['Patient']['id']."' title='View DA Reports' target='_blank'>DA</a>"; ?></li>
+								    	<li><?php echo "<a style='cursor: pointer;' href='".WWW_BASE."admin/stb/stb_list?patientreport=".$data['Patient']['id']."' title='View STB Reports' target='_blank'>STB</a>"; ?></li>
 
 								  </ul>
 								</div>

@@ -109,7 +109,12 @@
                              <!-- <input parsley-type="url" type="url" class="form-control" required placeholder="URL"/>-->
                           <!--  </div>
                           </div>-->
-						  
+						            <div class="form-group">
+                <label>Nick Name</label>
+                <div>
+                <?php echo $this->Form->input('nickname',array('type'=>'text','class'=>'form-control','label'=>false,'div'=>false,'placeholder'=>"Enter Nick name")); ?>
+                </div>
+              </div>
                           <div class="form-group">
                             <label>Username</label>
                             <div>
@@ -122,6 +127,7 @@
                             <div>
                               <!--<input type="password" id="pass2" class="form-control" required placeholder="Password"/>-->
 							 <?php echo $this->Form->input('password', array('type'=>'password','label'=>false,'class'=>'form-control','placeholder'=>"Enter password",'id'=>'password','div'=>false,'required'=>true)); ?>
+               <span style="color:#000099; font-style: italic;">Password must be between 8 to 16 characters long and contain at least one uppercase, one lowercase, one number, and one special character.</span>
 						   </div>
                             
                           </div>

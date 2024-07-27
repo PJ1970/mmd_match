@@ -45,10 +45,21 @@ class DarkadaptationsController extends AppController {
 			$conditions['OR'][] = array('Patient.id'=> $value);
 			$this->set(compact('search'));
 		}
-		
+		if (!empty($this->request->query['patientreport'])) {
+			$patientreport = trim($this->request->query['patientreport']); 
+			if (is_numeric($patientreport)) { 
+				$conditions['OR'][] = array('Patient.id' => $patientreport); /* 3 dec Added new line */
+			}
+			$this->set(compact('patientreport'));
+		}
+
+		$limit=10;
+		if(@$this->request->query['rempve_layout']==1){
+	       $limit=100;
+	   }
 		$params = array(
 			'conditions' => $conditions,
-			'limit'=>10,
+			'limit'=>$limit,
 			'order'=>array('DarkAdaption.id'=>'DESC')
 		);
 		
@@ -176,6 +187,11 @@ class DarkadaptationsController extends AppController {
    
 		$TestNameArray = $this->Common->testNameArray();
 		$this->set(compact('datas', 'check_payable', 'TestNameArray', 'download'));
+
+		if(@$this->request->query['rempve_layout']==1){
+	       $this->layout = false;
+	       $this->render('dark_adaptations_list');
+	   }
 	}
 		/*Unity report view*/
 	public function admin_view($id=null){

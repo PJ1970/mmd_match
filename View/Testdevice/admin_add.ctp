@@ -14,7 +14,7 @@
 				    <?php echo $this->Form->create('TestDevice', array('novalidate' => true,'url'=>array('controller'=>'testdevice','action'=>'admin_add')));?>
                     <div class="col-sm-6 col-xs-12">
 						<div class="m-t-20">
-					  <div class="form-group">
+					   <div class="form-group">
 								<label>Device Serial Number</label>
 								<?php echo $this->Form->input('deviceSeraial',array('type'=>'text','class'=>'form-control','label'=>false,'div'=>false,'placeholder'=>"",'required'=>true)); ?>
 							</div>
@@ -57,7 +57,7 @@
 								<div class="form-group">
 								<label>Device Type</label>
                                 	<div>
-									<?php $type_option = array('0'=>'Gear','1'=>'GO','2'=>'PICO_NEO','3'=>'Quest','4'=>'PICO_G2','5'=>'PICO_NEO_3','6'=>'PICO_G2_IHU'); ?>
+									<?php $type_option = array('0'=>'Gear','1'=>'GO','2'=>'PICO_NEO','3'=>'Quest','4'=>'PICO_G2','5'=>'PICO_NEO_3','6'=>'PICO_G2_IHU','8'=>'PICO_G3'); ?>
 									<?php echo $this->Form->input('device_type',array('options' =>$type_option,'empty'=>'Select Device Type','div'=>false,'legend'=>false,'class' => 'form-control','label' => false, 'data-live-search' => 'true', 'data-selected-text-format' => 'count > 3')); ?>
 								</div>
 							</div>

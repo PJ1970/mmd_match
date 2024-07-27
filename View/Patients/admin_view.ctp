@@ -66,9 +66,27 @@
 		<div class="form-group col-md-12">
 			<label for="recipient-name" class="col-md-4 form-control-label">View Test:</label>
 			<span  class=" col-md-8"> 
-								&nbsp;&nbsp;    <?php if ($test['vf']==1) { echo "<a style='cursor: pointer;height: 26px;padding-top: 3px;padding-bottom: 3px;' class='btn btn-info' href='".WWW_BASE."admin/unityreports/unity_reports_list/?page_type=vf&search=".$data['Patient']['id']."' title='View VF Test' >VF</a>"; }?>
-							 	 <?php if ($test['fdt']==1) { echo "<a style='cursor: pointer;height: 26px;padding-top: 3px;padding-bottom: 3px;' class='btn btn-info' href='".WWW_BASE."admin/unityreports/unity_reports_list/?page_type=fdt&search=".$data['Patient']['id']."' title='View FDT Test' >FDT</a>"; }?>
-								 <?php if ($test['da']==1) { echo "<a style='cursor: pointer;height: 26px;padding-top: 3px;padding-bottom: 3px;' class='btn btn-info'  href='".WWW_BASE."admin/darkadaptations/dark_adaptations_list/?patent_id=".$data['Patient']['id']."' title='View DA Test' >DA</a>"; }?>
+								<?php if ($test['vf']==1) { echo "<a style='margin-bottom: 10px;cursor: pointer;height: 26px;padding-top: 3px;padding-bottom: 3px;' class='btn btn-info' href='".WWW_BASE."admin/unityreports/unity_reports_list/?page_type=vf&search=".$data['Patient']['id']."' title='View VF Test' >VF</a>"; }?>
+							 	 <?php if ($test['fdt']==1) { echo "<a style='margin-bottom: 10px;cursor: pointer;height: 26px;padding-top: 3px;padding-bottom: 3px;' class='btn btn-info' href='".WWW_BASE."admin/unityreports/unity_reports_list/?page_type=fdt&search=".$data['Patient']['id']."' title='View FDT Test' >FDT</a>"; }?>
+
+							 	 <?php if ($test['vs']==1) { echo "<a style='margin-bottom: 10px;cursor: pointer;height: 26px;padding-top: 3px;padding-bottom: 3px;' class='btn btn-info' href='".WWW_BASE."admin/unityreports/unity_reports_list/VS?search=".$data['Patient']['id']."' title='View VS Test' >VS</a>"; }?> 
+
+							 	 <?php if ($test['pup']==1) { echo "<a style='margin-bottom: 10px;cursor: pointer;height: 26px;padding-top: 3px;padding-bottom: 3px;' class='btn btn-info' href='".WWW_BASE."admin/pup/pup_list?search=".$data['Patient']['id']."' title='View PUP Test' >PUP</a>"; }?>
+
+
+								 <?php if ($test['da']==1) { echo "<a style='margin-bottom: 10px;cursor: pointer;height: 26px;padding-top: 3px;padding-bottom: 3px;' class='btn btn-info'  href='".WWW_BASE."admin/darkadaptations/dark_adaptations_list/?patent_id=".$data['Patient']['id']."' title='View DA Test' >DA</a>"; }?>
+
+								 
+
+								 <?php if ($test['act']==1) { echo "<a style='margin-bottom: 10px;cursor: pointer;height: 26px;padding-top: 3px;padding-bottom: 3px;' class='btn btn-info'  href='".WWW_BASE."admin/act/act_list?patent_id=".$data['Patient']['id']."' title='View ACT Test' >ACT</a>"; }?>
+
+								  <?php if ($test['vt']==1) { echo "<a style='margin-bottom: 10px;cursor: pointer;height: 26px;padding-top: 3px;padding-bottom: 3px;' class='btn btn-info'  href='".WWW_BASE."admin/vt/vt_list?patent_id=".$data['Patient']['id']."' title='View VT Test' >VT</a>"; }?>
+
+								  <?php if ($test['va']==1) { echo "<a style='margin-bottom: 10px;cursor: pointer;height: 26px;padding-top: 3px;padding-bottom: 3px;' class='btn btn-info'  href='".WWW_BASE."admin/vareports/va_reports_list?patent_id=".$data['Patient']['id']."' title='View VA Test' >VA</a>"; }?>
+
+								   <?php if ($test['stb']==1) { echo "<a style='margin-bottom: 10px;cursor: pointer;height: 26px;padding-top: 3px;padding-bottom: 3px;' class='btn btn-info'  href='".WWW_BASE."admin/stb/stb_list?patent_id=".$data['Patient']['id']."' title='View STB Test' >STB</a>"; }?>
+
+
 							</span>
 		</div>
 		<?php if($data['Office']['server_test']==1){ ?>
@@ -80,7 +98,7 @@
 								    $checked_data = Hash::extract($data['Office']['Officereport'], '{n}.office_report'); 
 	                            }
 							  ?>
-								&nbsp;&nbsp;    <?php if (in_array(14, $checked_data)) { echo "<a style='cursor: pointer;height: 26px;padding-top: 3px;padding-bottom: 3px;' class='btn btn-info' href='".WWW_BASE."admin/patients/start_test/".$data['Patient']['id']."' title='Start VF Test' >VF</a>"; }?>
+								 <?php if (in_array(14, $checked_data)) { echo "<a style='cursor: pointer;height: 26px;padding-top: 3px;padding-bottom: 3px;' class='btn btn-info' href='".WWW_BASE."admin/patients/start_test/".$data['Patient']['id']."' title='Start VF Test' >VF</a>"; }?>
 							 	 <?php if (in_array(15, $checked_data)) { echo "<a style='cursor: pointer;height: 26px;padding-top: 3px;padding-bottom: 3px;' class='btn btn-info' href='".WWW_BASE."admin/patients/start_test_fdt/".$data['Patient']['id']."' title='Start FDT Test' >FDT</a>"; }?>
 								 <?php if (in_array(23, $checked_data)) { echo "<a style='cursor: pointer;height: 26px;padding-top: 3px;padding-bottom: 3px;' class='btn btn-info' href='".WWW_BASE."admin/patients/start_test_da/".$data['Patient']['id']."' title='Start DA Test' >DA</a>"; }?>
 								 <?php if (in_array(25, $checked_data)) { echo "<a style='cursor: pointer;height: 26px;padding-top: 3px;padding-bottom: 3px;' class='btn btn-info' href='".WWW_BASE."admin/patients/start_test_vs/".$data['Patient']['id']."' title='Start VS Test' >VS</a>"; } ?>

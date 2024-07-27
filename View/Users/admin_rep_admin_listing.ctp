@@ -61,7 +61,10 @@
 							
 							&nbsp;&nbsp;<?php echo $this->Html->link('<i class="fa fa-pencil" aria-hidden="true"></i>',array('controller'=>'users','action'=>'admin_edit_rep', $data['User']['id']),array('escape'=>false,'title'=>'Edit'));?>
 							&nbsp;&nbsp;<?php //echo $this->Html->link('<i class="fa fa-trash-o"></i>',array('controller'=>'users','action'=>'admin_user_delete',$data['User']['id']),array('escape'=>false,'title'=>'Delete','confirm'=>'If you delete subAdmin its associated staff and patients will be deleted.Are you sure you want to delete?'));?>
-							
+							<?php if($data['User']['lock_time']){
+								echo "&nbsp;&nbsp;";
+								 	echo $this->Html->link('<i class="fa fa-lock" aria-hidden="true"></i>',array('controller'=>'users','action'=>'admin_unlocl', $data['User']['id']),array('escape'=>false,'title'=>'Unlocl Admin'));
+							} ?>
 							</td>
 						</tr>
 						<?php }

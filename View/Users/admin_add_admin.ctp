@@ -79,7 +79,18 @@
 								<div class="innerrotate"><input type="radio" name="data[User][rotate]" value="180"><span>180&deg;</span></div>
 								<div class="innerrotate"><input type="radio" name="data[User][rotate]" value="270"><span>270&deg;</span></div>
 								
-								 
+								
+									<?php /*echo $this->Form->input('rotate', array(
+															'type' => 'radio',
+															'div'=>false,
+															'label'=>false,
+															'legend'=>false,
+															'options' => array(
+																'90' => '90',
+																'180' => '180',
+																'270' => '270'
+																)
+															));*/?> 
 									
 								</div>
 							</div>
@@ -88,8 +99,12 @@
                     </div>
                    <div class="col-sm-6 col-xs-12">
 				   
+                     <!-- <h3 class="m-t-0"><small class="text-info"><b>Range validation</b></small></h3>-->
                       <div class="m-t-20">
-                       
+                        <!--<form action="#">-->
+						<!--<div class="form-group">
+                            <label>Date Of Birth</label>
+                            <div>
 							 <?php echo $this->Form->input('dob',array('type'=>'text','class'=>'datepicker form-control','label'=>false,'div'=>false,'placeholder'=>"Date Of Birth",'required'=>true)); ?>
                              <!-- <input parsley-type="url" type="url" class="form-control" required placeholder="URL"/>-->
                           <!--  </div>
@@ -99,13 +114,13 @@
                             <label>Username</label>
                             <div>
 							 <?php echo $this->Form->input('username',array('type'=>'text','class'=>'form-control','label'=>false,'div'=>false,'placeholder'=>"Enter a username",'required'=>true)); ?>
-                            
+                             <!-- <input parsley-type="url" type="url" class="form-control" required placeholder="URL"/>-->
                             </div>
                           </div>
                           <div class="form-group">
                             <label>Password</label>
                             <div>
-                              
+                              <!--<input type="password" id="pass2" class="form-control" required placeholder="Password"/>-->
 							 <?php echo $this->Form->input('password', array('type'=>'password','label'=>false,'class'=>'form-control','placeholder'=>"Enter password",'id'=>'password','div'=>false,'required'=>true)); ?>
 						   </div>
                             
@@ -113,16 +128,77 @@
                           <div class="form-group">
                             <label>Confirm Password</label>
                             <div>
-                              
+                              <!--<input type="password" id="pass2" class="form-control" required placeholder="Password"/>-->
 								<?php echo $this->Form->input('confirm_pass', array('type'=>'password','label'=>false,'class'=>'form-control','placeholder'=>"Enter confirm password",'id'=>'confirm_pass','div'=>false,'required'=>true)); ?>
 							</div>
                             
                           </div>
 						 
-					 
+						<!--<div class="form-group">
+                           <label>Select Practice Name</label>
+                            <div>
+							<?php 
+								//$practice_list=$this->custom->getPracticeList();
+								//echo $this->Form->input('practice_id',array('multiple' => true,'options' => $practice_list,'div'=>false,'legend'=>false,'class' => 'form-control selectpicker show-tick','label' => false, 'data-live-search' => 'true', 'data-selected-text-format' => 'count > 3'));
+							?>
+                            </div>
+                        </div>-->
+						
+						
+                          <!--<div class="form-group">
+                            <label>Max Value</label>
+                            <div>
+                              <input type="text" class="form-control" required data-parsley-max="6" placeholder="Max value is 6"/>
+                            </div>
+                          </div>
+                          <div class="form-group">
+                            <label>Range Value</label>
+                            <div>
+                              <input class="form-control" required type="text range" min="6" max="100" placeholder="Number between 6 - 100"/>
+                            </div>
+                          </div>
+                          <div class="form-group">
+                            <label>Regular Exp</label>
+                            <div>
+                              <input type="text" class="form-control" required data-parsley-pattern="#[A-Fa-f0-9]{6}" placeholder="Hex. Color"/>
+                            </div>
+                          </div>
+                          <div class="form-group">
+                            <label>Min check</label>
+                            <div class="radio">
+                              <input type="radio" name="radio" id="radio1" value="option1" checked="checked">
+                              <label for="radio1"> Small </label>
+                            </div>
+                            <div class="radio">
+                              <input type="radio" name="radio" id="radio2" value="option2" checked="checked">
+                              <label for="radio2"> Big </label>
+                            </div>
+                            <div class="radio">
+                              <input type="radio" name="radio" id="radio3" value="option3" checked="checked">
+                              <label for="radio3"> Medium </label>
+                            </div>
+                          </div>
+                          <div class="form-group">
+                            <label>Max check</label>
+                            <div>
+                              <div class="checkbox checkbox-primary">
+                                <input id="checkbox4" type="checkbox" data-parsley-multiple="group1">
+                                <label for="checkbox4"> And this </label>
+                              </div>
+                              <div class="checkbox checkbox-primary">
+                                <input id="checkbox5" type="checkbox" data-parsley-multiple="group1">
+                                <label for="checkbox5"> Can't check this </label>
+                              </div>
+                              <div class="checkbox checkbox-primary">
+                                <input id="checkbox6" type="checkbox" data-parsley-multiple="group1" data-parsley-maxcheck="1">
+                                <label for="checkbox6"> This too </label>
+                              </div>
+                            </div>
+                          </div>-->
                           <div class="form-group m-b-0">
                             <div>
-                               <button type="submit" class="btn btn-primary waves-effect waves-light"> Submit </button> 
+                               <button type="submit" class="btn btn-primary waves-effect waves-light"> Submit </button>
+							  <!-- <button type="reset" class="btn btn-default waves-effect m-l-5"> Cancel </button>-->
                             </div>
                           </div>
                         <!--</form>-->

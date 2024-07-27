@@ -25,16 +25,22 @@ class VideoController extends AppController {
 	{   
 	     $db=$this->Video;
 	    
-  $user=$this->Session->read('Auth.Admin');
- 
-$results = $db->query("SET session wait_timeout=28800", FALSE);
-$results = $db->query("SET session interactive_timeout=28800", FALSE);
+		$user=$this->Session->read('Auth.Admin'); 
+		$results = $db->query("SET session wait_timeout=28800", FALSE);
+		$results = $db->query("SET session interactive_timeout=28800", FALSE);
  	    if($this->request->is(array('post','put'))) {  
 	        if(isset($this->request->data['Video']['video'])&&(!empty($this->request->data['Video']['video']))){ 
 
 	             if (!empty($this->request->data['Video']['video']['tmp_name']) && is_uploaded_file($this->request->data['Video']['video']['tmp_name']) ) { 
                     $filename = basename($this->request->data['Video']['video']['name']); 
-                    if(move_uploaded_file($this->data['Video']['video']['tmp_name'], WWW_ROOT . DS . 'files/video/uploads' . DS . $filename)){ 
+                    $Office_folder_name = 'OV_'.strtoupper(base_convert( $user['office_id'], 10, 32 ));
+					 $path = ROOT . '/app/webroot/files/video/uploads/' . $Office_folder_name;
+		                if(is_dir($path)) {
+		                } else {
+		                    mkdir($path);
+		                }
+
+                    if(move_uploaded_file($this->data['Video']['video']['tmp_name'], WWW_ROOT . DS . 'files/video/uploads' . DS . $Office_folder_name . DS . $filename)){ 
                         $this->request->data['Video']['video']=$filename; 
                         $data['Video']['video']=$this->request->data['Video']['video'];
                         $data['Video']['name']=$this->request->data['Video']['name']; 
@@ -46,9 +52,9 @@ $results = $db->query("SET session interactive_timeout=28800", FALSE);
                     }
                 }
 						  
-					}else{
-						$this->Video->validationErrors['video'] = array("Please try again.");
-					} 
+			}else{
+				$this->Video->validationErrors['video'] = array("Please try again.");
+			} 
 	    }  
         $conditions = array();
         if(isset($this->request->query['search_name'])  && ($this->request->query['search_name']) !=''){
@@ -81,9 +87,9 @@ $results = $db->query("SET session interactive_timeout=28800", FALSE);
 	        
 	        
             if (!empty($this->request->data['VideoEdit']['video']['tmp_name']) && is_uploaded_file($this->request->data['VideoEdit']['video']['tmp_name']) ) {
-
+            	$Office_folder_name = 'OV_'.strtoupper(base_convert( $user['office_id'], 10, 32 ));
                 $video_filename = basename($this->request->data['VideoEdit']['video']['name']);
-                move_uploaded_file($this->data['VideoEdit']['video']['tmp_name'], WWW_ROOT . DS . 'video/uploads' . DS . $video_filename);
+                move_uploaded_file($this->data['VideoEdit']['video']['tmp_name'], WWW_ROOT . DS . 'files/video/uploads' . DS . $Office_folder_name . DS . $video_filename);
                 $data['Video']['video']=$video_filename; 
             }
 	        

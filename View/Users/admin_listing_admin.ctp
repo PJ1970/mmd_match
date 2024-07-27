@@ -56,6 +56,11 @@
 							&nbsp;&nbsp;<?php echo $this->Html->link('<i class="fa fa-pencil" aria-hidden="true"></i>',array('controller'=>'users','action'=>'admin_edit_admin', $data['User']['id']),array('escape'=>false,'title'=>'Edit'));?>
 							
 							&nbsp;&nbsp;<?php echo $this->Html->link('<i class="fa fa-trash-o"></i>',array('controller'=>'users','action'=>'admin_delete_admin',$data['User']['id']),array('escape'=>false,'title'=>'Delete','confirm'=>'Are you sure you want to delete admin?'));?> 
+
+							<?php if($data['User']['lock_time']){
+								echo "&nbsp;&nbsp;";
+								 	echo $this->Html->link('<i class="fa fa-lock" aria-hidden="true"></i>',array('controller'=>'users','action'=>'admin_unlocl', $data['User']['id']),array('escape'=>false,'title'=>'Unlocl Admin'));
+							} ?>
 							</td>
 						</tr>
 						<?php }

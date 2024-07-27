@@ -50,6 +50,14 @@ class StbController extends AppController
 			$this->set(compact('search'));
 		}
 
+		if (!empty($this->request->query['patientreport'])) {
+			$patientreport = trim($this->request->query['patientreport']); 
+			if (is_numeric($patientreport)) { 
+				$conditions['OR'][] = array('Patient.id' => $patientreport); /* 3 dec Added new line */
+			}
+			$this->set(compact('patientreport'));
+		}
+
 		$params = array(
 			'conditions' => $conditions,
 			'limit' => 10,

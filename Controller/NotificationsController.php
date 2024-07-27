@@ -222,8 +222,23 @@ class NotificationsController extends AppController
 		//pr($new_user_devices);die;
 		$this->set(compact('new_user_devices'));
 		}else{
-            $this->redirect(WWW_BASE.'admin/dashboards/index');
+            $this->redirect('https://www.portal.micromedinc.com/admin/dashboards/index');
         }
 	}
+
+	function admin_version(){
+        $this->loadModel('Version');
+        $data = $this->Version->find('first',array('order' => 'Version.id DESC'));
+        if($this->request->is('post')){
+            $this->request->data['Version']['version'];
+            Configure::write('Version', $this->request->data['Version']['version']);
+            if ($this->Version->save($this->request->data)) {  
+				$this->Session->setFlash('The version has been updated.','message',array('class' => 'message'));
+            }
+        }
+        $data = $this->Version->find('first',array('order' => 'Version.id DESC'));
+        $this->set(compact('data'));
+        
+    }
 }
 ?>

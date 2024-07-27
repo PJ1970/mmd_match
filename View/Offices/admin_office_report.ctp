@@ -13,7 +13,7 @@
               <div class="panel panel-primary">
                 <div class="panel-body">
 				 <?php echo $this->Session->flash()."<br/>";?>
-				 
+				 <?php $type_option = array('0'=>'Gear','1'=>'GO','2'=>'PICO_NEO','3'=>'Quest','4'=>'PICO_G2','5'=>'PICO_NEO_3', '6' =>'PUPIL_NEO2','7'=>'PUPIL_NEO3','10'=>'Controller','11'=>'AppManager ','13'=>'Auto Download'); ?>
 			 
 				<div class="col-md-12">
 					<?php echo $this->Form->create('Office',array('type' => 'get','url' => array('controller' => 'offices','action' => 'office_report'))); ?>
@@ -30,6 +30,7 @@
 						<a href="<?php echo $this->HTML->url('/admin/offices/export_report'); ?>" class="btn btn-large btn-primary" >Export</a>
 							<h4 class="m-b-30 m-t-0"></h4>
 					</div>
+
 				</div>
                   <div class="row">
                     <div class="col-md-12 col-sm-12 col-xs-12">
@@ -39,6 +40,7 @@
 							<th style="width:34px;">S.No</th>
                             <th>  <?php echo $this->Paginator->sort('Office.name','Office Name'); ?> </th>
                             <th>  <?php echo $this->Paginator->sort('Office.email','Office Email'); ?> </th>
+                            <th>Device Type</th>
 							<th>  <?php echo $this->Paginator->sort('Office.total_test_current_week','Current week report '); ?> </th>
 							<th>  <?php echo $this->Paginator->sort('Office.total_test_last_week','Last Week Report'); ?> </th>
                             <th>  <?php echo $this->Paginator->sort('Office.total_test_three_month','Avg Report'); ?> </th>
@@ -54,7 +56,19 @@
 						<tr>
 							<td data-order="<?php echo $data['Office']['id']; ?>"><?php echo $key+1; ?></td>
 							<td><?php echo $data['Office']['name']; ?></td>
-							<td><?php echo $data['Office']['email']; ?></td>
+							<td><?php echo $data['Office']['email']; ?> </td>
+							<td><?php 
+							$device_keys=array();
+							foreach($data['TestDevice'] as $device_key => $device_value){
+								if(isset($type_option[$device_value['device_type']])){
+									$device_keys[$device_value['device_type']] = $type_option[$device_value['device_type']];
+								}
+								
+
+							}
+							echo implode(', ', $device_keys);
+							 ?>
+						</td>
 							<td><?php echo $data['Office']['total_test_current_week']; ?></td>
 							<td><?php echo $data['Office']['total_test_last_week']; ?></td>
 							<td><?php echo (int) ($data['Office']['total_test_three_month']/12); ?></td>

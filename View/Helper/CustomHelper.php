@@ -290,6 +290,14 @@ class CustomHelper extends AppHelper{
 		return false;
 	}
 
+	public static function getVersion(){
+	   
+		
+		App::import("Model", "Version");
+		$Version = new Version(); 
+		$datas = $Version->find('first',array('order' => 'Version.id DESC'));
+		return $datas;
+	}
 }
 
 ?>

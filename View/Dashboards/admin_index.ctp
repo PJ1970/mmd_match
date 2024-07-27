@@ -129,6 +129,7 @@ input:checked + .slider:before {
 </style>
 
 <?php  
+ 
 $Admin = $this->Session->read('Auth.Admin'); 
 $check=(isset($Admin['Office']['session_backup']))?$Admin['Office']['session_backup']:0;
 $check2=(isset($Admin['Office']['server_test']))?$Admin['Office']['server_test']:0;
@@ -280,16 +281,16 @@ $checkradio=(isset($Admin['Office']['session_backup_type']))?$Admin['Office']['s
               </div>
             </div> 
             <?php if(!empty($totalTestYear)){ ?> 
-            <div class="col-sm-6 col-lg-3">
-              <div class="panel text-center effect_box">
-                <div class="panel-heading">
-                  <h4 class="panel-title text-muted font-light"><?php echo date('Y'); ?> Year Total Test</h4>
+              <div class="col-sm-6 col-lg-3">
+                <div class="panel text-center effect_box">
+                  <div class="panel-heading">
+                    <h4 class="panel-title text-muted font-light"><?php echo date('Y'); ?> Year Total Test</h4>
+                  </div>
+                  <div class="panel-body p-t-10">
+                    <h2 class="m-t-0 m-b-15"><img src="<?php echo WWW_BASE.'img/admin/b.png';?>"  class="m-r-10" alt="B"/><?php echo @$totalTestYear;?></h2>
+                  </div>
                 </div>
-                <div class="panel-body p-t-10">
-                  <h2 class="m-t-0 m-b-15"><img src="<?php echo WWW_BASE.'img/admin/b.png';?>"  class="m-r-10" alt="B"/><?php echo @$totalTestYear;?></h2>
-                </div>
-              </div>
-            </div>  
+              </div>  
             <?php } endif; ?>
       <?php if(isset($credits)&& (!empty($Admin) && ($Admin['user_type']!= "Subadmin" && $Admin['user_type'] != "Staffuser"))){   ?>
       <div class="col-sm-6 col-lg-3">

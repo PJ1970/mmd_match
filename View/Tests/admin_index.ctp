@@ -21,7 +21,7 @@
 				 <?php echo $this->Form->create('Test', array('novalidate' => true, 'id'=>'officeForm','method' => 'post', 'url'=>array('action'=>'index')));?>
 	                
 				   <?php echo $this->Form->input('name',array('type'=>'text','class'=>'form-control','label'=>false,'div'=>false,'placeholder'=>"Enter test name",'required'=>true)); ?>
-			S
+			
 			        <?php echo $this->Form->input('id',array('type'=>'hidden')); ?>
 				  </div>
 					<div class="form-group m-b-0 col-md-4">

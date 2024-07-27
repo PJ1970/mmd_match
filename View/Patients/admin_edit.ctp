@@ -142,7 +142,7 @@ input:checked + .slider:before {
                           <?php } ?>
                         </select>
                           </div>
-                          <?php
+                          <?php 
                           if($Admin['user_type']=="Staffuser" || $Admin['user_type']=="Subadmin" ) {
                           if(!empty($TestDeviceslist)){ //pr($TestDeviceslist);
                                 foreach ($TestDeviceslist as $key => $value) { //pr($value['TestDevice']['name']);
@@ -150,7 +150,7 @@ input:checked + .slider:before {
                                   $type_device = $value['TestDevice']['device_type'];
                                 }
                           }
-                          if($type_device == 6){ 
+                          if(@$type_device == 6){ 
                           ?>
                           <h4>For Home Use</h4>
                           <div class="container" style="border: 1px solid;margin-top: 10px;">
@@ -168,7 +168,7 @@ input:checked + .slider:before {
                             <label>Test Name (Threshold)</label>
                             <div>
                             <?php   
-                              echo $this->Form->input('test_name',array('options' =>@$TestTypethresholdArray,'empty'=>'Select Test Name','id'=>'testName','div'=>false,'legend'=>false,'class' => 'form-control','label' => false, 'data-live-search' => 'true','required'=>true, 'data-selected-text-format' => 'count > 3'));
+                              echo $this->Form->input('test_name_ihu',array('options' =>@$TestTypethresholdArray,'empty'=>'Select Test Name','id'=>'testName','div'=>false,'legend'=>false,'class' => 'form-control','label' => false, 'data-live-search' => 'true','required'=>true, 'data-selected-text-format' => 'count > 3'));
                             ?>  
                             </div>
                         </div>
@@ -263,6 +263,14 @@ input:checked + .slider:before {
 							?>  
                             </div>
                         </div>
+						<div class="form-group">
+                            <label>Gender</label>
+                            <div>
+              <?php   
+                echo $this->Form->input('gender',array('options' =>array("Male"=>"Male","Female"=>"Female"),'empty'=>'Select Gender','id'=>'gender','div'=>false,'legend'=>false,'class' => 'form-control','label' => false, 'data-live-search' => 'true', 'data-selected-text-format' => 'count > 3'));
+              ?>  
+                            </div>
+                        </div>
                          <div class="form-group">
                             <label>Visual Acuity (optional)</label>
                             <!--<input type="text" class="form-control" required placeholder="Type something"/>-->
@@ -288,6 +296,78 @@ input:checked + .slider:before {
                              </div>
               
                            </div>
+						   
+						   <div class="form-group">
+                <div class="row">
+                               <div class="col-sm-6 col-xs-6 col-lg-6">
+                              <label> Ocular Diagnosis</label><br/>
+                              <?php
+                             $checked_data = array();
+                              if (isset($patientDiagnosis)) {
+                                  foreach ($patientDiagnosis as $key => $value) {
+                                      $checked_data[] = $key;
+                                  }
+                              }
+                              //pr($filter_cost_value_array);
+                              $checked = '';
+                              $arr = $diagnosis;
+                              $i = 0;
+							  foreach ($arr as $key => $val) {
+                                  if (in_array($key, $checked_data)) {
+                                      $checked = 'checked';
+                                  } else {
+                                      $checked = '';
+                                  }
+                                  ?>
+                                  <div class="change_checkbox">
+                                      <?php
+                                      echo $this->Form->input("PatientDiagnosi.$i.patient_iagnosis", array('value' => $key, 'label' => array('text' => $val), 'type' => 'checkbox', $checked));
+
+                                        
+
+                                      $i++;
+                                      ?>
+                                  </div>
+                                  <?php
+                              } 
+                              ?>
+                            </div>
+
+                             <div class="col-sm-6 col-xs-6 col-lg-6">
+                              <label> Neuro Diagnosis</label><br/>
+                              <?php
+                             $checked_data = array();
+                              if (isset($patientDiagnosis)) {
+                                  foreach ($patientDiagnosis as $key => $value) {
+                                      $checked_data[] = $key;
+                                  }
+                              }
+                              //pr($filter_cost_value_array);
+                              $checked = '';
+                              $arr = $diagnosis_neuro; 
+                foreach ($arr as $key => $val) {
+                                  if (in_array($key, $checked_data)) {
+                                      $checked = 'checked';
+                                  } else {
+                                      $checked = '';
+                                  }
+                                  ?>
+                                  <div class="change_checkbox">
+                                      <?php
+                                      echo $this->Form->input("PatientDiagnosi.$i.patient_iagnosis", array('value' => $key, 'label' => array('text' => $val), 'type' => 'checkbox', $checked));
+
+                                        
+
+                                      $i++;
+                                      ?>
+                                  </div>
+                                  <?php
+                              } 
+                              ?>
+                            </div>
+
+                          </div>
+                          </div>
                           <div class="form-group m-b-0">
                             <div>
                                <button type="submit" class="btn btn-primary waves-effect waves-light"> Submit </button>

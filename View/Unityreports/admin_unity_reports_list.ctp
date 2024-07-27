@@ -57,7 +57,10 @@ foreach($testOptions as $key => $value){
 								<div class="col-md-8">
 									<?php echo $this->Form->input('include_patient_name',array('div' => false,'label' => false, 'value'=>@$include_patient_name,'type' =>'text','class' => 'form-control','placeholder' => 'Search with Patient Name','maxlength' => '100')); ?>
 								</div>
-								<div class="form-group m-b-0 col-md-4">
+								<div class="col-md-1" >
+									<?php echo $this->Form->input('page_no',array('div' => false,'label' => false,'value'=>'@$page_no','type' =>'number','class' => 'form-control','placeholder' => 'Page No','maxlength' => '100', 'required'=>false)); ?>
+							  </div>
+								<div class="form-group m-b-0 col-md-3">
 									<button type="submit" class="btn btn-primary waves-effect waves-light searchBtn" > Search </button>	&nbsp;
 								</div>
 								 
@@ -70,6 +73,7 @@ foreach($testOptions as $key => $value){
 								 <div class="row" style="margin: 5px;">
 									<div class="col-md-2">
 										<?php echo $this->Form->input('version',array('div' => false,'label' => false,'value' => @$version,'type' =>'text','class' => 'form-control','placeholder' => 'Version','maxlength' => '100')); ?>
+										<?php echo $this->Form->input('patientreport',array('div' => false,'label' => false,'value' => @$patientreport,'type' =>'hidden','class' => 'form-control','placeholder' => '','maxlength' => '100')); ?>
 									</div>
 									<?php if(!empty($testOptions)){ ?>
 										<div class="col-md-2">
@@ -116,12 +120,17 @@ foreach($testOptions as $key => $value){
 
 								<div class="col-md-4">
 									<?php echo $this->Form->input('search',array('div' => false,'label' => false,'value' => @$search,'type' =>'text','class' => 'form-control','placeholder' => 'Search','maxlength' => '100')); ?>
+
+									<?php echo $this->Form->input('patientreport',array('div' => false,'label' => false,'value' => @$patientreport,'type' =>'hidden','class' => 'form-control','placeholder' => '','maxlength' => '100')); ?>
 								</div>
 								<?php if(!empty($testOptions)){ ?>
 									<div class="col-md-2">
 										<?php echo $this->Form->input('test_name',array('options' =>$testOptions, 'default' => @$test_name,'empty' => 'Test Name', 'div' => false,'label' => false, 'class' => 'form-control','maxlength' => '100')); ?>
 									</div>
 								<?php } ?>
+								<div class="col-md-1" >
+							<?php echo $this->Form->input('page_no',array('div' => false,'label' => false,'value'=>'@$page_no','type' =>'number','class' => 'form-control','placeholder' => 'Page No','maxlength' => '100', 'required'=>false)); ?>
+						</div>
 								<div class="form-group m-b-0 col-md-4">
 									<button type="submit" class="btn btn-primary waves-effect waves-light searchBtn" > Search </button>
 								</div>
@@ -209,32 +218,85 @@ foreach($testOptions as $key => $value){
 
 								<?php if($Admin['user_type'] == "Admin"){ ?>
 
-									<td><?php echo (!empty($data['Pointdata']['patient_dob']))?$data['Pointdata']['patient_age_years']:''; ?></td>
+									<td><?php
+											if((!empty($data['Pointdata']['patient_dob']))){
+													if((!empty($data['Pointdata']['patient_age_years']))){
+														echo $data['Pointdata']['patient_age_years'];
+													}else{
+														$dob_array = explode("-",$data['Pointdata']['patient_dob']);
+														$dob_y=$dob_array['0'];
+														$current_year = date("Y");
+														$age=$current_year  - $dob_y;
+														if(date("m")>$dob_array['1']){
+															$age++;
+														}else if(date("m")>$dob_array['0'] && date("d")>=$dob_array['2']){
+															$age++;
+														} 
+														echo $age;
+													}
+											}else{
+												 
+											}
+										 ?></td>
 									<td><?php echo $data['Pointdata']['version']; ?></td>
 									<td><?php echo $data['Pointdata']['diagnosys']; ?></td>
 								<?php } ?>
 								<td><?php echo $data['Pointdata']['source']; ?></td>
-								<td class="action_sec">
+								<td class="action_sec menu-right">
 									<?php
 										echo "<a style='cursor: pointer;'  title='View' testreportId='".$data['Pointdata']['id']."' class='testreport loaderAjax' ><i class='fa fa-eye' aria-hidden='true'></i></a>";
 										//echo "<a style='cursor: pointer;' href='".WWW_BASE."admin/unityreports/view/".$data['Pointdata']['id']."?".time()."' title='View' testreportId='".$data['Pointdata']['id']."' rel='facebox'><i class='fa fa-eye' aria-hidden='true'></i></a>";
 									?>
 									<?php if(!empty($data['Pointdata']['file'])){ ?>
-                                            &nbsp;&nbsp;&nbsp;
+                                           
                                     <?php 
                                     	$related_id=(!empty($download[$ptdata_id]['tr_id']))? $download[$ptdata_id]['tr_id'] : 'tr-none';
                                         $related_ids=(!empty($downloads[$ptdata_id]['tr_id']))? $downloads[$ptdata_id]['tr_id'] : 'tr-none';
                                     ?>
-                     <a data-type="pdf" data-related='<?php echo $related_id; ?>' data-downloads='<?php echo json_encode($download[$ptdata_id]); ?>'  title='Download PDF Reports' href="javascript:;" class="vbs-popover"><i class="fa fa-download"></i></a>
-                                    &nbsp;&nbsp;
-                     <a data-mid="<?php echo $ptdata_id; ?>" data-type="pdf" data-related='<?php echo $related_ids; ?>' data-downloadsa='<?php echo json_encode($download[$ptdata_id]); ?>'data-downloads='<?php echo json_encode($downloads[$ptdata_id]); ?>'  title='Download OS/OD Merged PDF Reports' href="javascript:;" class="vbs-mergepdf"><i class="fa fa-angle-double-down"></i></a>
-										&nbsp;&nbsp;
-                     <a title="View pdf report" href="<?php echo WWW_BASE.'pointData/'.$data['Pointdata']['file']; ?>" target="_blank"><i class="fa fa-file-pdf-o" aria-hidden="true"></i></a>
-										&nbsp;&nbsp;&nbsp;
+                     <!-- <a data-type="pdf" data-related='<?php echo $related_id; ?>' data-downloads='<?php echo json_encode($download[$ptdata_id]); ?>'  title='Download PDF Reports' href="javascript:;" class="vbs-popover"><i class="fa fa-download"></i></a> -->
+
+
+                   <div class="dropdown" style="display: inline-block;">
+								  <button id="dLabel" type="button" data-toggle="dropdown" class="btn-popover" data-related='<?php echo $related_id; ?>' aria-haspopup="true" aria-expanded="false" style="border: none;
+    color: #337ab7;
+    font-size: 16px;
+    background-color: transparent;">
+								    <i class="fa fa-download"></i>
+								  </button>
+								  <ul class="dropdown-menu" aria-labelledby="dLabel">
+								    	<li> 
+								    		<a data-type="pdf" data-related='<?php echo $related_id; ?>' data-downloads='<?php echo json_encode($download_new[$data['Pointdata']['id']][$data['Pointdata']['eye_select']]); ?>'  title='Download PDF Reports' href="javascript:;" class="vbs-popover">Download PDF Reports <i class="fa fa-download"></i></a>
+								    	</li>
+
+								    	<li> 
+								    		<a data-mid="<?php echo $ptdata_id; ?>" data-type="pdf" data-related='<?php echo $related_ids; ?>' data-downloadsa='<?php echo json_encode($download[$ptdata_id]); ?>'data-downloads='<?php echo json_encode($downloads[$ptdata_id]); ?>'  title='Download OS/OD Merged PDF Reports' href="javascript:;" class="vbs-mergepdf">Download OS/OD Merged PDF Reports <i class="fa fa-angle-double-down"></i></a>
+								    	</li>
+
+								     
+								    	<li> 
+								    		<a title="Download Dicom Report" href="<?php echo $this->Html->url(['controller'=>'unityreports','action'=>'exportDicom',$data['Pointdata']['patient_id'], $data['Pointdata']['file']]); ?>" target="_blank">Download Dicom Report <i class="fa fa-image" aria-hidden="true"></i></a>
+								    	</li>
+
+								    	<li> 
+								    		<a data-type="dicom" data-related='<?php echo $related_id; ?>' data-downloads='<?php echo json_encode($download[$ptdata_id]); ?>' title='Download OS/OD Dicom Reports' href="javascript:;" class="vbs-popover" >Download OS/OD Dicom Reports <i class="fa fa-download"></i></a>
+								    	</li>
+
+
+								</div>
+
+
+                     <!-- <a data-type="pdf" data-related='<?php echo $related_id; ?>' data-downloads='<?php echo json_encode($download_new[$data['Pointdata']['id']][$data['Pointdata']['eye_select']]); ?>'  title='Download PDF Reports' href="javascript:;" class="vbs-popover"><i class="fa fa-download"></i></a> -->
+
+                     <!-- <a data-type="pdf" data-related='<?php echo $related_id; ?>' data-downloads='<?php echo json_encode($download_new[$data['Pointdata']['id']][$data['Pointdata']['eye_select']]); ?>'  title='Download PDF Reports-new ' href="javascript:;" class="vbs-popover-new"><i class="fa fa-download"></i></a> -->
+
+                                   
+                     <!-- <a data-mid="<?php echo $ptdata_id; ?>" data-type="pdf" data-related='<?php echo $related_ids; ?>' data-downloadsa='<?php echo json_encode($download[$ptdata_id]); ?>'data-downloads='<?php echo json_encode($downloads[$ptdata_id]); ?>'  title='Download OS/OD Merged PDF Reports' href="javascript:;" class="vbs-mergepdf"><i class="fa fa-angle-double-down"></i></a> -->
+										  
+                     <a title="View pdf report" href="<?php echo WWW_BASE.'pointData/'.$data['Pointdata']['file']; ?>" target="_blank"><i class="fa fa-file-pdf-o" aria-hidden="true"></i></a> 
+                      &nbsp;&nbsp;
 										<?php if(WWW_BASE !='https://www.vibesync.com/'){ ?>
-										<a title="Download Dicom Report" href="<?php echo $this->Html->url(['controller'=>'unityreports','action'=>'exportDicom',$data['Pointdata']['patient_id'], $data['Pointdata']['file']]); ?>" target="_blank"><i class="fa fa-image" aria-hidden="true"></i></a>
-                                        <a data-type="dicom" data-related='<?php echo $related_id; ?>' data-downloads='<?php echo json_encode($download[$ptdata_id]); ?>' title='Download OS/OD Dicom Reports' href="javascript:;" class="vbs-popover" ><i class="fa fa-download"></i></a>
-										&nbsp;&nbsp; 
+										<!-- <a title="Download Dicom Report" href="<?php echo $this->Html->url(['controller'=>'unityreports','action'=>'exportDicom',$data['Pointdata']['patient_id'], $data['Pointdata']['file']]); ?>" target="_blank"><i class="fa fa-image" aria-hidden="true"></i></a> --> 
+                    <!-- <a data-type="dicom" data-related='<?php echo $related_id; ?>' data-downloads='<?php echo json_encode($download[$ptdata_id]); ?>' title='Download OS/OD Dicom Reports' href="javascript:;" class="vbs-popover" ><i class="fa fa-download"></i></a> --> 
 									<?php } }?>
 									<?php //pr($Admin); die;
 										if(!empty($Admin) && ($Admin['user_type'] == "Subadmin" || $Admin['user_type'] == "Admin")){
@@ -342,6 +404,20 @@ jQuery(document).ready(function(){
             }, function(){
                 jQuery(".tr-ptdata").removeClass("active");
             }); 
+ jQuery('.btn-popover').hover( function(){
+                //var el = jQuery(this);
+                //var id = el.attr("id");
+                //var type=el.attr("data-type");
+                var related=jQuery(this).attr("data-related");
+                //var downloads=el.attr("data-downloads");
+                jQuery(".tr-ptdata").removeClass("active");
+                jQuery(this).parents('tr').addClass("active");
+                jQuery("#"+related).addClass("active");
+
+
+            }, function(){
+                jQuery(".tr-ptdata").removeClass("active");
+            }); 
  jQuery('.vbs-mergepdf').hover( function(){
                 //var el = jQuery(this);
                 //var id = el.attr("id");
@@ -374,7 +450,7 @@ jQuery(document).ready(function(){
                 		let fileNameWithExtension=val.split("/")[4];
                 		let fileNameWithoutPdf=fileNameWithExtension.split(".")[0];
 										fileNameArray.push(fileNameWithoutPdf);
-										resultedArray.push("/home/jb03iy2ldm4f/public_html/app/webroot/pointData/"+fileNameWithExtension);
+										resultedArray.push("C:/inetpub/wwwroot/portalmi2/app/webroot/pointData/"+fileNameWithExtension);
                 	})
                 }
                 if(fileNameArray){
@@ -389,7 +465,7 @@ jQuery(document).ready(function(){
                 	});
                 	time=time+'_merge.pdf';
                 }    
-                savepdf = "/home/jb03iy2ldm4f/public_html/app/webroot/pointData/"+time;
+                savepdf = "C:/inetpub/wwwroot/portalmi2/app/webroot/pointData/"+time;
     						data.append( 'file_save_path', savepdf);
     						if(downloadp['mergepdf']){
 	                $.ajax({
@@ -403,7 +479,6 @@ jQuery(document).ready(function(){
 	                    }
 									});
 	              }else{
-	              		//downloadAll(downloadp['mergepdf'],downloadp['mergefilename']);
 	              		downloadAll(downloads[type],downloads['filename']);
 	              }
             });       
@@ -513,3 +588,10 @@ jQuery(document).ready(function(){
       });
 	}
 </script>
+<style type="text/css">
+	.menu-right .dropdown-menu{
+		right:0;
+		left:auto;
+		text-align:right;
+	}
+</style>

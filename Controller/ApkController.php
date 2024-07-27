@@ -18,8 +18,7 @@ class ApkController extends AppController {
 	public function admin_index()  
 	{   
         if($this->Session->read('Auth.Admin.user_type') == 'Admin'){
-	     $db=$this->Apk;    //pr($this->request->data); die;
-
+	     $db=$this->Apk;
 // 	        $results = $db->query("SHOW VARIABLES LIKE '%timeout%'", TRUE);
 // echo "<pre>";
 // var_dump($results);
@@ -36,10 +35,10 @@ $results = $db->query("SET session interactive_timeout=28800", FALSE);
 	        if(isset($this->request->data['Apk']['apk'])&&(!empty($this->request->data['Apk']['apk']))){ 
 	             if (!empty($this->request->data['Apk']['apk']['tmp_name']) && is_uploaded_file($this->request->data['Apk']['apk']['tmp_name']) ) { 
                     $filename = basename($this->request->data['Apk']['apk']['name']); 
-                    if(move_uploaded_file($this->data['Apk']['apk']['tmp_name'], WWW_ROOT . DS . 'apk/uploads' . DS . $filename)){
-                          if (!empty($this->request->data['Apk']['video']['tmp_name']) && is_uploaded_file($this->request->data['Apk']['video']['tmp_name']) ) { 
+                    if(move_uploaded_file($this->data['Apk']['apk']['tmp_name'], WWW_ROOT . DS . 'files/apk/uploads' . DS . $filename)){
+                          //if (!empty($this->request->data['Apk']['video']['tmp_name']) && is_uploaded_file($this->request->data['Apk']['video']['tmp_name']) ) { 
                     $video_filename = basename($this->request->data['Apk']['video']['name']);
-                    move_uploaded_file($this->data['Apk']['video']['tmp_name'], WWW_ROOT . DS . 'apk/video' . DS . $video_filename);
+                    move_uploaded_file($this->data['Apk']['video']['tmp_name'], WWW_ROOT . DS . 'files/apk/video' . DS . $video_filename);
                         $this->request->data['Apk']['apk']=$filename;
                         $data=$this->Apk->find('first',array('conditions'=>array('Apk.device_type'=>$this->request->data['Apk']['device_type'], 'Apk.apk_type'=>$this->request->data['Apk']['apk_type'])));
                         $data['Apk']['apk']=$this->request->data['Apk']['apk'];
@@ -56,7 +55,7 @@ $results = $db->query("SET session interactive_timeout=28800", FALSE);
                            $this->Session->setFlash('APK has been added successfully.','message',array('class'=>'message'));
                            unset($this->request->data);
                         }
-                          }  
+                          //}  
                     }
                 }
 						/*$profile_pic=time().$this->request->data['Apk']['apk']['name'];
@@ -83,7 +82,7 @@ $results = $db->query("SET session interactive_timeout=28800", FALSE);
         if(isset($this->request->query['device_type']) && ($this->request->query['device_type']) !=''){
            $conditions[] = array('Apk.device_type' => $this->request->query['device_type']);
         }
-		$datas = $this->Apk->find('all', array('conditions'=>$conditions)); //pr($datas); die;
+		$datas = $this->Apk->find('all', array('conditions'=>$conditions)); 
 		$this->set(compact('datas')); 
         }else{
             $this->redirect(WWW_BASE.'admin/dashboards/index');
@@ -107,8 +106,8 @@ $results = $db->query("SET session interactive_timeout=28800", FALSE);
             }
              $data['Apk']['minimum_version']=$this->request->data['ApkEdit']['minimum_version']; 
              $data['Apk']['instruction']=$this->request->data['ApkEdit']['instruction']; 
-             $data['Apk']['comments']=$this->request->data['ApkEdit']['comments']; 
              $data['Apk']['apk_type']=$this->request->data['ApkEdit']['apk_type']; 
+             $data['Apk']['comments']=$this->request->data['ApkEdit']['comments']; 
              $data['Apk']['updated_at']=date("Y-m-d H:i:s");
              // pr($data);die();
     		if($this->Apk->save($data)){

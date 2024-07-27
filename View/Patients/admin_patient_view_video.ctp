@@ -15,6 +15,9 @@
       </div>
         </div> 
       </div>
+       <?php $Admin = $this->Session->read('Auth.Admin');
+	 	$Office_folder_name = 'OV_'.strtoupper(base_convert( $Admin['office_id'], 10, 32 ));
+	  ?>
       <div class="page-content-wrapper ">
        <div class="container">
           <div class="row">
@@ -60,7 +63,7 @@
 
 											</td>
 										<td>
-										<a href="<?php echo WWW_BASE; ?>files/video/uploads/<?php echo $data['Video']['video'];?>" title="Download Video " download>
+										<a href="<?php echo WWW_BASE; ?>files/video/uploads/<?php echo $Office_folder_name.'/'.$data['Video']['video'];?>" title="Download Video " download>
 			                              <i class="fa fa-download" aria-hidden="true"></i> 
 			                            </a> 
 										</td>
@@ -123,7 +126,7 @@
      <script>
      	function open_video(video_id,patient_id) {
      			$.ajax({
-	          url: "<?php echo WWW_BASE; ?>admin/patients/view_video",
+	          url: "<?php echo WWW_BASE; ?>admin/patients/view_video?" + new Date().getTime()+ new Date().getMilliseconds(),
 	          type: 'POST', 
 	          data: {"patient_id": '<?php echo $patient['Patient']['id'] ?>',"video_id": video_id},
 	          success: function(data){ 

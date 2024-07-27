@@ -14,12 +14,12 @@
 		<img src="<?php echo WWW_BASE.'img/admin/logo2.png';?>" >
 		<h2>Welcome To MMD</h2>
 		<p><?php echo $instruction ?></p>
-		<a href="<?php echo WWW_BASE.'apk/uploads/'.$fileName; ?>" download=""><img src="<?php echo WWW_BASE.'img/admin/android.png';?>"> Update App</a>
+		<a href="<?php echo WWW_BASE.'files/apk/uploads/'.$fileName; ?>" download=""><img src="<?php echo WWW_BASE.'img/admin/android.png';?>"> Update App</a>
 	   	<P style="margin-top: 10px;">To see video for more detail</P>
 	    <button   onclick="showvideo();" style=" width: 150px;  height: 41px; margin-top: 0px;  border-radius: 25px;  background: #156eb7;  border: 0; color: #fff; font-size: 16px; letter-spacing: 1px; font-weight: 500; line-height: 41px;">Video</button>
         
 		<video   controls id="video-player" style=" width: 100%; margin-top: 10px; display:none; visibility:hidden;">
-          <source src="<?php echo WWW_BASE.'apk/video/'.$video; ?>" type="video/mp4">  
+          <source src="<?php echo WWW_BASE.'files/apk/video/'.$video ;?>" type="video/mp4">  
         </video>
 
 	</div>

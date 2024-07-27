@@ -29,7 +29,7 @@
 					<div class="col-md-4">  
 						<div class="form-group">
 							 <label>Device Type *</label>
-							<?php $type_option = array('0'=>'Gear','1'=>'GO','2'=>'PICO_NEO','3'=>'Quest','4'=>'PICO_G2','5'=>'PICO_NEO_3', '6' =>'PUPIL_NEO2','7'=>'PUPIL_NEO3','10'=>'Controller','11'=>'AppManager '); ?>
+							<?php $type_option = array('0'=>'Gear','1'=>'GO','2'=>'PICO_NEO','3'=>'Quest','4'=>'PICO_G2','5'=>'PICO_NEO_3', '6' =>'PUPIL_NEO2','7'=>'PUPIL_NEO3','8'=>'PICO_G3','10'=>'Controller','11'=>'AppManager ','13'=>'Auto Download'); ?>
 										<?php echo $this->Form->input('device_type',array('options' =>$type_option,'empty'=>'Select Device Type','div'=>false,'legend'=>false,'class' => 'form-control','label' => false, 'data-live-search' => 'true', 'data-selected-text-format' => 'count > 3')); ?>
 						</div>
 					</div>
@@ -94,7 +94,7 @@
 				<div class="col-md-3"> 
 					<div class="form-group"> 
 					 <label>Device Type *</label>
-						<?php $type_option = array('0'=>'Gear','1'=>'GO','2'=>'PICO_NEO','3'=>'Quest','4'=>'PICO_G2','5'=>'PICO_NEO_3', '6' =>'PUPIL_NEO2','7'=>'PUPIL_NEO3','10'=>'Controller','11'=>'AppManager','13'=>'Auto Download'); ?>
+						<?php $type_option = array('0'=>'Gear','1'=>'GO','2'=>'PICO_NEO','3'=>'Quest','4'=>'PICO_G2','5'=>'PICO_NEO_3', '6' =>'PUPIL_NEO2','7'=>'PUPIL_NEO3','8'=>'PICO_G3','10'=>'Controller','11'=>'AppManager','13'=>'Auto Download'); ?>
 						<?php echo $this->Form->input('device_type',array('options' =>$type_option,'empty'=>'Select Device Type','div'=>false,'legend'=>false,'class' => 'form-control','label' => false, 'data-live-search' => 'true', 'data-selected-text-format' => 'count > 3')); ?>
 					</div>
 				</div>
@@ -127,7 +127,7 @@
 				<div class="col-md-6">  
 					<div class="form-group">
 				 		<label>What's new changes</label>
-					 	<?php echo $this->Form->input('comments', array('type' => 'textarea', 'class' => 'form-control', 'label' => false, 'div' => false, 'placeholder' => "Enter comments", 'required' => true)); ?>
+					 	<?php echo $this->Form->input('comments', array('type' => 'textarea', 'class' => 'form-control', 'label' => false, 'div' => false, 'placeholder' => "Enter comments", 'required' => true,'readonly' => 'readonly')); ?>
 					</div>
 				</div>
 				<div class="form-group m-b-0 col-md-12">
@@ -189,7 +189,7 @@
 							</td>
 							<?php } ?> 
 							<td>
-							<a href="<?php echo WWW_BASE; ?>apk/uploads/<?php echo $data['Apk']['apk'];?>" title="Download apk " download>
+							<a href="<?php echo WWW_BASE; ?>files/apk/uploads/<?php echo $data['Apk']['apk'];?>" title="Download apk " download>
 		                      <i class="fa fa-download" aria-hidden="true"></i>
 		                      <a href="javascript:void(0)" title="Edit " onclick="openeditform(<?php echo $data['Apk']['id'];?>,'<?php echo $data['Apk']['build'];?>','<?php echo $data['Apk']['version'];?>','<?php echo $data['Apk']['minimum_version'];?>',<?php echo $data['Apk']['device_type'];?>,<?php echo $data['Apk']['apk_type'];?>,'<?php echo $data['Apk']['instruction'];?>',`<?php echo $data['Apk']['comments']; ?>`);">&nbsp;&nbsp;
 		                      <i class="fa fa-pencil" aria-hidden="true"></i>

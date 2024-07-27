@@ -49,6 +49,11 @@ class SupportController extends AppController {
 		if(!empty($this->request->query['status'])){
 			$conditions['Support.status']=$this->request->query['status'];
 		}
+		if (!empty($this->request->query['page_no'])) {
+		    $this->request->params['named']['page'] = $this->request->query['page_no'];
+		    $page_no = $this->request->query['page_no'];
+		    $this->set(compact('page_no'));
+		}
 		if(!empty($this->request->query['search'])){
 			//echo "yes";die;
 			$search = strtolower(trim($this->request->query['search']));
@@ -101,7 +106,7 @@ class SupportController extends AppController {
 				try{
 					  
 					$Email = new CakeEmail();
-					$Email->config('smtp');
+					$Email->config('gmail');
 					$Email->viewVars($data);
 					$Email->template('new_ticket');
 					$Email->from(array(FROM_EMAIL=>'MMD')); 
@@ -164,6 +169,7 @@ class SupportController extends AppController {
 				$data = $this->Support->find('first',array('conditions'=>array('Support.id'=>$this->Support->id)));  
 				try{
 					$Email = new CakeEmail();
+					$Email->config('gmail');
 					$Email->viewVars($data);
 					$Email->template('new_ticket');
 					$Email->from(array(FROM_EMAIL=>'MMD')); 
@@ -175,6 +181,94 @@ class SupportController extends AppController {
 				}catch(Exception $e){
 					/*echo "<pre>";
 					print_r($e);die();*/
+				}
+			//	echo "mail send";
+
+
+				$this->Session->setFlash('Ticket Edit successfully.','message',array('class'=>'message'));
+				unset($this->request->data);
+			}else{
+				$this->Session->setFlash('Ticket not Edited.','message',array('class'=>'message'));
+
+			}
+		} 
+		
+		$users_da=array();
+		$this->request->data = $editData;
+		//$users_data=array();
+		$company_id = $this->request->data['Support']['office_id'];
+		if (!empty($company_id)) {
+			$users_data = $this->User->find('all', array('conditions' => array('User.office_id' => $company_id), 'fields' => array('User.*')));
+			foreach ($users_data as $k => $user) {
+				if ($user['User']['user_type'] == "Subadmin") {
+					$users_da[$user['User']['id']] = $user['User']['first_name'] . " (Subadmin)";
+				} else {
+					$users_da[$user['User']['id']] = $user['User']['first_name'];
+				}
+			} 
+		}
+		
+		
+		$category = $this->Category->find('list',array('fields'=>array('Category.id','Category.name')));
+		  
+		$this->set(compact('test_c','users_da','category','data')); 
+	}
+	
+	public function admin_edit2($id)  
+	{     
+		$editData = "";
+		$test_c = '';  
+		if($id){
+		$editData = $this->Support->find('first',array('conditions'=>array('Support.id'=>$id)));
+		//pr($editData['Support']['title']); die;
+		
+		}
+		if($this->request->is(array('post','put'))) { 
+			if (!empty($this->request->data['Support']['file']['tmp_name']) && is_uploaded_file($this->request->data['Support']['file']['tmp_name']) ) { 
+				$filename =  time().'_'.basename($this->request->data['Support']['file']['name']); 
+				if(move_uploaded_file($this->data['Support']['file']['tmp_name'], WWW_ROOT . DS . 'support/uploads' . DS . $filename)){ 
+					$this->request->data['Support']['file']=$filename; 	 
+				}else{
+					$this->request->data['Support']['file']='';
+				} 
+			}else{
+				$this->request->data['Support']['file']='';
+			} 
+			if($this->Auth->user('user_type')!='Admin' && $this->Auth->user('user_type')!='SupportSuperAdmin' && $this->Auth->user('user_type')!='RepAdmin'){
+				$this->request->data['Support']['user_id']=$this->Auth->user('id');
+				$this->request->data['Support']['office_id']=$this->Auth->user('office_id');
+			}
+			//$ref_no=$this->admin_genrate_refrence_no();
+			//$this->request->data['Support']['refrance_no']=$ref_no;
+			 
+			if($result=$this->Support->save($this->request->data)){
+
+				$data = $this->Support->find('first',array('conditions'=>array('Support.id'=>$this->Support->id))); 
+				//$data['User']['email']='ramin@micromedinc.com';
+				
+				try{
+					$Email = new CakeEmail('smtp');
+					
+					$Email->config('smtp');
+					$Email->viewVars($data);
+					$Email->template('new_ticket');
+					$Email->from(array(FROM_EMAIL=>'MMD')); 
+					$Email->to('support@micromedinc.com');
+					//$Email->to('madan@braintechnosys.com');
+					$Email->subject('New support ticket');
+					$Email->emailFormat('html');
+					$Email->send(); 
+					
+					/*$Email = new CakeEmail();
+					$Email->config('gmail');
+					$Email->from(array('no_reply@micromedinc.com' => 'MMD'));
+					$Email->to('ramin@micromedinc.com');
+					$Email->subject('About');
+					$Email->send('My message'); */
+				}catch(Exception $e){
+					
+					//print_r(data);
+					print_r($e);die();
 				}
 			//	echo "mail send";
 
@@ -281,12 +375,22 @@ class SupportController extends AppController {
 				$data['Support']['refrance_no']=$data2['Support']['refrance_no'];
 				$data['User']=$data2['User']; 
 				try{
-					$Email = new CakeEmail();
+					/*$Email = new CakeEmail();
 					$Email->viewVars($data);
 					$Email->template('reply_ticket');
 					$Email->from(array(FROM_EMAIL=>'MMD')); 
 					$Email->to($data['User']['email']);
 					$Email->subject('Ticket Update');
+					$Email->emailFormat('html');
+					$Email->send();*/
+					$Email = new CakeEmail();
+					$Email->config('gmail');
+					$Email->viewVars($data);
+					$Email->template('reply_ticket');
+					$Email->from(array(FROM_EMAIL=>'MMD')); 
+					$Email->to('support@micromedinc.com');
+					//$Email->to('madan@braintechnosys.com');
+					$Email->subject('New support ticket');
 					$Email->emailFormat('html');
 					$Email->send();
 				}catch(Exception $e){
@@ -475,6 +579,7 @@ class SupportController extends AppController {
 		}
 		$total_count = $this->Support->find('count',array('conditions'=>$conditions));
 		$total_see = $this->SupportSee->find('count',array('conditions'=>array('SupportSee.user_id'=>$this->Auth->user('id'))));
+
 		echo ($total_count-$total_see);
 		exit(); 
 	}

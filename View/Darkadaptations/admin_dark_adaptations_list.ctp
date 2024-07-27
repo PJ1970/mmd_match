@@ -47,6 +47,8 @@
 
 								<div class="col-md-4">
 									<?php echo $this->Form->input('search',array('div' => false,'label' => false,'value' => @$search,'type' =>'text','class' => 'form-control','placeholder' => 'Search','maxlength' => '100')); ?>
+
+									<?php echo $this->Form->input('patientreport',array('div' => false,'label' => false,'value' => @$patientreport,'type' =>'hidden','class' => 'form-control','placeholder' => '','maxlength' => '100')); ?>
 								</div>
 
 								<div class="form-group m-b-0 col-md-4">
@@ -97,10 +99,10 @@
 
 								switch ($ch){
 									case 0:
-									echo "OD";
+									echo "OS";
 									break;
 									case 1:
-									echo "OS";
+									echo "OD";
 									break;
 									case 2:
 									echo "OU";

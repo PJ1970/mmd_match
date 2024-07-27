@@ -14,29 +14,46 @@
                 ?>
     <div class="page-header-title">
       <div class="row">
-          <div class="col-sm-3 mts-box-1">
-             <h3 class="page-title2" style="color: #ffffff; margin-top:6px;">Manage Patients<span class="pull-right" style="color:white"></span></h3>
-          </div>
-
-          <div class="col-sm-2 mts-box-1">
-             <h4 class="page-title2" style="color: #ffffff;">Duration: <span id="setting-duration" class="" style="color: #ffffff;"></span></h4>
-          </div>
-          <div class="col-sm-2 mts-box-1">
-             <h4 class="page-title2" style="color: #ffffff;">Name: <?php echo $data['Patient']['first_name']." ".$data['Patient']['last_name'] ?></h4>
-          </div>
-          <div class="col-sm-2 mts-box-1">
-           <?php if (in_array(14, $checked_data)) { echo "<a style='width: 57px; background: #7e7e7e; color: white; border: 2px solid white;  margin-top: 3px;'   href='".WWW_BASE."admin/patients/start_test/".$data['Patient']['id']."'  class='btn' title='Start VF Test' >VF</a>"; }?>
-            <?php if (in_array(15, $checked_data)) { echo "<a style='width: 57px; background: #7e7e7e; color: white; border: 2px solid white;  margin-top: 3px;' class='btn'   href='".WWW_BASE."admin/patients/start_test_fdt/".$data['Patient']['id']."' title='Start FDT Test' >FDT</a>"; }?>
-                 <?php if (in_array(23, $checked_data)) { echo "<a style='width: 57px; background: #7e7e7e; color: white; border: 2px solid white;  margin-top: 3px;' href='".WWW_BASE."admin/patients/start_test_da/".$data['Patient']['id']."' title='Start DA Test' class='btn' >DA</a>"; }?>
-               <?php if (in_array(25, $checked_data)) { echo "<a style='width: 57px; background: #3292e0; color: white; border: 2px solid #f3ecec; margin-top: 3px;' href='".WWW_BASE."admin/patients/start_test_vs/".$data['Patient']['id']."' title='Start VS Test' class='btn' >VS</a>"; }?>
-                <?php if (in_array(34, $checked_data)) { echo "<a style='width: 57px; background: #7e7e7e; color: white; border: 2px solid white;  margin-top: 3px;' href='".WWW_BASE."admin/patients/start_test_pup/".$data['Patient']['id']."' title='Start Pupilometer Test' class='btn ' >PUP</a>"; }?>
-               </div>
-          <div class="col-sm-3 mts-box-1">
-             <h4 class="page-title"> <span class="pull-right" style="color:white"></span></h4>
-          </div>
+         
+        <div class="col-sm-2 mts-box-1">
+          <h4 class="page-title2" style="background-color: #93b2c1;border-radius: 11px; padding-left: 10px;color: #000000;font-weight: 500; padding-top: 3px; padding-bottom: 3px;">Duration: <span id="setting-duration" class=""
+                                          style="color: #ffffff;"></span></h4>
+        </div>
+        <div class="col-sm-3 mts-box-1">
+          <h4 class="page-title2" id="patients_name" style="background-color: #93b2c1;border-radius: 11px; padding-left: 10px;color: #000000;font-weight: 500; padding-top: 3px; padding-bottom: 3px;">
+            Name: <?php echo $data['Patient']['first_name'] . " " . $data['Patient']['last_name'] ?></h4>
+        </div>
+        <div class="col-sm-2 mts-box-1">
+            <h4 class="page-title2" id="patients_dob" style="background-color: #93b2c1;border-radius: 11px; padding-left: 10px;color: #000000;font-weight: 500; padding-top: 3px; padding-bottom: 3px;">
+            DOB: <?php echo $data['Patient']['dob'] ?></h4>
+        </div>
+        <div class="col-sm-2 mts-box-1">
+             <h4 class="page-title2" id="patients_id_number" style="background-color: #93b2c1;border-radius: 11px; padding-left: 10px;color: #000000;font-weight: 500; padding-top: 3px; padding-bottom: 3px;">
+            Patient ID: <?php echo $data['Patient']['id_number'] ?></h4>
+        </div>
+        <div class="col-sm-3 mts-box-1">
+          <h4 class="page-title"><span class="pull-right" style="color:white"></span></h4>
+        </div>
       </div>
-
-
+            <div class="row">
+                <div class="col-sm-12 mts-box-1" style="text-align:center;">
+          <?php if (in_array(14, $checked_data)) {
+            echo "<a style='width: 75px; background: #7e7e7e; color: white; border: 2px solid #f3ecec; margin-top: 3px;'   href='" . WWW_BASE . "admin/patients/start_test/" . $data['Patient']['id'] . "' class='btn' title='Start VF Test' >VF</a>";
+          } ?>
+          <?php if (in_array(15, $checked_data)) {
+            echo "<a style='width: 75px; background: #7e7e7e; color: white; border: 2px solid white;  margin-top: 3px;' class='btn'   href='" . WWW_BASE . "admin/patients/start_test_fdt/" . $data['Patient']['id'] . "' title='Start FDT Test' >FDT</a>";
+          } ?>
+          <?php if (in_array(23, $checked_data)) {
+           // echo "<a style='width: 75px; background: #7e7e7e; color: white; border: 2px solid white;  margin-top: 3px;' href='" . WWW_BASE . "admin/patients/start_test_da/" . $data['Patient']['id'] . "' title='Start DA Test' class='btn' >DA</a>";
+          } ?>
+          <?php if (in_array(25, $checked_data)) {
+            echo "<a style='width: 75px; background: #3292e0; color: white; border: 2px solid white;  margin-top: 3px;' href='javascript:void(0);' title='Start VS Test' class='btn ' >VS</a>";
+          } ?>
+          <?php if (in_array(34, $checked_data)) {
+           // echo "<a style='width: 75px; background: #7e7e7e; color: white; border: 2px solid white;  margin-top: 3px;' href='" . WWW_BASE . "admin/patients/start_test_pup/" . $data['Patient']['id'] . "' title='Start Pupilometer Test' class='btn ' >PUP</a>";
+          } ?>
+        </div>
+            </div>
 
     </div>
 <?php
@@ -107,7 +124,7 @@ socket_close($socket);*/
                             <option value="<?php echo $value['TestDevice']['id'] ?>" <?php echo ($count==1)?'selected':'' ?> <?php echo (!empty($user_default))?($user_default['UserDefault']['device_id'] == $value['TestDevice']['id'])?'selected':'':'' ?> ><?php echo $value['TestDevice']['name'] ?></option>
                             <?php } ?>
                          </select>
-                          <?php foreach ($test_device as $key => $value) {
+                          <?php foreach ($test_device as $key => $value) { //pr($value);
                          if($count==1 || $user_default['UserDefault']['device_id'] == $value['TestDevice']['id']){  ?>
                               <script type="text/javascript">
                                 device_type='<?php echo $value['TestDevice']['id'] ?>';
@@ -122,18 +139,13 @@ socket_close($socket);*/
                       <div class="dropdown">
                          <select class="mmd-dash-btn" id="language"  onChange="updateDevice();" style="height: 30px;">
 
-                            <option value="0">Select Language</option>
-                            <option value="1" <?php echo (!empty($user_default))?($user_default['UserDefault']['language_id'] == 1)?'selected':'':'' ?>>English</option>
-                            <option value="2" <?php echo (!empty($user_default))?($user_default['UserDefault']['language_id'] == 2)?'selected':'':'' ?>>Spanish</option>
-                            <option value="3" <?php echo (!empty($user_default))?($user_default['UserDefault']['language_id'] == 3)?'selected':'':'' ?>>French</option>
-                            <option value="4" <?php echo (!empty($user_default))?($user_default['UserDefault']['language_id'] == 4)?'selected':'':'' ?>>Portuguese</option>
-                            <option value="5" <?php echo (!empty($user_default))?($user_default['UserDefault']['language_id'] == 5)?'selected':'':'' ?>>Arabic</option>
-                            <option value="6" <?php echo (!empty($user_default))?($user_default['UserDefault']['language_id'] == 6)?'selected':'':'' ?>>Hindi</option>
-                            <option value="7" <?php echo (!empty($user_default))?($user_default['UserDefault']['language_id'] == 7)?'selected':'':'' ?>>Chinese-Mandarin</option>
-                            <option value="8" <?php echo (!empty($user_default))?($user_default['UserDefault']['language_id'] == 8)?'selected':'':'' ?>>Vietnamese</option>
-                             <option value="9" <?php echo (!empty($user_default))?($user_default['UserDefault']['language_id'] == 9)?'selected':'':'' ?>>Chinese-Cantonese</option>
-                          <!--   <option value="8" <?php echo (!empty($user_default))?($user_default['UserDefault']['language_id'] == 8)?'selected':'':'' ?>>No Voice Instructions</option> -->
-                         </select>
+                           <option value="0">Select Language</option>
+                              <?php foreach($language_datas as $key => $value){ ?> 
+                              <option value="<?php echo $value['language_id'] ?>" <?php echo (!empty($user_default)) ? ($user_default['UserDefault']['language_id'] == $value['language_id']) ? 'selected' : '' : '' ?>>
+                                <?php echo $value['name'] ?>
+                              </option>
+                              <?php } ?> 
+                            </select>
 
                       </div>
                     </div>
@@ -590,11 +602,11 @@ socket_close($socket);*/
                                 </div>
                                 <div class="col-sm-3">
                                    <select class="mmd-dash-btn m-0" id="cs" style="visibility: hidden; height:26px;" onchange="changeCS(this)">
-                                    <option value="Red">Red</option>
-                                    <option value="Green">Green</option>
-                                    <option value="Blue">Blue</option>
+                                    <!-- <option value="Red">Red</option> -->
+                                    <!-- <option value="Green">Green</option> -->
+                                    <!-- <option value="Blue">Blue</option> -->
                                     <option value="Gray">Gray</option>
-                                   	<option value="R+G+B">R+G+B</option>
+                                   	<!-- <option value="R+G+B">R+G+B</option> -->
                                   </select>
                                 </div>
                                 <div class="col-sm-3 coustom_checkbox">
@@ -1058,7 +1070,25 @@ socket_close($socket);*/
   </div>
 </div>
 </div>
+<script>
+function setRelativeWidth(){
 
+   let i = 0;
+    $('.page-header-title .mts-box-1').each(function(){
+        i = i + 1;
+        const width = $(this).outerWidth();
+        if(i<=4){
+            const element = document.querySelector(`.item.item${i}`);
+            element.style.setProperty('--rel-width', `${width}px`);
+        }
+    
+    }); 
+    $('body').addClass('start_test_page');
+}
+setRelativeWidth();
+
+window.addEventListener('resize', setRelativeWidth);
+</script>
 <script>
 
 
@@ -1332,7 +1362,7 @@ socket_close($socket);*/
     });
 }
   jQuery(document).ready(function(){
-
+$(".test-patient-section").css('visibility', 'visible');
 $('.reload_page').on('click',function(){
   window.location.replace('');
   });
@@ -1485,7 +1515,7 @@ dataCaptured=true;
       }
 
       if ( (restartReady) && deviceId!='' && lang!=0){
-          if(device_type==2 || device_type==4 || device_type==5){
+          if(device_type==2 || device_type==4 || device_type==5 || device_type==8){
 
              if(dataCaptured==false){
               check_blink='';
@@ -1841,14 +1871,13 @@ dataCaptured=true;
   if(val1==true || val2 ==true){
       document.getElementById("cs").style.visibility = "visible";
       if(cs_test_name==''){
-      cs_test_name="Green";
-      document.getElementById("cs").value="Green";
+        cs_test_name="Green";
+        document.getElementById("cs").value="Gray";
       }
   }else{
     cs_test_name='';
-
-     document.getElementById("cs").value = "Red";
-       document.getElementById("cs").style.visibility = "hidden";
+    document.getElementById("cs").value = "Red";
+    document.getElementById("cs").style.visibility = "hidden";
   }
  }
  function changeFDT(argument) {
@@ -1950,7 +1979,6 @@ dataCaptured=true;
 
  const checkblenking = async function(){
           if(saveresult==false && check_blink!='' && start_status==1){
-             console.log(check_blink);
             if(check_blink=='STEREOPSIS_OU'){
               if(check_blink_status==0){
               check_blink_status=1;
@@ -2024,7 +2052,6 @@ dataCaptured=true;
         setTimeout(function(){get_deviceData();}, 400);
     }).responseText;
    obj = JSON.parse(feedback);
-   console.log('end4='+cleardata);
    if(cleardata==true)
    for (var key in obj.message) {
 
@@ -2151,7 +2178,6 @@ if(obj.message!='No data'){
         await Promise.all([promises]);
     }
     else if(res[0]=='VS' && res[1]=='SCREENING_START'){
-        console.log('SCREENING_START message');
     	  setpixcelVF_START_BUTTON_PRESSED('item_new');
     } else{
 
@@ -2844,14 +2870,9 @@ function beep(vol, freq, duration){
     if(res[0]<=31){
       dob=res[2]+'-'+res[1]+'-'+res[0];
     }
-    console.log(res);
-    console.log('dob='+dob);
     var ageDifMs = Date.now() - Date.parse(dob);
-    console.log('dob1='+ageDifMs);
     var ageDate = new Date(ageDifMs); // miliseconds from epoch
-    console.log('dob2='+ageDate);
     var age=Math.abs(ageDate.getUTCFullYear() - 1970);
-     console.log('dob3='+age);
     if ((age > 0) && (age <= 30)){
        agegroup = 1;
      }else if ((age > 30) && (age <= 50)){
@@ -3539,9 +3560,6 @@ function deviceuse(staff_id, user_id, device_id) {
       cs_suboption(Vs.cs_os,Vs.cs_od);
     }
     getPrevTest(Vs.fdt_os,Vs.fdt_od);
-    console.log(a);
-    console.log(name);
-     console.log(Vs);
    }
     function checkbotheye(name) {
      // body...
@@ -3618,7 +3636,6 @@ function deviceuse(staff_id, user_id, device_id) {
  }
   }
   function TestData(type=0) {
-    console.log(cleardata);
     $.ajax({
       url: "<?php echo WWW_BASE; ?>admin/patients/checkdevicestatus/3554",
       type: 'POST',
@@ -3734,7 +3751,6 @@ function deviceuse(staff_id, user_id, device_id) {
                 MasterRecordList:MasterRecordList,
               };
 
-        console.log(MasterRecordData);
 var myJSON = JSON.stringify(obj);
 $.ajax({
       url: "<?php echo WWW_BASE; ?>admin/patients/addTestStart2/3554",
@@ -3769,7 +3785,6 @@ $.ajax({
           }else{
             cleardata=false;
           }
-           console.log('end1='+cleardata);
           if(startTestStatus==1){
             startTime=0;
             dtStartTime=new Date().getTime();
@@ -3835,7 +3850,6 @@ $.ajax({
                 MasterRecordList:MasterRecordList,
               };
 
-        console.log(obj);
 var myJSON = JSON.stringify(obj);
 $.ajax({
       url: "<?php echo WWW_BASE; ?>admin/patients/addTestStart2/3554",
@@ -3870,7 +3884,6 @@ $.ajax({
           }else{
             cleardata=false;
           }
-          console.log('end2='+cleardata);
           if(startTestStatus==1){
             startTime=0;
             dtStartTime=new Date().getTime();
@@ -3893,8 +3906,6 @@ $.ajax({
  }
       }
     });
- console.log('end3='+cleardata);
-
   }
 
   function updateStatus() {

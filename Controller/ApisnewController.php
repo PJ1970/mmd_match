@@ -6,7 +6,7 @@ App::uses('BlowfishPasswordHasher', 'Controller/Component/Auth');
 ini_set('max_execution_time', 0);
 class ApisnewController extends AppController
 {
-	public $uses = array('User', 'Patients', 'Tests', 'UserNotification', 'UserDevice', 'TestReport', 'TestDevice', 'Practice', 'Office', 'Files', 'VfPointdata', 'Pointdata', 'Masterdata', 'MasterPointdata', 'DevicePreference', 'Diagnosis', 'Cms', 'DarkAdaption', 'DaPointData', 'UserPreset', 'DeviceMessage', 'UserPresetData', 'Apk', 'CsPointdata', 'ReportRequestBackup', 'DevicMessage', 'StbTest', 'StbPointdata', 'DarkAdaptionnew', 'Patientsnew', 'ActPointdata', 'ActTest', 'VtTest', 'Video', 'PatientVideoViews');
+	public $uses = array('User', 'Patients', 'Tests', 'UserNotification', 'UserDevice', 'TestReport', 'TestDevice', 'Practice', 'Office', 'Files', 'VfPointdata', 'Pointdata', 'Masterdata', 'MasterPointdata', 'DevicePreference', 'Diagnosis', 'Cms', 'DarkAdaption', 'DaPointData', 'UserPreset', 'DeviceMessage', 'UserPresetData', 'Apk', 'CsPointdata', 'ReportRequestBackup', 'DevicMessage', 'StbTest', 'StbPointdata', 'DarkAdaptionnew', 'Patientsnew', 'ActPointdata', 'ActTest', 'VtTest', 'Video', 'PatientVideoViews','PupDiagnosis','PatientDiagnosis');
 	var $helpers = array('Html', 'Form');
 	public $components = array('Auth', 'Session', 'Email', 'Common');
 	function beforeFilter()
@@ -25,9 +25,35 @@ class ApisnewController extends AppController
 		return ($file_name);
 	}
 	//This function for PDF uploading
-	public function base64_to_pdf($base64_string, $folder_name, $file_unique_no = 0)
+	public function base64_to_pdf($base64_string, $folder_name, $file_unique_no = 0, $patient_first_name=null, $patient_last_name=null, $test_name=null, $eye_select=null, $pid=null)
 	{
-		$file_name = time() . '_' . $file_unique_no . '.pdf';
+		$name='';
+		if($patient_first_name !=null){
+			$name  .= $patient_first_name.'-';
+		}
+		if($patient_last_name !=null){
+			$name  .= $patient_last_name.'-';
+		}
+		if($test_name !=null){
+			$name  .= $test_name.'-';
+		}
+		if($eye_select !=null){
+			if($eye_select==0){
+				$name  .= 'OS-';
+			}
+			if($eye_select==1){
+				$name  .= 'OD-';
+			}
+			if($eye_select==2){
+				$name  .= 'OU-';
+			}
+			
+		}
+		if($pid !=null){
+			$name  .= $pid.'-';
+		}
+
+		$file_name = $name.time() . '_' . $file_unique_no . '.pdf';
 		if(isset($_SERVER['HTTP_HOST']) && $_SERVER['HTTP_HOST'] == 'localhost') {
 			$output_file = ROOT . '/app/webroot/' . $folder_name . '/' . $file_name;
 		} else {
@@ -89,6 +115,23 @@ class ApisnewController extends AppController
 	public function isAuthorized($user)
 	{
 		$userDeatils = $this->User->find('first', ['conditions' => array('User.username' => @$user['username'])]);
+		date_default_timezone_set('UTC');
+        $UTCDate = date('Y-m-d H:i:s');
+
+		if(isset($userDeatils['User']['lock_time']) && $userDeatils['User']['lock_time']!=null && $userDeatils['User']['lock_time'] > $UTCDate){
+			$response_array = array('message' => 'Your account is lock for 24 hr. Please contact to admin', 'status' => 0);
+			header('Content-Type: application/json');
+			echo json_encode($response_array);
+			die;
+			exit;
+		}
+
+		if(isset($userDeatils['Office']['high_security']) && $userDeatils['Office']['high_security']==1){
+			if(isset($userDeatils['User']['password_expiry_date']) && $userDeatils['User']['password_expiry_date']!=null && $userDeatils['User']['password_expiry_date'] < $UTCDate){
+				$this->Session->setFlash(__('Your password is expired. Please contact to admin or reset it.'),'message');
+				return $this->redirect(array('action'=>'admin_login'));
+			}
+		}
 		if (!empty($userDeatils)) {
 			if ($userDeatils['User']['user_type'] ==='Admin'){
 				return true;
@@ -101,6 +144,127 @@ class ApisnewController extends AppController
 			return true;
 		}
 	}
+	public function checkDeviceLock($testDevice){
+		date_default_timezone_set('UTC');
+        $UTCDate = date('Y-m-d H:i:s');
+
+		if(isset($testDevice['TestDevice']['lock_time']) && $testDevice['TestDevice']['lock_time']!=null && $testDevice['TestDevice']['lock_time'] > $UTCDate){
+			$response_array = array('message' => 'Your Device is lock for 24 hr. Please contact to admin', 'status' => 0);
+			header('Content-Type: application/json');
+			echo json_encode($response_array);
+			die;
+			exit;
+		}
+	}
+	  public function recordLog($username, $event, $source, $timezone=''){
+    	$this->loadModel('UserLoginLog');
+    	 
+    	$userDeatils = $this->User->find('first', ['conditions' => array('User.username' => $username)]);
+    	$ip_address = $this->request->clientIp();
+    	date_default_timezone_set('UTC');
+        $UTCDate = date('Y-m-d H:i:s');
+
+    	$user_login_log['UserLoginLog']['UTCtimestamp'] = $UTCDate;
+    	$user_login_log['UserLoginLog']['timezone'] = $timezone;
+    	$user_login_log['UserLoginLog']['username'] = $username;
+    	$user_login_log['UserLoginLog']['action'] = $event;
+    	$user_login_log['UserLoginLog']['ip_address'] = $ip_address;
+    	$user_login_log['UserLoginLog']['source'] = $source;
+    	$user_login_log['UserLoginLog']['office_id'] = $userDeatils['User']['office_id']??null; 
+    	$this->UserLoginLog->save($user_login_log); 
+    }
+
+     public function recordDeviceLog($username, $event, $source, $timezone=''){
+    	$this->loadModel('UserLoginLog');
+    	 
+    	$testDevice = $this->TestDevice->find('first', ['conditions' => array('TestDevice.mac_address' => $username)]);
+    	$ip_address = $this->request->clientIp();
+    	date_default_timezone_set('UTC');
+        $UTCDate = date('Y-m-d H:i:s');
+
+    	$user_login_log['UserLoginLog']['UTCtimestamp'] = $UTCDate;
+    	$user_login_log['UserLoginLog']['timezone'] = $timezone;
+    	$user_login_log['UserLoginLog']['username'] = $username;
+    	$user_login_log['UserLoginLog']['action'] = $event;
+    	$user_login_log['UserLoginLog']['ip_address'] = $ip_address;
+    	$user_login_log['UserLoginLog']['source'] = $source;
+    	$user_login_log['UserLoginLog']['office_id'] = $testDevice['TestDevice']['office_id']??null; 
+    	$this->UserLoginLog->save($user_login_log); 
+    }
+     
+    public function resetLock($username){
+		 $userDeatils = $this->User->find('first', ['conditions' => array('User.username' => $username)]);
+		 $this->User->id = $userDeatils['User']['id'];
+		 $this->User->saveField('lock_counter_time',null);
+		 $this->User->saveField('lock_time',null);
+		 $this->User->saveField('lock_counter',0);
+
+    }
+    public function updateLock($username){
+		 $userDeatils = $this->User->find('first', ['conditions' => array('User.username' => $username)]); 
+		 if(!empty($userDeatils)){
+		 	date_default_timezone_set('UTC');
+        	$UTCDate = date('Y-m-d H:i:s');
+        	$UTCDateNext = date('Y-m-d H:i:s', time() - 86400);
+
+		 	if($userDeatils['User']['lock_counter_time'] == null || $userDeatils['User']['lock_counter_time'] < $UTCDateNext){
+		 	  	$data['lock_counter_time'] = $UTCDate;
+		 		$data['lock_counter'] = 1;
+		 	 
+		 	}else if($userDeatils['User']['lock_counter'] >= 9){
+		 		 $data['lock_time'] = $UTCDateNext = date('Y-m-d H:i:s', time() + 86400); 
+				 $data['lock_counter'] = 10;  
+				 $response_array = array('message' => 'Your Device is lock for 24 hr. Please contact to admin', 'status' => 0);
+				header('Content-Type: application/json');
+				echo json_encode($response_array);
+				die;
+				exit;
+		 	}else{
+		 		$data['lock_counter'] = $userDeatils['User']['lock_counter']+ 1;
+		 	}
+		 	$this->User->id = $userDeatils['User']['id'];
+		 	if(isset($data['lock_counter_time'])){
+		 		$this->User->saveField('lock_counter_time',$data['lock_counter_time']);
+		 	}
+		 	if(isset($data['lock_time'])){
+		 		$this->User->saveField('lock_time',$data['lock_time']);
+		 	}
+		 	if(isset($data['lock_counter'])){
+		 		$this->User->saveField('lock_counter',$data['lock_counter']);
+		 	} 
+		 }
+    }
+
+    public function resetDeviceLock($mac_address){
+    	$testDevice = $this->TestDevice->find('first', ['conditions' => array('TestDevice.mac_address' => $mac_address)]);
+		$testDevice['TestDevice']['lock_counter_time'] = null;
+		$testDevice['TestDevice']['lock_time'] = null;
+		$testDevice['TestDevice']['lock_counter'] =0;
+		$this->TestDevice->save($testDevice);
+
+    }
+    public function updateDeviceLock($mac_address){
+		 $testDevice = $this->TestDevice->find('first', ['conditions' => array('TestDevice.mac_address' => $mac_address)]);  
+		 if(!empty($testDevice)){
+		 	date_default_timezone_set('UTC');
+        	$UTCDate = date('Y-m-d H:i:s');
+        	$UTCDateNext = date('Y-m-d H:i:s', time() - 86400);
+
+		 	if($testDevice['TestDevice']['lock_counter_time'] == null || $testDevice['TestDevice']['lock_counter_time'] < $UTCDateNext){
+		 	  	$testDevice['TestDevice']['lock_counter_time'] = $UTCDate;
+		 		$testDevice['TestDevice']['lock_counter'] = 1; 
+		 	}else if($testDevice['TestDevice']['lock_counter'] >= 9){
+		 		 $testDevice['TestDevice']['lock_time'] = $UTCDateNext = date('Y-m-d H:i:s', time() + 86400); 
+				 $testDevice['TestDevice']['lock_counter'] = 10; 
+				 $this->Session->setFlash(__('Your Device is lock for 24 hr. Please contact to admin'),'message');
+		 	}else{ 
+		 		$testDevice['TestDevice']['lock_counter'] = $testDevice['TestDevice']['lock_counter']+ 1;
+		 	} 
+		 	$this->TestDevice->save($testDevice);
+		 	
+		 }
+    }
+
 	//This is the function for securing API'same
 	public function check_key()
 	{
@@ -143,15 +307,19 @@ class ApisnewController extends AppController
 					$username = trim($input_data['username']);
 					$user_detail = $this->User->find('first', array(
 						'conditions' => array('User.username' => $username),
-						'fields' => array('User.id', 'User.first_name', 'User.password', 'User.middle_name', 'User.last_name', 'User.username', 'User.user_type', 'User.email', 'User.dob', 'User.phone', 'User.gender', 'User.office_id', 'User.id_no', 'User.notes', 'User.created', 'User.modified', 'Office.address', 'Office.phone', 'User.first_consent')
+						'fields' => array('User.id', 'User.first_name', 'User.password', 'User.middle_name', 'User.last_name', 'User.nickname', 'User.username', 'User.user_type', 'User.email', 'User.dob', 'User.phone', 'User.gender', 'User.office_id', 'User.id_no', 'User.notes', 'User.created', 'User.modified', 'Office.address', 'Office.phone', 'User.first_consent')
 					));
 					if (empty($user_detail)) {
 						$response_array = array('message' => 'Invalid username or password.', 'status' => 0);
+						$this->recordLog($input_data['username'],'login-fail', 'C');
+						$this->updateLock($input_data['username']);
 						header('Content-Type: application/json');
 						echo json_encode($response_array);
 						die;
 					} elseif ($user_detail['User']['user_type'] != 'Staffuser' && $user_detail['User']['user_type'] != 'Subadmin') {
 						$response_array = array('message' => 'Invalid username.', 'status' => 0);
+						$this->recordLog($input_data['username'],'login-fail', 'C');
+						$this->updateLock($input_data['username']);
 						header('Content-Type: application/json');
 						echo json_encode($response_array);
 						die;
@@ -160,6 +328,8 @@ class ApisnewController extends AppController
 					$passwordHasher = new BlowfishPasswordHasher();
 					$match = $passwordHasher->check($input_data['password'], @$user_detail['User']['password']);
 					if (!$match) {
+						$this->recordLog($input_data['username'],'login-fail', 'C');
+						$this->updateLock($input_data['username']);
 						$response_array = array('message' => 'Invalid username or password.', 'status' => 0);
 						header('Content-Type: application/json');
 						echo json_encode($response_array);
@@ -177,6 +347,8 @@ class ApisnewController extends AppController
 						$data['profile_pic'] = WWW_BASE . 'img/uploads/'. $user_detail['User']['profile_pic'];
 					}
 					*/
+					$this->recordLog($input_data['username'],'login-success', 'C');
+					$this->resetLock($input_data['username']);
 					$data['user_id'] = $data['id'];
 					$this->Office->id = $data['office_id'];
 					$office_name = $this->Office->field('name');
@@ -222,10 +394,14 @@ class ApisnewController extends AppController
 					));
 					if (empty($user_detail)) {
 						$response_array = array('message' => 'Invalid username or password.', 'status' => 0);
+						$this->recordLog($input_data['username'],'login-fail', 'C');
+						$this->updateLock($input_data['username']);
 						header('Content-Type: application/json');
 						echo json_encode($response_array);
 						die;
 					} elseif ($user_detail['User']['user_type'] != 'SuperSubadmin') {
+						$this->recordLog($input_data['username'],'login-fail', 'C');
+						$this->updateLock($input_data['username']);
 						$response_array = array('message' => 'Invalid username.', 'status' => 0);
 						header('Content-Type: application/json');
 						echo json_encode($response_array);
@@ -235,6 +411,8 @@ class ApisnewController extends AppController
 					$passwordHasher = new BlowfishPasswordHasher();
 					$match = $passwordHasher->check($input_data['password'], @$user_detail['User']['password']);
 					if (!$match) {
+						$this->recordLog($input_data['username'],'login-fail', 'C');
+						$this->updateLock($input_data['username']);
 						$response_array = array('message' => 'Invalid username or password.', 'status' => 0);
 						header('Content-Type: application/json');
 						echo json_encode($response_array);
@@ -260,6 +438,64 @@ class ApisnewController extends AppController
 					$data['office_phone'] = isset($user_detail['Office']['phone']) ? $user_detail['Office']['phone'] : '';
 					unset($data['id']);
 					unset($data['password']);
+					if( ($input_data['isDownload'] == 'False' || $input_data['isDownload'] == false)  && ((!isset($input_data['start_date']) && !isset($input_data['end_date'])) || (empty($input_data['start_date']) && empty($input_data['end_date']))) ){
+						$this->loadModel('OfficeReportBackup');
+						$this->loadModel('PupTest');
+						$staffuserAdmin = $this->User->find('list', array('conditions' => array('User.office_id' => $data['office_id']), 'fields' => array('User.id')));
+			  
+						$conditions['Pointdata.staff_id'] = $staffuserAdmin;
+						
+						$data2 = $this->Pointdata->find('all', array('conditions' => $conditions, 'order' => 'Pointdata.id DESC','fields' => array('Pointdata.id'))); 
+					    if (isset($data2[0]['Pointdata']) && isset($officereport['OfficeReportBackup'])) { 
+					    	$officereport = $this->OfficeReportBackup->find('first', array('conditions' => array('OfficeReportBackup.office_id' => $data['office_id'],'OfficeReportBackup.testtype'=>'VF'))); 
+					        $officereport['OfficeReportBackup']['last_backup'] = $data2[0]['Pointdata']['id'];
+					        $this->OfficeReportBackup->save($officereport);
+					    }
+					    $conditionsStb['StbTest.staff_id'] = $staffuserAdmin;
+						
+					    $data2 = $this->StbTest->find('all', array('conditions' => $conditionsStb, 'order' => 'StbTest.id DESC','fields' => array('StbTest.id'))); 
+					    if (isset($data2[0]['StbTest'])  && isset($officereport['OfficeReportBackup'])) { 
+					    	$officereport = $this->OfficeReportBackup->find('first', array('conditions' => array('OfficeReportBackup.office_id' => $data['office_id'],'OfficeReportBackup.testtype'=>'STB'))); 
+					        $officereport['OfficeReportBackup']['last_backup'] = $data2[0]['StbTest']['id'];
+					        $this->OfficeReportBackup->save($officereport);
+					    }
+
+					    $conditionsAct['ActTest.staff_id'] = $staffuserAdmin;
+						
+					    $data2 = $this->ActTest->find('all', array('conditions' => $conditionsAct, 'order' => 'ActTest.id DESC','fields' => array('ActTest.id'))); 
+					    if (isset($data2[0]['ActTest'])  && isset($officereport['OfficeReportBackup'])) { 
+					    $officereport = $this->OfficeReportBackup->find('first', array('conditions' => array('OfficeReportBackup.office_id' => $data['office_id'],'OfficeReportBackup.testtype'=>'ACT'))); 
+					        $officereport['OfficeReportBackup']['last_backup'] = $data2[0]['ActTest']['id'];
+					        $this->OfficeReportBackup->save($officereport);
+					    }
+
+					    $conditionsVt['VtTest.staff_id'] = $staffuserAdmin;
+						
+					     $data2 = $this->VtTest->find('all', array('conditions' => $conditionsVt, 'order' => 'VtTest.id DESC','fields' => array('VtTest.id'))); 
+					    if (isset($data2[0]['VtTest'])  && isset($officereport['OfficeReportBackup'])) { 
+					    $officereport = $this->OfficeReportBackup->find('first', array('conditions' => array('OfficeReportBackup.office_id' => $data['office_id'],'OfficeReportBackup.testtype'=>'VT'))); 
+					        $officereport['OfficeReportBackup']['last_backup'] = $data2[0]['VtTest']['id'];
+					        $this->OfficeReportBackup->save($officereport);
+					    }
+					    $conditionsPUP['PupTest.staff_id'] = $staffuserAdmin;
+						
+					    $data2 = $this->PupTest->find('all', array('conditions' => $conditionsPUP, 'order' => 'PupTest.id DESC','fields' => array('PupTest.id'))); 
+					    if (isset($data2[0]['PupTest'])  && isset($officereport['OfficeReportBackup'])) { 
+					    $officereport = $this->OfficeReportBackup->find('first', array('conditions' => array('OfficeReportBackup.office_id' => $data['office_id'],'OfficeReportBackup.testtype'=>'PUP'))); 
+					        $officereport['OfficeReportBackup']['last_backup'] = $data2[0]['PupTest']['id'];
+					        $this->OfficeReportBackup->save($officereport);
+					    }
+
+					    $conditionsDA['DarkAdaption.staff_id'] = $staffuserAdmin;
+					    $data2 = $this->DarkAdaption->find('all', array('conditions' => $conditionsDA, 'order' => 'DarkAdaption.id DESC','fields' => array('DarkAdaption.id'))); 
+					    if (isset($data2[0]['DarkAdaption'])  && isset($officereport['OfficeReportBackup'])) { 
+					   $officereport = $this->OfficeReportBackup->find('first', array('conditions' => array('OfficeReportBackup.office_id' => $data['office_id'],'OfficeReportBackup.testtype'=>'DA'))); 
+					        $officereport['OfficeReportBackup']['last_backup'] = $data2[0]['DarkAdaption']['id'];
+					        $this->OfficeReportBackup->save($officereport);
+					    }
+					}
+					$this->recordLog($input_data['username'],'login-success', 'C');
+					$this->resetLock($input_data['username']);
 					$response_array = array('message' => 'Login successfull.', 'status' => 1, 'data' => $data);
 					header('Content-Type: application/json');
 					echo json_encode($response_array);
@@ -298,6 +534,11 @@ class ApisnewController extends AppController
 					$this->OfficeReportBackup->save($officereport);
 				}
 			if($input_data['isDownload'] == false){
+				// $data = $this->Pointdata->find('all', array('conditions' => $conditions, 'order' => 'Pointdata.id DESC','fields' => array('Pointdata.id'))); 
+			    // if (isset($data[0]['Pointdata'])) { 
+			    //     $officereport['OfficeReportBackup']['last_backup'] = $data[0]['Pointdata']['id'];
+			    //     $this->OfficeReportBackup->save($officereport);
+			    // }
 			$conditions['Pointdata.id >'] = $officereport['OfficeReportBackup']['last_backup'];
 			}else if($input_data['isDownload'] == true){
 			$conditions['Pointdata.id >'] =  0; 
@@ -355,6 +596,11 @@ class ApisnewController extends AppController
 				$conditions['Pointdata.created >'] = $input_data['start_date'];
 				$conditions['Pointdata.created <'] = $input_data['end_date'];
 			}elseif($input_data['isDownload'] == 'False'){
+				// $data = $this->Pointdata->find('all', array('conditions' => $conditions, 'order' => 'Pointdata.id DESC','fields' => array('Pointdata.id'))); 
+			    // if (isset($data[0]['Pointdata'])) { 
+			    //     $officereport['OfficeReportBackup']['last_backup'] = $data[0]['Pointdata']['id'];
+			    //     $this->OfficeReportBackup->save($officereport);
+			    // }
 				$conditions['Pointdata.id >'] = $officereport['OfficeReportBackup']['last_backup'];
 			}
 			$this->Pointdata->unbindModel(array('hasMany' => array('VfPointdata')),false);
@@ -405,6 +651,11 @@ class ApisnewController extends AppController
 					$this->OfficeReportBackup->save($officereport);
 				}
 				if($input_data['isDownload'] == false){
+					// $data = $this->StbTest->find('all', array('conditions' => $conditions, 'order' => 'StbTest.id DESC','fields' => array('StbTest.id'))); 
+				    // if (isset($data[0]['StbTest'])) { 
+				    //     $officereport['OfficeReportBackup']['last_backup'] = $data[0]['StbTest']['id'];
+				    //     $this->OfficeReportBackup->save($officereport);
+				    // }
 					$conditions['StbTest.id >'] = $officereport['OfficeReportBackup']['last_backup'];
 				}else if($input_data['isDownload'] == true){
 					$conditions['StbTest.id >'] =  0; 
@@ -454,6 +705,11 @@ class ApisnewController extends AppController
 					$conditions['StbTest.created >'] = $input_data['start_date'];
 					$conditions['StbTest.created <'] = $input_data['end_date'];
 				}elseif($input_data['isDownload'] == 'False'){
+					// $data = $this->StbTest->find('all', array('conditions' => $conditions, 'order' => 'StbTest.id DESC','fields' => array('StbTest.id'))); 
+				    // if (isset($data[0]['StbTest'])) { 
+				    //     $officereport['OfficeReportBackup']['last_backup'] = $data[0]['StbTest']['id'];
+				    //     $this->OfficeReportBackup->save($officereport);
+				    // }
 					$conditions['StbTest.id >'] = $officereport['OfficeReportBackup']['last_backup'];
 				}
 				$this->StbTest->unbindModel(array('hasMany' => array('StbPointdata')),false);
@@ -499,6 +755,11 @@ class ApisnewController extends AppController
 					$this->OfficeReportBackup->save($officereport);
 				}
 				if($input_data['isDownload'] == false){
+					// $data = $this->ActTest->find('all', array('conditions' => $conditions, 'order' => 'ActTest.id DESC','fields' => array('ActTest.id'))); 
+				    // if (isset($data[0]['ActTest'])) { 
+				    //     $officereport['OfficeReportBackup']['last_backup'] = $data[0]['ActTest']['id'];
+				    //     $this->OfficeReportBackup->save($officereport);
+				    // }
 					$conditions['ActTest.id >'] = $officereport['OfficeReportBackup']['last_backup'];
 				}else if($input_data['isDownload'] == true){
 					$conditions['ActTest.id >'] =  0; 
@@ -548,6 +809,11 @@ class ApisnewController extends AppController
 					$conditions['ActTest.created >'] = $input_data['start_date'];
 					$conditions['ActTest.created <'] = $input_data['end_date'];
 				}elseif($input_data['isDownload'] == 'False'){
+					// $data = $this->ActTest->find('all', array('conditions' => $conditions, 'order' => 'ActTest.id DESC','fields' => array('ActTest.id'))); 
+				    // if (isset($data[0]['ActTest'])) { 
+				    //     $officereport['OfficeReportBackup']['last_backup'] = $data[0]['ActTest']['id'];
+				    //     $this->OfficeReportBackup->save($officereport);
+				    // }
 					$conditions['ActTest.id >'] = $officereport['OfficeReportBackup']['last_backup'];
 				}
 				$this->ActTest->unbindModel(array('hasMany' => array('ActPointdata')),false);
@@ -593,6 +859,11 @@ class ApisnewController extends AppController
 					$this->OfficeReportBackup->save($officereport);
 				}
 				if($input_data['isDownload'] == false){
+					// $data = $this->VtTest->find('all', array('conditions' => $conditions, 'order' => 'VtTest.id DESC','fields' => array('VtTest.id'))); 
+				    // if (isset($data[0]['VtTest'])) { 
+				    //     $officereport['OfficeReportBackup']['last_backup'] = $data[0]['VtTest']['id'];
+				    //     $this->OfficeReportBackup->save($officereport);
+				    // }
 					$conditions['VtTest.id >'] = $officereport['OfficeReportBackup']['last_backup'];
 				}else if($input_data['isDownload'] == true){
 					$conditions['VtTest.id >'] =  0; 
@@ -643,6 +914,11 @@ class ApisnewController extends AppController
 					$conditions['VtTest.created >'] = $input_data['start_date'];
 					$conditions['VtTest.created <'] = $input_data['end_date'];
 				}elseif($input_data['isDownload'] == 'False'){
+					// $data = $this->VtTest->find('all', array('conditions' => $conditions, 'order' => 'VtTest.id DESC','fields' => array('VtTest.id'))); 
+				    // if (isset($data[0]['VtTest'])) { 
+				    //     $officereport['OfficeReportBackup']['last_backup'] = $data[0]['VtTest']['id'];
+				    //     $this->OfficeReportBackup->save($officereport);
+				    // }
 					$conditions['VtTest.id >'] = $officereport['OfficeReportBackup']['last_backup'];
 				}
 				$data = $this->VtTest->find('all', array('conditions' => $conditions, 'order' => 'VtTest.id ASC','fields' => array('VtTest.file','VtTest.id','VtTest.patient_id','VtTest.test_name','Patient.id_number','Patient.first_name','Patient.last_name'))); 
@@ -688,6 +964,11 @@ class ApisnewController extends AppController
 					$this->OfficeReportBackup->save($officereport);
 				}
 				if($input_data['isDownload'] == false){  
+					// $data = $this->PupTest->find('all', array('conditions' => $conditions, 'order' => 'PupTest.id DESC','fields' => array('PupTest.id'))); 
+				    // if (isset($data[0]['PupTest'])) { 
+				    //     $officereport['OfficeReportBackup']['last_backup'] = $data[0]['PupTest']['id'];
+				    //     $this->OfficeReportBackup->save($officereport);
+				    // }
 					$conditions['PupTest.id >'] = $officereport['OfficeReportBackup']['last_backup'];
 				}else if($input_data['isDownload'] == true){
 					$conditions['PupTest.id >'] =  0; 
@@ -740,6 +1021,11 @@ class ApisnewController extends AppController
 					$conditions['PupTest.created >'] = $input_data['start_date'];
 					$conditions['PupTest.created <'] = $input_data['end_date'];
 				}elseif($input_data['isDownload'] == 'False'){
+					// $data = $this->PupTest->find('all', array('conditions' => $conditions, 'order' => 'PupTest.id DESC','fields' => array('PupTest.id'))); 
+				    // if (isset($data[0]['PupTest'])) { 
+				    //     $officereport['OfficeReportBackup']['last_backup'] = $data[0]['PupTest']['id'];
+				    //     $this->OfficeReportBackup->save($officereport);
+				    // }
 					$conditions['PupTest.id >'] = $officereport['OfficeReportBackup']['last_backup'];
 				}
 				$this->PupTest->unbindModel(array('hasMany' => array('PupPointdata')),false);
@@ -782,6 +1068,11 @@ class ApisnewController extends AppController
 					$this->OfficeReportBackup->save($officereport);
 				}
 				if($input_data['isDownload'] == false){
+					// $data = $this->DarkAdaption->find('all', array('conditions' => $conditions, 'order' => 'DarkAdaption.id DESC','fields' => array('DarkAdaption.id'))); 
+				    // if (isset($data[0]['DarkAdaption'])) { 
+				    //     $officereport['OfficeReportBackup']['last_backup'] = $data[0]['DarkAdaption']['id'];
+				    //     $this->OfficeReportBackup->save($officereport);
+				    // }
 					$conditions['DarkAdaption.id >'] = $officereport['OfficeReportBackup']['last_backup'];
 				}else if($input_data['isDownload'] == true){
 					$conditions['DarkAdaption.id >'] =  0; 
@@ -839,6 +1130,11 @@ class ApisnewController extends AppController
 					$conditions['DarkAdaption.created >'] = $input_data['start_date'];
 					$conditions['DarkAdaption.created <'] = $input_data['end_date'];
 				}elseif($input_data['isDownload'] == 'False'){
+					// $data = $this->DarkAdaption->find('all', array('conditions' => $conditions, 'order' => 'DarkAdaption.id DESC','fields' => array('DarkAdaption.id'))); 
+				    // if (isset($data[0]['DarkAdaption'])) { 
+				    //     $officereport['OfficeReportBackup']['last_backup'] = $data[0]['DarkAdaption']['id'];
+				    //     $this->OfficeReportBackup->save($officereport);
+				    // }
 				$conditions['DarkAdaption.id >'] = $officereport['OfficeReportBackup']['last_backup'];
 			}
 				$this->DarkAdaption->unbindModel(array('hasMany' => array('DaPointData')),false);
@@ -893,6 +1189,11 @@ class ApisnewController extends AppController
 					$this->OfficeReportBackup->save($officereport);
 				}
 			if($input_data['isDownload'] == 'false' || $input_data['isDownload'] == false){
+				// $data = $this->Pointdata->find('all', array('conditions' => $conditions, 'order' => 'Pointdata.id DESC','fields' => array('Pointdata.id'))); 
+			    // if (isset($data[0]['Pointdata'])) { 
+			    //     $officereport['OfficeReportBackup']['last_backup'] = $data[0]['Pointdata']['id'];
+			    //     $this->OfficeReportBackup->save($officereport);
+			    // }
 			$conditions['Pointdata.id >'] = $officereport['OfficeReportBackup']['last_backup'];
 			}else if($input_data['isDownload'] == 'true' || $input_data['isDownload'] == true){
 			$conditions['Pointdata.id >'] =  0; 
@@ -945,6 +1246,11 @@ class ApisnewController extends AppController
 				$conditions['Pointdata.created >'] = $input_data['start_date'];
 				$conditions['Pointdata.created <'] = $input_data['end_date'];
 			}elseif($input_data['isDownload'] == 'False'){
+				// $data = $this->Pointdata->find('all', array('conditions' => $conditions, 'order' => 'Pointdata.id DESC','fields' => array('Pointdata.id'))); 
+			    // if (isset($data[0]['Pointdata'])) { 
+			    //     $officereport['OfficeReportBackup']['last_backup'] = $data[0]['Pointdata']['id'];
+			    //     $this->OfficeReportBackup->save($officereport);
+			    // }
 				$conditions['Pointdata.id >'] = $officereport['OfficeReportBackup']['last_backup'];
 			}
 			$this->Pointdata->unbindModel(array('hasMany' => array('VfPointdata')),false);
@@ -1061,6 +1367,7 @@ class ApisnewController extends AppController
 					);
 					$testDevice = $this->TestDevice->find('first', ['conditions' => array('TestDevice.mac_address' => $input_data['mac_address'])]);
 					if (!empty($testDevice)) {
+						$this->checkDeviceLock($testDevice);
 						if(isset($input_data['version'])){ 
 						$testDevice['TestDevice']['version'] = $input_data['version'];
 						$data_new = $this->TestDevice->save($testDevice);
@@ -1075,23 +1382,31 @@ class ApisnewController extends AppController
 							$IHU_Type = false;
 						}
 						if ($testDevice['Office']['server_test'] == 1) {
+							$this->recordDeviceLog($input_data['mac_address'],'login-success', 'C');
+							$this->resetDeviceLock($input_data['mac_address']);
 							$response_array = array('message' => 'Login successfully.', 'status' => 1, 'office' => $testDevice['Office'], 'device' => $testDevice['TestDevice'],'patientName'=>$patientName,'TestName'=>$patienttestname, 'IHU_Type' =>$IHU_Type,'PatientID'=>@$testDevice['Patient']['id'],'EYE'=>@$testDevice['Patient']['eye_type'],'Progression'=>@$testDevice['Patient']['progression_deatild'],'Language'=>@$testDevice['Patient']['language']);
 							header('Content-Type: application/json');
 							echo json_encode($response_array);
 							die;
 						} else {
+							$this->recordDeviceLog($input_data['mac_address'],'login-fail', 'C');
+						    $this->updateDeviceLock($input_data['mac_address']);
 							$response_array = array('message' => 'Denied. Enable Web Controller to operate headset from the Web.', 'status' => 0);
 							header('Content-Type: application/json');
 							echo json_encode($response_array);
 							die;
 						}
 					} else {
+						$this->recordDeviceLog($input_data['mac_address'],'login-fail', 'C');
+						$this->updateDeviceLock($input_data['mac_address']);
 						$response_array = array('message' => 'Invalid mac address.', 'status' => 0);
 						header('Content-Type: application/json');
 						echo json_encode($response_array);
 						die;
 					}
 				} else {
+					$this->recordDeviceLog($input_data['mac_address'],'login-fail', 'C');
+					$this->updateDeviceLock($input_data['mac_address']);
 					$response_array = array('message' => 'Invalid password.', 'status' => 0);
 					header('Content-Type: application/json');
 					echo json_encode($response_array);
@@ -1411,7 +1726,9 @@ class ApisnewController extends AppController
 						)
 					);
 					$testDevice = $this->TestDevice->find('first', ['conditions' => array('TestDevice.mac_address' => $input_data['mac_address'])]);
+
 					if (!empty($testDevice)) {
+						$this->checkDeviceLock($testDevice);
 						if(isset($input_data['version'])){ 
 						$testDevice['TestDevice']['version'] = $input_data['version'];
 						
@@ -1419,23 +1736,31 @@ class ApisnewController extends AppController
 							$data_new = $this->TestDevice->save($testDevice);
 						}
 						if ($testDevice['Office']['server_test'] == 1) {
+							$this->recordDeviceLog($input_data['mac_address'],'login-success', 'C');
+							$this->resetDeviceLock($input_data['mac_address']);
 							$response_array = array('message' => 'Login successfully.', 'status' => 1, 'office' => $testDevice['Office'], 'device' => $testDevice['TestDevice']);
 							header('Content-Type: application/json');
 							echo json_encode($response_array);
 							die;
 						} else {
+							$this->recordDeviceLog($input_data['mac_address'],'login-fail', 'C');
+						    $this->updateDeviceLock($input_data['mac_address']);
 							$response_array = array('message' => 'Denied. Enable Web Controller to operate headset from the Web.', 'status' => 0);
 							header('Content-Type: application/json');
 							echo json_encode($response_array);
 							die;
 						}
 					} else {
+						$this->recordDeviceLog($input_data['mac_address'],'login-fail', 'C');
+						$this->updateDeviceLock($input_data['mac_address']);
 						$response_array = array('message' => 'Invalid mac address.', 'status' => 0);
 						header('Content-Type: application/json');
 						echo json_encode($response_array);
 						die;
 					}
 				} else {
+					$this->recordDeviceLog($input_data['mac_address'],'login-fail', 'C');
+					$this->updateDeviceLock($input_data['mac_address']);
 					$response_array = array('message' => 'Invalid password.', 'status' => 0);
 					header('Content-Type: application/json');
 					echo json_encode($response_array);
@@ -1472,21 +1797,30 @@ class ApisnewController extends AppController
 					//Use Blowfishpassword hasher algorithm
 					$passwordHasher = new BlowfishPasswordHasher();
 					$officeDeatils = $this->Office->find('first', ['conditions' => array('Office.password2' => $input_data['password'])]);
+
 					// $officeDeatils = $this->Office->find('first', ['conditions' => array('Office.password' => passwordHasher)]);
 					if (!empty($officeDeatils)) {
 						$testDevice = $this->TestDevice->find('first', ['conditions' => array('TestDevice.mac_address' => $input_data['mac_address'], 'TestDevice.office_id' => $officeDeatils['Office']['id'])]);
+						
 						if (!empty($testDevice)) {
+							$this->checkDeviceLock($testDevice);
+							$this->recordDeviceLog($input_data['mac_address'],'login-success', 'C');
+							$this->resetDeviceLock($input_data['mac_address']);
 							$response_array = array('message' => 'Login successfully.', 'status' => 1, 'office' => $officeDeatils['Office'], 'device' => $testDevice['TestDevice']);
 							header('Content-Type: application/json');
 							echo json_encode($response_array);
 							die;
 						} else {
+							$this->recordDeviceLog($input_data['mac_address'],'login-fail', 'C');
+							$this->updateDeviceLock($input_data['mac_address']);
 							$response_array = array('message' => 'Invalid mac address.', 'status' => 0);
 							header('Content-Type: application/json');
 							echo json_encode($response_array);
 							die;
 						}
 					} else {
+						$this->recordDeviceLog($input_data['mac_address'],'login-fail', 'C');
+						$this->updateDeviceLock($input_data['mac_address']);
 						$response_array = array('message' => 'Invalid password.', 'status' => 0);
 						header('Content-Type: application/json');
 						echo json_encode($response_array);
@@ -1539,11 +1873,15 @@ class ApisnewController extends AppController
 					}
 					if (empty($user_detail)) {
 						$response_array = array('message' => 'Invalid username or password.', 'status' => 0);
+						$this->recordLog($input_data['username'],'login-fail', 'C');
+						$this->updateLock($input_data['username']);
 						header('Content-Type: application/json');
 						echo json_encode($response_array);
 						die;
 					} elseif ($user_detail['User']['user_type'] != 'Staffuser' && $user_detail['User']['user_type'] != 'Subadmin') {
 						$response_array = array('message' => 'Invalid Username', 'status' => 0);
+						$this->recordLog($input_data['username'],'login-fail', 'C');
+						$this->updateLock($input_data['username']);
 						header('Content-Type: application/json');
 						echo json_encode($response_array);
 						die;
@@ -1552,6 +1890,8 @@ class ApisnewController extends AppController
 					$passwordHasher = new BlowfishPasswordHasher();
 					$match = $passwordHasher->check($input_data['password'], @$user_detail['User']['password']);
 					if (!$match) {
+						$this->recordLog($input_data['username'],'login-fail', 'C');
+						$this->updateLock($input_data['username']);
 						$response_array = array('message' => 'Invalid username or password.', 'status' => 0);
 						header('Content-Type: application/json');
 						echo json_encode($response_array);
@@ -1571,6 +1911,8 @@ class ApisnewController extends AppController
 					$data['office_phone'] = isset($user_detail['Office']['phone']) ? $user_detail['Office']['phone'] : '';
 					unset($data['id']);
 					unset($data['password']);
+					$this->recordLog($input_data['username'],'login-success', 'C');
+					$this->resetLock($input_data['username']);
 					$response_array = array('message' => 'Login successfull.', 'status' => 1, 'data' => $data);
 					header('Content-Type: application/json');
 					echo json_encode($response_array);
@@ -1608,11 +1950,15 @@ class ApisnewController extends AppController
 						'fields' => array('User.id', 'User.first_name', 'User.password', 'User.middle_name', 'User.last_name', 'User.username', 'User.user_type', 'User.email', 'User.dob', 'User.phone', 'User.gender', 'User.office_id', 'User.id_no', 'User.notes', 'User.created', 'User.modified')
 					));
 					if (empty($user_detail)) {
+						$this->recordLog($input_data['username'],'login-fail', 'C');
+						$this->updateLock($input_data['username']);
 						$response_array = array('message' => 'Invalid username or password.', 'status' => 0);
 						header('Content-Type: application/json');
 						echo json_encode($response_array);
 						die;
 					} elseif ($user_detail['User']['user_type'] != 'Staffuser') {
+						$this->recordLog($input_data['username'],'login-fail', 'C');
+						$this->updateLock($input_data['username']);
 						$response_array = array('message' => 'You are not staff. Please try again.', 'status' => 0);
 						header('Content-Type: application/json');
 						echo json_encode($response_array);
@@ -1622,6 +1968,8 @@ class ApisnewController extends AppController
 					$passwordHasher = new BlowfishPasswordHasher();
 					$match = $passwordHasher->check($input_data['password'], @$user_detail['User']['password']);
 					if (!$match) {
+						$this->recordLog($input_data['username'],'login-fail', 'C');
+						$this->updateLock($input_data['username']);
 						$response_array = array('message' => 'Invalid username or password.', 'status' => 0);
 						header('Content-Type: application/json');
 						echo json_encode($response_array);
@@ -1638,6 +1986,8 @@ class ApisnewController extends AppController
 					$data['office_name'] = $office_name;
 					unset($data['id']);
 					unset($data['password']);
+					$this->recordLog($input_data['username'],'login-success', 'C');
+					$this->resetLock($input_data['username']);
 					$response_array = array('message' => 'Login successfull.', 'status' => 1, 'data' => $data);
 					header('Content-Type: application/json');
 					echo json_encode($response_array);
@@ -2483,7 +2833,11 @@ class ApisnewController extends AppController
 						}
 						if(!empty($data['unique_id'])){
 							$result =$this->Patients->find('all', array('conditions' => array('Patients.unique_id' => $data['unique_id']), 'fields' => array('Patients.id')));
-							if(empty($result)){
+							$result_new = null;
+                            if(!empty($patients['id']) && $patients['id']!=""){
+                            	$result_new =$this->Patients->find('all', array('conditions' => array('Patients.id' => $patients['id']), 'fields' => array('Patients.id'))); 
+                            }
+                            if(empty($result) || ($result_new !=null && !empty($result_new))){
 								$rs = $this->Patients->save($patients);
 								if ($rs) {
 									$countIds =$this->Patients->find('all', array('conditions' => array('Patients.unique_id' => $data['unique_id']), 'fields' => array('Patients.id')));
@@ -2750,6 +3104,14 @@ class ApisnewController extends AppController
 					header('Content-Type: application/json');
 					echo json_encode($response_array);
 					die;
+				}
+
+				$pattern = '/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[\W_]).+$/';
+				if (!preg_match($pattern, $input_data['password'])) {
+					$response_array = array('message' => 'Password Must have 1 Upper Case 1 Lower case 1 number 1 spacial"', 'status' => 0);
+					header('Content-Type: application/json');
+					echo json_encode($response_array);
+					die; 
 				}
 				if (@$input_data['password'] != @$input_data['confirm_password']) {
 					$response_array = array('message' => 'Your password and confirm password does not match.', 'status' => 0);
@@ -3988,6 +4350,7 @@ class ApisnewController extends AppController
 					$input_data = json_decode(file_get_contents('php://input'), true);
 					$user_id = $input_data['user_id'];
 					//echo $office_id; die;
+					$this->recordLog($user_id,'logout', 'S'); 
 					$countConsent = $this->User->find('count',
 						array(
 							'conditions' => ['User.id' => $user_id, 'User.first_consent !=' => NULL]
@@ -4386,6 +4749,48 @@ class ApisnewController extends AppController
 				$input_data['office_id'] = @$this->request->data['office_id'];
 				if (isset($input_data['office_id']) && (!empty($input_data['office_id']))) {
 					$result = $this->TestDevice->find('all', array('conditions' => array('TestDevice.office_id' => $input_data['office_id'], 'TestDevice.status' => 1), 'order' => array('TestDevice.id DESC')));
+					if (!empty($result)) {
+						$data = array();
+						foreach ($result as $key => $result) {
+							$data[] = $result['TestDevice'];
+						}
+						if (!empty($data)) {
+							$response['message'] = 'All test device list.';
+							$response['result'] = 1;
+							$response['data'] = $data;
+						} else {
+							$response['message'] = 'No test device found.';
+							$response['result'] = 0;
+						}
+					} else {
+						$response['message'] = 'NO test report found.';
+						$response['result'] = 0;
+					}
+				} else {
+					$response['message'] = 'Please send office id.';
+					$response['result'] = 0;
+				}
+				echo json_encode($response);
+				exit();
+			}
+		}
+	}
+
+	/*API for fetching test device */
+	public function get_test_device_v2()
+	{
+		if ($this->check_key()) {
+			$this->layout = false;
+			if ($this->validatePostRequest()) {
+				$this->autoRender = false;
+				$response = array();
+				$input_data = json_decode(file_get_contents("php://input"), true);
+				if (empty($input_data)) {
+					$input_data = $_POST;
+				}
+				///$input_data['office_id'] = @$this->request->data['office_id'];
+				if (isset($input_data['office_id']) && (!empty($input_data['office_id']))) {
+					$result = $this->TestDevice->find('all', array('conditions' => array('TestDevice.office_id' => $input_data['office_id'], 'TestDevice.status' => 1), 'fields' => array('TestDevice.name', 'TestDevice.mac_address','TestDevice.device_level'), 'order' => array('TestDevice.id DESC')));
 					if (!empty($result)) {
 						$data = array();
 						foreach ($result as $key => $result) {
@@ -5375,7 +5780,22 @@ class ApisnewController extends AppController
 						$pid = isset($data_arrays['patient_id']) ? $data_arrays['patient_id'] : '0';
 						$foldername = "pointData";
 						$imgstring = $data_arrays['pdf'];
-						$data_arrays['file'] = $this->base64_to_pdf($imgstring, $foldername, $pid);
+						//$data_arrays['file'] = $this->base64_to_pdf($imgstring, $foldername, $pid);
+
+						if(isset($data_arrays['patient_id'])){
+							$this->loadModel('Patient');
+							$patient =  $this->Patient->find('first', array('conditions' => array('Patient.id' => $data_arrays['patient_id'])));
+							$eye = isset($data_arrays['eye_select']) ? $data_arrays['eye_select'] : 0;
+							$test_name = isset($data_arrays['test_name']) ? $data_arrays['test_name'] : '';
+							if(!empty($patient['Patient']['id_number'])){
+								$p_id_no = $patient['Patient']['id_number'];
+							}else{
+								$p_id_no= 'NA';
+							}
+							$data_arrays['file'] = $this->base64_to_pdf($imgstring, $foldername, $pid, $patient['Patient']['first_name'], $patient['Patient']['last_name'], $test_name, $eye, $p_id_no);
+						}else{
+							$data_arrays['file'] = $this->base64_to_pdf($imgstring, $foldername, $pid);
+						}
 					}
 					$data['Pointdata']['test_id'] = isset($data_arrays['test_id']) ? $data_arrays['test_id'] : '';
 					$data['Pointdata']['source'] = isset($data_arrays['source']) ? $data_arrays['source'] : 'S';
@@ -5790,7 +6210,21 @@ class ApisnewController extends AppController
 						$pid = isset($data_arrays['patient_id']) ? $data_arrays['patient_id'] : '0';
 						$foldername = "pointData";
 						$imgstring = $data_arrays['pdf'];
-						$data_arrays['file'] = $this->base64_to_pdf($imgstring, $foldername, $pid);
+						if(isset($data_arrays['patient_id'])){
+							$this->loadModel('Patient');
+							$patient =  $this->Patient->find('first', array('conditions' => array('Patient.id' => $data_arrays['patient_id'])));
+							$eye = isset($data_arrays['eye_select']) ? $data_arrays['eye_select'] : 0;
+							$test_name = isset($data_arrays['test_name']) ? $data_arrays['test_name'] : '';
+							if(!empty($patient['Patient']['id_number'])){
+								$p_id_no = $patient['Patient']['id_number'];
+							}else{
+								$p_id_no= 'NA';
+							}
+							$data_arrays['file'] = $this->base64_to_pdf($imgstring, $foldername, $pid, $patient['Patient']['first_name'], $patient['Patient']['last_name'], $test_name, $eye, $p_id_no);
+						}else{
+							$data_arrays['file'] = $this->base64_to_pdf($imgstring, $foldername, $pid);
+						}
+						
 					}
 					$data['Pointdata']['test_id'] = isset($data_arrays['test_id']) ? $data_arrays['test_id'] : '';
 					$data['Pointdata']['source'] = isset($data_arrays['source']) ? $data_arrays['source'] : 'C';
@@ -9832,7 +10266,7 @@ class ApisnewController extends AppController
 					$this->Pointdata->virtualFields['staff_name'] = 'select concat(first_name," ",middle_name," ",last_name) as name from mmd_users as users where Pointdata.staff_id = users.id';
 					//$this->VfPointdata->virtualFields['test_id'] = 'VfPointdata.point_data_id';
 					$condition['Pointdata.staff_id'] = $all_staff_ids;
-					$vfTestNames = array("Central_20_Point", "Central_40_Point", "Esterman_120_point","Estrman_120_point", "76_Point_Pattern", "Central_80_Point", "Central_166_Point", "Armally_Central","Central_10_2", "Central_24_1", "Central_24_2", "Central_30_1", "Central_30_2","Superior_24_2", "Superior_30_2", "Superior_50_1", "Superior_64", "Neuro_20", "Neuro_35", "Full_Field_120_PTS","Kinetic_60_16", "Kinetic_30_16", "Kinetic_60_28", "Kinetic_30_28", "Ptosis_9_PT", "Ptosis_Auto_9_PT");
+					$vfTestNames = array("Central_20_Point", "Central_40_Point", "Esterman_120_point","Estrman_120_point", "76_Point_Pattern", "Central_80_Point", "Central_166_Point", "Armally_Central","Central_10_2", "Central_24_1", "Central_24_2", "Central_24_2C", "Central_30_1", "Central_30_2","Superior_24_2", "Superior_30_2", "Superior_50_1", "Superior_64", "Neuro_20", "Neuro_35", "Full_Field_120_PTS","Kinetic_60_16", "Kinetic_30_16", "Kinetic_60_28", "Kinetic_30_28", "Ptosis_9_PT", "Ptosis_Auto_9_PT");
 					$condition[] = array('Pointdata.test_name' => $vfTestNames);
 					//print_r($data_arrays['patient_id']); die;
 					if (isset($data_arrays['patient_id']) && !empty($data_arrays['patient_id'])) {
@@ -9991,11 +10425,12 @@ class ApisnewController extends AppController
 					$all_staff_ids = $this->User->find('list', array('conditions' => array('User.office_id' => $office_id['User']['office_id']), 'fields' => array('User.id')));
 					//print_r($all_staff_ids); die('id');
 					$this->Pointdata->virtualFields['patient_name'] = 'select concat(first_name," ",middle_name," ",last_name) from mmd_patients as patients where Pointdata.patient_id = patients.id';
-					/* $this->Pointdata->virtualFields['patient_id'] = 'select id from mmd_patients as patients where Pointdata.patient_id = patients.id'; */
+					///$this->Pointdata->virtualFields['file2'] = 'select concat(first_name,"_",last_name,"_",IF(Pointdata.eye_select=0, "OS","OD"),"_",Pointdata.file) from mmd_patients as patients where Pointdata.patient_id = patients.id';
+						
 					$this->Pointdata->virtualFields['staff_name'] = 'select concat(first_name," ",middle_name," ",last_name) as name from mmd_users as users where Pointdata.staff_id = users.id';
 					//$this->VfPointdata->virtualFields['test_id'] = 'VfPointdata.point_data_id';
 					$condition['Pointdata.staff_id'] = $all_staff_ids;
-					$vfTestNames = array("Central_20_Point", "Central_40_Point", "Esterman_120_point","Estrman_120_point", "76_Point_Pattern", "Central_80_Point", "Central_166_Point", "Armally_Central","Central_10_2", "Central_24_1", "Central_24_2", "Central_30_1", "Central_30_2","Superior_24_2", "Superior_30_2", "Superior_50_1", "Superior_64", "Neuro_20", "Neuro_35", "Full_Field_120_PTS","Kinetic_60_16", "Kinetic_30_16", "Kinetic_60_28", "Kinetic_30_28", "Ptosis_9_PT", "Ptosis_Auto_9_PT");
+					$vfTestNames = array("Central_20_Point", "Central_40_Point", "Esterman_120_point","Estrman_120_point", "76_Point_Pattern", "Central_80_Point", "Central_166_Point", "Armally_Central","Central_10_2", "Central_24_1", "Central_24_2", "Central_24_2C", "Central_30_1", "Central_30_2","Superior_24_2", "Superior_30_2", "Superior_50_1", "Superior_64", "Neuro_20", "Neuro_35", "Full_Field_120_PTS","Kinetic_60_16", "Kinetic_30_16", "Kinetic_60_28", "Kinetic_30_28", "Ptosis_9_PT", "Ptosis_Auto_9_PT");
 					$condition[] = array('Pointdata.test_name' => $vfTestNames);
 					//print_r($data_arrays['patient_id']); die;
 					if (isset($data_arrays['patient_id']) && !empty($data_arrays['patient_id'])) {
@@ -10060,6 +10495,7 @@ class ApisnewController extends AppController
 								$data[$i]['patient_name'] = ($result['Pointdata']['patient_name'] != null) ? ($result['Pointdata']['patient_name']) : '';
 								if (!empty($result['Pointdata']['file'])) {
 									$data[$i]['pdf']=WWW_BASE.'pointData/'.$result['Pointdata']['file'];
+									//$data[$i]['pdf2']=WWW_BASE.'pointData/'.$result['Pointdata']['file2'];
 									//$data[$i]['pdf'] = WWW_BASE . 'app/webroot/fileDownloadUrl/' . $result['Pointdata']['file'];
 								}
 								$data[$i]['color'] = ($result['Pointdata']['color'] != null) ? ($result['Pointdata']['color']) : '';
@@ -10093,18 +10529,41 @@ class ApisnewController extends AppController
             				$UTCDate = date('Y-m-d H:i:s');
 							$last_sync_time = $UTCDate;
 						}
+						$deleted_data=array();
+						if (isset($data_arrays['sync_start_time']) && !empty($data_arrays['sync_start_time'])) {
+							$condition_deleted['Pointdata.deleted_date_utc >'] = date('Y-m-d H:i:s', strtotime($data_arrays['sync_start_time']));
+							$condition_deleted['Pointdata.is_delete'] =1;
+							$this->Pointdata->recursive = -1;
+							$results = $this->Pointdata->find('all', array('conditions' => $condition_deleted, 'fields' => array('Pointdata.id', 'Pointdata.unique_id'), 'order' => array('Pointdata.id DESC')));
+							foreach ($results as $key => $result) {
+								$deleted_data[]=$result['Pointdata'];
+							}
+						}
 						if (!empty($data)) {
 							$response['message'] = 'All test report list.';
 							$response['last_sync_time'] = $last_sync_time;
 							$response['result'] = 1;
 							$response['more_data'] = $more_data;
 							$response['data'] = $data;
+							$response['deleted_data'] = $deleted_data;
 						} else {
 							$response['message'] = 'No test report found.';
 							$response['more_data'] = $more_data;
 							$response['result'] = 0;
+							$response['deleted_data'] = $deleted_data;
 						}
 					} else {
+						$deleted_data=array();
+						if (isset($data_arrays['sync_start_time']) && !empty($data_arrays['sync_start_time'])) {
+							$condition_deleted['Pointdata.deleted_date_utc >'] = date('Y-m-d H:i:s', strtotime($data_arrays['sync_start_time']));
+							$condition_deleted['Pointdata.is_delete'] =1;
+							$this->Pointdata->recursive = -1;
+							$results = $this->Pointdata->find('all', array('conditions' => $condition_deleted, 'fields' => array('Pointdata.id', 'Pointdata.unique_id'), 'order' => array('Pointdata.id DESC')));
+							foreach ($results as $key => $result) {
+								$deleted_data[]=$result['Pointdata'];
+							}
+						}
+						$response['deleted_data'] = $deleted_data;
 						$response['message'] = 'NO test report found.';
 						$response['result'] = 0;
 					}
@@ -10120,6 +10579,10 @@ class ApisnewController extends AppController
 	}
 	/*for only VF/VS/FDT v6 for UTC time 22-11-2022 by Madan*/
 
+ 
+	/*for only VF/VS/FDT v6 for UTC time 22-11-2022 by Madan*/
+
+ 
 	public function get_pointData_report_vs_v2()
 	{
 		if ($this->check_key()) {
@@ -11984,10 +12447,13 @@ public function unity_listPatients_sepv2()
 			$this->layout = false;
 			if ($this->validatePostRequest()) {
 				$data_arrays = $_POST;
+				$result = array();
 				if (isset($data_arrays['staff_id'])) {
 					$staff_id = $data_arrays['staff_id'];
 					$office_id = $this->User->find('first', array('conditions' => array('User.id' => $staff_id), 'fields' => array('User.office_id')));
 					if (!empty($office_id)) {
+							$office = $this->Office->find('first', array('conditions' => array('Office.archive_status' => 1,'Office.id' => $office_id['User']['office_id'])));
+							if(!empty($office)){
 							$patient_staus = 0;
 							$all_staff_ids = $this->User->find('list', array('conditions' => array('User.office_id' => $office_id['User']['office_id']), 'fields' => array('User.id')));
 							$all_staff_ids = implode(",", $all_staff_ids);
@@ -12016,7 +12482,7 @@ public function unity_listPatients_sepv2()
 										'order' => array('Patients.id DESC'),
 										'group' => array('Patients.id'))
 								);
-						
+							}
 					} else {
 						$response_array['message'] = 'Invalid staff.';
 						$response_array['result'] = 0;
@@ -12514,6 +12980,14 @@ public function unity_listPatients_sepv2()
 								$condition_deleted['OR'][]['Patients.merge_date >']=date('Y-m-d H:i:s', strtotime($data_arrays['last_sync_time_new']));
 								$condition_deleted['Patients.user_id']= $all_staff_ids;
 								$update_date = date('Y-m-d h:i:s', strtotime($data_arrays['last_sync_time_new']));
+								$this->Patients->bindModel(array(
+								'hasMany'=>array(
+									'PatientDiagnosis'=>array(
+										'foreignKey'=>'patient_id',
+										'fields' => array('diagnosis_id'),
+									)
+								)
+							)); 
 								$result = $this->Patients->find('all',
 									array(
 										'fields' => array(
@@ -12525,6 +12999,14 @@ public function unity_listPatients_sepv2()
 										'limit' => $limit)
 								);
 							} else {
+								$this->Patients->bindModel(array(
+								'hasMany'=>array(
+									'PatientDiagnosis'=>array(
+										'foreignKey'=>'patient_id',
+										'fields' => array('diagnosis_id'),
+									)
+								)
+							)); 
 								$result = $this->Patients->find('all',
 									array(
 										'fields' => array(
@@ -12551,13 +13033,29 @@ public function unity_listPatients_sepv2()
 								$condition['Patients.created_date_utc >'] = date('Y-m-d H:i:s', strtotime($data_arrays['last_sync_time_new']));
 								$condition['Patients.user_id'] = $all_staff_ids;
 								$condition['Patients.is_delete'] = 0;
+								//$condition['Patients.status'] = 1;
 								$condition['Patients.merge_status'] = 0;
-								$condition['Patients.status'] = 1;
 								$condition_deleted['OR'][]['Patients.delete_date >']= date('Y-m-d H:i:s', strtotime($data_arrays['last_sync_time_new'])); 
 								$condition_deleted['OR'][]['Patients.archived_date >']=date('Y-m-d H:i:s', strtotime($data_arrays['last_sync_time_new']));
 								$condition_deleted['OR'][]['Patients.merge_date >']=date('Y-m-d H:i:s', strtotime($data_arrays['last_sync_time_new']));
 								$condition_deleted['Patients.user_id']= $all_staff_ids;
 								$update_date = date('Y-m-d h:i:s', strtotime($data_arrays['last_sync_time_new']));
+								$this->Patients->bindModel(array(
+								'hasMany'=>array(
+									'PatientDiagnosis'=>array(
+										'foreignKey'=>'patient_id',
+										'fields' => array('diagnosis_id'),
+									)
+								)
+							)); 
+								$this->Patients->bindModel(array(
+									'hasMany'=>array(
+										'PatientDiagnosis'=>array(
+											'foreignKey'=>'patient_id',
+											'fields' => array('diagnosis_id'),
+										)
+									)
+								)); 
 								$result = $this->Patients->find('all',
 									array(
 										'fields' => array(
@@ -12580,6 +13078,14 @@ public function unity_listPatients_sepv2()
 										'limit' => $limit)
 								);
 							} else {
+								$this->Patients->bindModel(array(
+								'hasMany'=>array(
+									'PatientDiagnosis'=>array(
+										'foreignKey'=>'patient_id',
+										'fields' => array('diagnosis_id'),
+									)
+								)
+							)); 
 								$result = $this->Patients->find('all',
 									array(
 										'fields' => array(
@@ -12596,7 +13102,7 @@ public function unity_listPatients_sepv2()
 												)
 											)
 										),
-										'conditions' => array('Patients.user_id' => $all_staff_ids, 'Patients.merge_status' => 0, 'Patients.status' => 1),
+										'conditions' => array('Patients.user_id' => $all_staff_ids, 'Patients.merge_status' => 0),
 										'order' => array('Patients.id DESC'),
 										'group' => array('Patients.id'),
 										'limit' => $limit)
@@ -12638,7 +13144,7 @@ public function unity_listPatients_sepv2()
 				} else {
 					$more_data = 0;
 				}
-				
+
 				if (count($result)) {
 					$data = array();
 					$delete_data = array();
@@ -12658,7 +13164,15 @@ public function unity_listPatients_sepv2()
 							}
 							$last_sync_time = ($last_sync_time != '') ? $last_sync_time : $value['Patients']['created_date_utc'];
 							//echo $last_sync_time; die;
+							$diagnosis =array();
+							if(!empty($value['PatientDiagnosis'])){
+								foreach($value['PatientDiagnosis'] as $d_value){
+									$diagnosis[] = $d_value['diagnosis_id'];
+								}
+								unset($value['PatientDiagnosis']);
+							}
 							unset($value['Patients']['id']);
+							$value['Patients']['diagnosis'] = implode(',', $diagnosis);
 							$data[] = $value['Patients'];
 						}
 					} //echo $last_sync_time; die;
@@ -12687,7 +13201,7 @@ public function unity_listPatients_sepv2()
 						$deleted_data[]=$value['Patients'];
 						//}
 					}
-					$test =$this->Patients->find('all', array('conditions' => array('Patients.user_id' => $data_arrays['staff_id'],'patients.is_delete'=>0,'patients.merge_status'=>0))); 
+					$test =$this->Patients->find('all', array('conditions' => array('Patients.user_id' => $data_arrays['staff_id'],'Patients.is_delete'=>0,'Patients.merge_status'=>0))); 
 
 					if (!empty($data)) {
 						$response_array = array('message' => 'Get patients information.', 'status' => 1, 'more_data' => $more_data, 'data' => $data, 'last_sync_time' => $last_sync_time, 'delete_data' =>$deleted_data,'total_patient'=>count($test));
@@ -13186,7 +13700,22 @@ public function unity_listPatients_sepv2()
 					if (!empty($data['pdf'])) {
 						$foldername = "pointData";
 						$imgstring = $data['pdf'];
-						$pointData['file'] = $this->base64_to_pdf($imgstring, $foldername, $key);
+						if(isset($data['patient_id'])){
+							$this->loadModel('Patient');
+							$patient =  $this->Patient->find('first', array('conditions' => array('Patient.id' => $data['patient_id'])));
+							$eye = isset($data['eye_select']) ? $data['eye_select'] : 0;
+
+							$test_name = isset($data['test_name']) ? $data['test_name'] : '';
+							if(!empty($patient['Patient']['id_number'])){
+								$p_id_no = $patient['Patient']['id_number'];
+							}else{
+								$p_id_no= 'NA';
+							}
+							$pointData['file'] = $this->base64_to_pdf($imgstring, $foldername, $key, $patient['Patient']['first_name'], $patient['Patient']['last_name'], $test_name, $eye, $p_id_no);
+						}else{
+							$pointData['file'] = $this->base64_to_pdf($imgstring, $foldername, $key);
+						}
+						//$pointData['file'] = $this->base64_to_pdf($imgstring, $foldername, $key);
 					} else {
 						unset($data['pdf']);
 					}
@@ -14302,6 +14831,98 @@ public function unity_listPatients_sepv2()
 					if (!empty($allDiagnosis)) {
 						foreach ($allDiagnosis as $key => $value) {
 							$data[]['name'] = $value;
+						}
+						$response['data'] = $data;
+						$response['result'] = 1;
+					} else {
+						$response['message'] = 'Check your input and try again';
+						$response['result'] = 0;
+					}
+				}
+			}
+		}
+		//pr($response); die;
+		echo json_encode($response);
+		exit;
+	}
+
+	public function getAllDiagnosis2()
+	{
+		header("Content-Type: application/json; charset=UTF-8");
+		$response['message'] = 'Invalid Request.';
+		$response['result'] = 0;
+		$checkUniqueName = '';
+		if ($this->check_key()) {
+			$this->layout = false;
+			if ($this->validatePostRequest()) {
+				$this->autoRender = false;
+				$response = array();
+				$input_data = $_POST;
+				if (empty($input_data)) {
+					$input_data = json_decode(file_get_contents('php://input'), true);
+					$office_id = $input_data['office_id'];
+					//echo $office_id; die;
+					$allDiagnosis = $this->Diagnosis->find('list',
+						array(
+							'conditions' => ['OR' => [['Diagnosis.office_id' => 0], ['Diagnosis.office_id' => $office_id]]],
+							'fields' => array('id', 'name', 'type'),
+							'order' => array('Diagnosis.id ASC'),
+							'recursive' => 0
+						)
+					);
+					$data = [];
+					if (!empty($allDiagnosis)) {
+						foreach ($allDiagnosis as $key => $value) {
+							$data[]['name'] = $value;
+						}
+						$response['data'] = $data;
+						$response['result'] = 1;
+					} else {
+						$response['message'] = 'Check your input and try again';
+						$response['result'] = 0;
+					}
+				}
+			}
+		}
+		//pr($response); die;
+		echo json_encode($response);
+		exit;
+	}
+	
+	/*
+		API Name: https://www.portal.micromedinc.com/apisnew/getAllDiagnosis
+		Request Parameter: office_id
+		Date: 12 March, 2018
+	*/
+	public function getAllDiagnosis_v2()
+	{
+		header("Content-Type: application/json; charset=UTF-8");
+		$response['message'] = 'Invalid Request.';
+		$response['result'] = 0;
+		$checkUniqueName = '';
+		if ($this->check_key()) {
+			$this->layout = false;
+			if ($this->validatePostRequest()) {
+				$this->autoRender = false;
+				$response = array();
+				$input_data = $_POST;
+				if (empty($input_data)) {
+					$input_data = json_decode(file_get_contents('php://input'), true); 
+					$allDiagnosis = $this->Diagnosis->find('list',
+						array(
+							'conditions' => ['Diagnosis.is_delete' => 0],
+							'fields' => array('id', 'name'),
+							'order' => array('Diagnosis.id ASC'),
+							'recursive' => 0
+						)
+					);
+					$data = [];
+					if (!empty($allDiagnosis)) {
+						foreach ($allDiagnosis as $key => $value) {
+							$dignosis_data = array();
+							$dignosis_data['id'] = $key;
+							$dignosis_data['name'] = $value;
+							$data[] = $dignosis_data;
 						}
 						$response['data'] = $data;
 						$response['result'] = 1;
@@ -15989,6 +16610,41 @@ print_r($titlePos);
 			}
 		}
 	}
+
+	public function get_device_level_by_mac_address()
+	{
+		if ($this->check_key()) {
+			$this->layout = false;
+			if ($this->validatePostRequest()) {
+				$this->autoRender = false;
+				$response = array();
+				$data_arrays = json_decode(file_get_contents("php://input"), true);
+				if (empty($data_arrays)) {
+					$data_arrays = $_POST;
+				}
+				
+				if (((!empty($data_arrays['office_id']))) && (!empty($data_arrays['bt_mac_address']))) {
+					$mac_address = $this->TestDevice->find('first', array('conditions' => array('TestDevice.bt_mac_address' => $data_arrays['bt_mac_address'], 'TestDevice.office_id' => $data_arrays['office_id'])));
+					if (empty($mac_address)) {
+						$response['message'] = 'Device MAC Address not found';
+						$response['result'] = 1;
+						$response['status'] = false;
+					} else {
+						$response['message'] = 'Device MAC Address found.';
+						$response['result'] = 1;
+						$response['status'] = true;
+						$response['deviceId'] = $mac_address['TestDevice']['id'];
+						$response['device_level'] = $mac_address['TestDevice']['device_level'];
+					}
+				} else {
+					$response['message'] = 'Some fields empty.';
+					$response['result'] = 0;
+				}
+				echo json_encode($response);
+				exit();
+			}
+		}
+	}
 	/*check version */
 	public function check_version()
 	{
@@ -16334,16 +16990,29 @@ print_r($titlePos);
 				if (empty($input_data)) {
 					$input_data = $_POST;
 				}
-				$this->Video->virtualFields['download'] = "CONCAT('" . WWW_BASE . "files/video/uploads', '/', Video.video)";;
+				
 				if (isset($input_data['office_id'])) {
+					$office_folder_name = 'OV_'.strtoupper(base_convert($input_data['office_id'], 10, 32 ));
+					$video_path = WWW_BASE . "files/video/uploads/".$office_folder_name;
+					$this->Video->virtualFields['download'] = "CONCAT('" . $video_path . "', '/', Video.video)";
 					$conditions = array();
 					if (isset($input_data['search'])) {
 						$conditions[] = array('Video.name like' => '%' . $input_data['search'] . '%');
 					}
+					if (isset($input_data['last_sync_time'])) {
+
+						$conditions['Video.updated_at >'] = date('Y-m-d H:i:s', strtotime($input_data['last_sync_time']));
+					}else{
+						$input_data['last_sync_time']= '';
+					}
 					$conditions[] = array('Video.office_id' => $input_data['office_id']);
-					$datas = $this->Video->find('all', array('conditions' => $conditions));
+					$datas = $this->Video->find('all', array('conditions' => $conditions, 'order' => array('Video.updated_at DESC'),)); 
 					$datas = array_column($datas, 'Video');
-					$response_array = array('message' => 'video listing for patinet.', 'status' => 1, 'data' => $datas);
+
+					if(!empty($datas)) { 
+						  $input_data['last_sync_time'] = $datas[0]['updated_at'];
+					}
+					$response_array = array('message' => 'video listing for patinet.', 'status' => 1, 'last_sync_time'=>$input_data['last_sync_time'], 'data' => $datas);
 					header('Content-Type: application/json');
 					echo json_encode($response_array);
 					die;
@@ -16367,7 +17036,7 @@ print_r($titlePos);
 				if (empty($input_data)) {
 					$input_data = $_POST;
 				}
-				$this->Video->virtualFields['download'] = "CONCAT('" . WWW_BASE . "files/video/uploads', '/', Video.video)";
+				
 				$this->Video->virtualFields['viewes'] = 0;
 				$this->Video->bindModel(
 					array(
@@ -16381,6 +17050,10 @@ print_r($titlePos);
 					)
 				);
 				if (isset($input_data['office_id'])) {
+					$office_folder_name = 'OV_'.strtoupper(base_convert($input_data['office_id'], 10, 32 ));
+					$video_path = WWW_BASE . "files/video/uploads/".$office_folder_name;
+
+					$this->Video->virtualFields['download'] = "CONCAT('" . $video_path . "', '/', Video.video)";
 					$conditions = array();
 					if (isset($input_data['search'])) {
 						$conditions[] = array('Video.name like' => '%' . $input_data['search'] . '%');
@@ -16391,13 +17064,45 @@ print_r($titlePos);
 						$value['Video']['viewes'] = $value['PatientVideoView'];
 						$datas_new[] = $value['Video'];
 					}
-					// $datas = array_column($datas,'Video');
+					//$datas = array_column($datas,'Video');
 					$response_array = array('message' => 'video details', 'status' => 1, 'data' => $datas_new);
 					header('Content-Type: application/json');
 					echo json_encode($response_array);
 					die;
 				} else {
 					$response_array = array('message' => 'Please send valid office id.', 'status' => 0);
+					header('Content-Type: application/json');
+					echo json_encode($response_array);
+					die;
+				}
+			}
+		}
+	}
+
+	//This API for patient video listing.
+	public function patient_viewed_video_listing()
+	{
+		if ($this->check_key()) {
+			$save_data = array();
+			$this->layout = false;
+			if ($this->validatePostRequest()) {
+				$input_data = json_decode(file_get_contents("php://input"), true);
+				if (empty($input_data)) {
+					$input_data = $_POST;
+				} 
+				if (isset($input_data['patient_id'])) {
+					$conditions = array();
+					 
+					$conditions[] = array('PatientVideoViews.patient_id' => $input_data['patient_id']);
+					$datas = $this->PatientVideoViews->find('all', array('conditions' => $conditions, 'fields' => array('PatientVideoViews.patient_id','PatientVideoViews.video_id')));
+					 
+					 $datas = array_column($datas,'PatientVideoViews');
+					$response_array = array('message' => 'patient viewed videos listing', 'status' => 1, 'data' => $datas);
+					header('Content-Type: application/json');
+					echo json_encode($response_array);
+					die;
+				} else {
+					$response_array = array('message' => 'Please send valid patient id.', 'status' => 0);
 					header('Content-Type: application/json');
 					echo json_encode($response_array);
 					die;
@@ -16435,6 +17140,9 @@ print_r($titlePos);
 					$datas = $this->Video->find('first', array('conditions' => $conditions));
 					$datas['Video']['viewes'] = $datas['PatientVideoView'];
 					$datas = $datas['Video'];
+					$office_folder_name = 'OV_'.strtoupper(base_convert($datas['office_id'], 10, 32 ));
+					$datas['download'] = WWW_BASE . "files/video/uploads/".$office_folder_name.'/'.$datas['video'];
+
 					$response_array = array('message' => 'video details', 'status' => 1, 'data' => $datas);
 					header('Content-Type: application/json');
 					echo json_encode($response_array);
@@ -16459,17 +17167,37 @@ print_r($titlePos);
 				if (empty($input_data)) {
 					$input_data = $_POST;
 				}
-				if (isset($input_data['video_id']) && isset($input_data['patient_id'])) {
+				if (isset($input_data['video_id']) && isset($input_data['patient_id']) && isset($input_data['video_len_sec']) && isset($input_data['video_watched_sec']) && isset($input_data['video_status'])) {
 					$patient_viewed = $this->PatientVideoViews->find('first', array('conditions' => array('PatientVideoViews.video_id' => $input_data['video_id'], 'PatientVideoViews.patient_id' => $input_data['patient_id'])));
-					if (empty($patient_viewed)) {
+					$time = isset($input_data['view_time'])?$input_data['view_time'] : date("Y-m-d H:i:s"); 
+					if (empty($patient_viewed)) { 
 						$data['PatientVideoViews']['video_id'] = $input_data['video_id'];
 						$data['PatientVideoViews']['patient_id'] = $input_data['patient_id'];
+						$data['PatientVideoViews']['video_len_sec'] = $input_data['video_len_sec'];
+						$data['PatientVideoViews']['video_watched_sec'] = $input_data['video_watched_sec'];
+						$data['PatientVideoViews']['video_status'] = $input_data['video_status'];
+						$data['PatientVideoViews']['updated_at'] = $time;
 						$data['type']['patient_id'] = 'C';
 						$this->PatientVideoViews->save($data);
 						$response_array = array('message' => 'video viewed status saved', 'status' => 1);
 					} else {
+						$patient_viewed['PatientVideoViews']['video_len_sec'] = $input_data['video_len_sec'];
+						$patient_viewed['PatientVideoViews']['video_watched_sec'] = $input_data['video_watched_sec'];
+						$patient_viewed['PatientVideoViews']['video_status'] = $input_data['video_status'];
+						$patient_viewed['PatientVideoViews']['updated_at'] = $time;
+						$this->PatientVideoViews->save($patient_viewed);
 						$response_array = array('message' => 'video allready viewed', 'status' => 1);
 					}
+
+					if (isset($input_data['office_id']) && isset($input_data['device_id'])) {
+						$data_device_message['DeviceMessage']['office_id'] = $input_data['office_id'];
+						$data_device_message['DeviceMessage']['device_id'] = $input_data['device_id'];
+						$data_device_message['DeviceMessage']['message'] = 'GEN|VIDEO_COMPLETED|' . $input_data['video_id'].'|'. $input_data['video_len_sec'].'|'. $input_data['video_watched_sec'].'|'. $input_data['video_status'].'|'. $time;
+						$data_device_message['DeviceMessage']['craeted_at'] = date("Y-m-d H:i:s");
+						$data_device_message['DeviceMessage']['updated_at'] = date("Y-m-d H:i:s");
+						$this->DeviceMessage->save($data_device_message);
+					}
+
 					header('Content-Type: application/json');
 					echo json_encode($response_array);
 					die;
@@ -16483,306 +17211,573 @@ print_r($titlePos);
 		}
 	}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*Add single patient with UTC time 22-11-2022 by Madan*/
-	public function addPatient_v6_v1()
+	//This API for update patient video viewed status of staff.
+	public function all_video_completed()
 	{
 		if ($this->check_key()) {
+			$save_data = array();
 			$this->layout = false;
 			if ($this->validatePostRequest()) {
 				$input_data = json_decode(file_get_contents("php://input"), true);
 				if (empty($input_data)) {
 					$input_data = $_POST;
 				}
-				/*$chekc_ID_number = $this->Patients->find('first',array('conditions'=>array('Patients.id_number'=>$input_data['id_number']),'fields'=>array('Patients.id')));
-					if(!empty($chekc_ID_number)){
-						$response_array = array('message'=>'Patient already exists with provided Id number.','status'=>0);
-						header('Content-Type: application/json');
-						echo json_encode($response_array);die;
-					}
-				 */
-				@$input_data['od_left'] = isset($input_data['od_left']) ? $input_data['od_left'] : '';
-				@$input_data['od_right'] = isset($input_data['od_right']) ? $input_data['od_right'] : '';
-				@$input_data['os_left'] = isset($input_data['os_left']) ? $input_data['os_left'] : '';
-				@$input_data['os_right'] = isset($input_data['os_right']) ? $input_data['os_right'] : '';
-				@$input_data['unique_id'] = isset($input_data['unique_id']) ? $input_data['unique_id'] : null;
-				$input_data['first_name'] = preg_replace('/[^A-Za-z0-9\-]/', '_', $input_data['first_name']);
-				$input_data['middle_name'] = preg_replace('/[^A-Za-z0-9\-]/', '_', $input_data['middle_name']);
-				$input_data['last_name'] = preg_replace('/[^A-Za-z0-9\-]/', '_', $input_data['last_name']);
-				$input_data['first_name'] = str_replace('-', '_', $input_data['first_name']);
-				$input_data['middle_name'] = str_replace('-', '_', $input_data['middle_name']);
-				$input_data['last_name'] = str_replace("-", "_", $input_data['last_name']);
-				$input_data['gender'] = isset($input_data['gender']) ? $input_data['gender'] : '';
-	            date_default_timezone_set('UTC');
-            	$UTCDate = date('Y-m-d H:i:s');
-				$save_data = array(
-					'user_id' => @$input_data['user_id'],
-					'first_name' => @$input_data['first_name'],
-					'middle_name' => @$input_data['middle_name'],
-					'last_name' => @$input_data['last_name'],
-					'id_number' => @$input_data['id_number'],
-					'dob' => @$input_data['dob'],
-					'notes' => @$input_data['notes'],
-					'email' => @$input_data['email'],
-					'phone' => @$input_data['phone'],
-					'od_left' => @$input_data['od_left'],
-					'od_right' => @$input_data['od_right'],
-					'os_left' => @$input_data['os_left'],
-					'os_right' => @$input_data['os_right'],
-					'unique_id' => @$input_data['unique_id'],
-					'race' => trim(@$input_data['race']),
-					'created' => @$input_data['created'],
-					'created_date_utc' => @$input_data['created_date_utc'],
-					'created_at_for_archive' => @$UTCDate,
-					'gender' => $input_data['gender']
-				);
-				//pr($save_data); die;
-				if (isset($input_data['first_name']) && !isset($input_data['patient_id'])) {
-					$user_office = $this->User->find('first', array('conditions' => array('User.id' => @$input_data['user_id']), 'fields' => array('User.office_id')));
-					$save_data['office_id'] = $user_office['User']['office_id'];
-					$this->Patientsnew->table = 'patients';
-					$this->Patientsnew->useTable = 'patients';
-					$this->Patientsnew->validate = array(
-						'unique_id' => array(
-							'notBlank' => array(
-								'rule' => 'notBlank',
-								'message' => 'Please enter Id number.'
-							),
-							'unique' => array(
-								'rule' => 'isUnique',
-								'message' => 'Please enter another unique id it is already taken.'
-							),
-						)
-					);
-					$this->Patientsnew->set($save_data);
-					if ($this->Patientsnew->validates()) {
- 						//date_default_timezone_set("America/Los_Angeles");
-						//$save_data['created'] = date('Y-m-d H:i:s');
-						//$save_data['created'] = $input_data['created'];
-	                    //$save_data['created_at_for_archive']= date('Y-m-d H:i:s');
-	                    /*date_default_timezone_set('UTC');
-            			$UTCDate = date('Y-m-d H:i:s');*/
-            			//$save_data['created_date_utc']= $input_data['created_date_utc'];
+				$this->loadModel('VideoRequest');
+				if (isset($input_data['device_id']) && isset($input_data['device_id'])) {
+					 $video_request = $this->VideoRequest->find('first', array('conditions' => array('VideoRequest.office_id' => $input_data['office_id'], 'VideoRequest.device_id' => $input_data['device_id'])));
+					 if(isset($video_request['VideoRequest']['id'])){
+					 	$this->VideoRequest->delete($video_request['VideoRequest']['id']);
+					 }
+ 
+						$data_device_message['DeviceMessage']['office_id'] = $input_data['office_id'];
+						$data_device_message['DeviceMessage']['device_id'] = $input_data['device_id'];
+						$data_device_message['DeviceMessage']['message'] = 'GEN|ALL_VIDEO_COMPLETED';
+						$data_device_message['DeviceMessage']['craeted_at'] = date("Y-m-d H:i:s");
+						$data_device_message['DeviceMessage']['updated_at'] = date("Y-m-d H:i:s");
+						$this->DeviceMessage->save($data_device_message); 
 
-						$result = $this->Patients->save($save_data);
-						if (count($result['Patients'])) {
-
-							if(isset($input_data['diagnosis'])){
-								foreach($input_data['diagnosis'] as $value){
-            						$diagnosis=array();
-            						$diagnosis['patient_id'] = $result['Patients']['id'];
-            						$diagnosis['diagnosis_id'] = $value;
-            						$diagnosis_data[] = $diagnosis;
-            						$this->PatientDiagnosis->create();
-									$this->PatientDiagnosis->save($pdata);
-
-            					}
-
-            				}
-							$result['Patients']['patient_id'] = $result['Patients']['id'];
-							unset($result['Patients']['id']);
-							$response_array = array('message' => 'Patients Added successfully.', 'status' => 1, 'data' => $result['Patients']);
-							header('Content-Type: application/json');
-							echo json_encode($response_array);
-							die;
-						} else {
-							$response_array = array('message' => 'Some problems occured during process. Please try again.', 'status' => 0);
-							header('Content-Type: application/json');
-							echo json_encode($response_array);
-							die;
-						}
-					} else {
-						$response_array = array('message' => 'Unique id allready taken.', 'status' => 0);
-						header('Content-Type: application/json');
-						echo json_encode($response_array);
-						die;
-					}
+					header('Content-Type: application/json');
+					$response_array = array('message' => 'Data updated', 'status' => 1);
+					echo json_encode($response_array);
+					die;
 				} else {
-					$user_office = $this->User->find('first', array('conditions' => array('User.id' => @$input_data['user_id']), 'fields' => array('User.office_id')));
-					$save_data['office_id'] = $user_office['User']['office_id'];
-					$save_data['id'] = $input_data['patient_id'];
-					$save_data['created'] = (!empty($input_data['created_date'])) ? date('Y-m-d H:i:s', strtotime($input_data['created_date'])) : date('Y-m-d H:i:s');
-					$result = $this->Patients->save($save_data);
-					if ($result) {
-						$result['Patients']['patient_id'] = $result['Patients']['id'];
-						unset($result['Patients']['id']);
-						$response_array = array('message' => 'Patients Updated successfully.', 'status' => 1, 'data' => $result['Patients']);
-						header('Content-Type: application/json');
-						echo json_encode($response_array);
-						die;
-					} else {
-						$response_array = array('message' => 'Some problems occured during process. Please try again.', 'status' => 0);
-						header('Content-Type: application/json');
-						echo json_encode($response_array);
-						die;
-					}
+					$response_array = array('message' => 'Please send valid data.', 'status' => 0);
+					header('Content-Type: application/json');
+					echo json_encode($response_array);
+					die;
 				}
 			}
 		}
 	}
-	/*Add single patient with UTC time 22-11-2022 by Madan*/
+	
+            
+                
+                /*Save single report PUP Create new API by MAdan 24-11-2022*/
+                public function savePUPReport_v6_v1()
+                {
+                    if ($this->check_key()) {
+                        $this->layout = false;
+                        if ($this->validatePostRequest()) {
+                            $this->autoRender = false;
+                            $this->loadModel('PupTest');
+                            $this->loadModel('PupPointdata');
+                            $response =$faild_data= array();
+                            $data_arrays = json_decode(file_get_contents("php://input"), true);
+                            $request_data = file_get_contents("php://input");
+                            $reportdata['ReportRequestBackup']['data'] = $request_data;
+                            $reportdata['ReportRequestBackup']['api_name'] = 'savePUPReport_v6';
+                            $reportdata['ReportRequestBackup']['status'] = 0;
+                            $result_bpk = $this->ReportRequestBackup->save($reportdata);
+                            $lastId_bpk = $this->ReportRequestBackup->id;
+                            if (isset($data_arrays['patient_id']) && !empty($data_arrays['patient_id'])) {
+                                if (!empty($data_arrays['pdf'])) {
+                                    $pid = isset($data_arrays['patient_id']) ? $data_arrays['patient_id'] : '0';
+                                    $foldername = "PupTestControllerData";
+                                    $imgstring = $data_arrays['pdf'];
+                                    $data_arrays['file'] = $this->base64_to_pdf($imgstring, $foldername, $pid);
+                                }
+                                $data['PupTest']['source'] = isset($data_arrays['source']) ? $data_arrays['source'] : 'C';
+                                $data['PupTest']['file'] = isset($data_arrays['file']) ? $data_arrays['file'] : '';
+                                $data['PupTest']['staff_id'] = isset($data_arrays['staff_id']) ? $data_arrays['staff_id'] : '';
+                                $data['PupTest']['staff_name'] = isset($data_arrays['staff_name']) ? $data_arrays['staff_name'] : '';
+                                $data['PupTest']['patient_id'] = isset($data_arrays['patient_id']) ? $data_arrays['patient_id'] : '';
+                                $data['PupTest']['patient_name'] = isset($data_arrays['patient_name']) ? $data_arrays['patient_name'] : '';
+                                $data['PupTest']['test_name'] = isset($data_arrays['test_name']) ? $data_arrays['test_name'] : 'Pupolimeter';
+                                $data['PupTest']['created'] = (!empty($data_arrays['created_date'])) ? date('Y-m-d H:i:s', strtotime($data_arrays['created_date'])) : date('Y-m-d H:i:s');
+                                $data['PupTest']['created_date_utc'] = $data_arrays['created_date_utc'];
+                                $data['PupTest']['unique_id'] = (isset($data_arrays['unique_id']) && !empty($data_arrays['unique_id'])) ? $data_arrays['unique_id'] : null;
+                                $data['PupTest']['device_id'] = isset($data_arrays['device_id']) ? $data_arrays['device_id'] : 0;
+                                $data['PupTest']['office_id'] = isset($data_arrays['office_id']) ? $data_arrays['office_id'] : 0;
+                                $data['PupTest']['age_group'] = isset($data_arrays['age_group']) ? $data_arrays['age_group'] : 1;
+                                $data['PupTest']['version'] = isset($data_arrays['version']) ? $data_arrays['version'] : '1.0';
+                                $data['PupTest']['age'] = isset($data_arrays['age']) ? $data_arrays['ave'] : '';
+                                $result = $this->PupTest->save($data);
+                                if ($result) {
+                                    $lastId = $this->PupTest->id;
+
+
+                                    if(isset($input_data['diagnosis'])){
+                                            foreach($input_data['diagnosis'] as $value){
+                                                $diagnosis=array();
+                                                $diagnosis['pup_id'] = $lastId;
+                                                $diagnosis['diagnosis_id'] = $value;
+                                                $diagnosis_data[] = $diagnosis;
+                                                $this->PupDiagnosis->create();
+                                                $this->PupDiagnosis->save($pdata);
+
+                                            }
+
+                                        }
+
+
+                                    $result2 = $this->ReportRequestBackup->find('first', array('conditions' => array('ReportRequestBackup.id' => $lastId_bpk)));
+                                    $result2['ReportRequestBackup']['status'] = 1;
+                                    $this->ReportRequestBackup->save($result2);
+                                    if (!empty($data_arrays['file'])) {
+                                        $response['pdf'] = WWW_BASE . 'app/webroot/PupTestControllerData/' . $data_arrays['file'];
+                                        $response['new_id'] = $lastId;
+                                    } else {
+                                        $response['pdf'] = '';
+                                    }
+                                    foreach ($data_arrays['pupPointData'] as $pdatas) {
+                                        $pdata['PupPointdata']['pup_test_id'] = $lastId;
+                                        $pdata['PupPointdata']['time'] = isset($pdatas['time']) ? $pdatas['time'] : 0;
+                                        $pdata['PupPointdata']['pupilDiam_OS'] = isset($pdatas['pupilDiam_OS']) ? $pdatas['pupilDiam_OS'] : 0.00;
+                                        $pdata['PupPointdata']['pupilDiam_OD'] = isset($pdatas['pupilDiam_OD']) ? $pdatas['pupilDiam_OD'] : 0;
+                                        $pdata['PupPointdata']['testState'] = isset($pdatas['testState']) ? $pdatas['testState'] : 0;
+                                        $this->PupPointdata->create();
+                                        $result_p = $this->PupPointdata->save($pdata);
+                                    }
+                                    $response['message'] = 'Success.';
+                                    $response['result'] = 1;
+                                } else {
+                                    $fail=array();
+                                    $errors = $this->PupTest->validationErrors;
+                                    $response['message']='Some error occured in updating report.';
+                                    $result2 = $this->PupTest->find('first', array('conditions' => array('PupTest.unique_id' => $data_arrays['PupTest']['unique_id'])));
+                                    $response['result']=0;
+                                    $fail['id']=$result2['PupTest']['id'];
+                                    $fail['unique_id']=$resultData['PupTest']['unique_id'];
+                                    //pr($result2['Patient']);die;
+                                    $name=$name=$result2['Patient']['first_name'];
+                                    if($result2['Patient']['middle_name']!=""){
+                                        $name=$name.' '.$result2['Patient']['middle_name'];
+                                    }
+                                    if($result2['Patient']['last_name']!=""){
+                                        $name=$name.' '.$result2['Patient']['last_name'];
+                                    }
+                                    $fail['patient_name']=$name;
+                                    $fail['message']=$errors[array_keys($errors)[0]][0];
+                                    $faild_data[]=$fail;
+                                }
+                            } else {
+                                $response['message'] = 'Patient id can\'t be empty.';
+                                $response['result'] = 0;
+                            }
+                            /*echo json_encode($response);
+                            exit();*/
+                            $response['failed_data'] = $faild_data;
+                            echo json_encode($response);
+                            exit;
+                        }
+                    }
+                }
+                /*Save single report PUP Create new API by MAdan 24-11-2022*/
+
+            /*Save multiple PUP report Craete Api by Madan 24-11-2022*/
+                public function saveMultiplePUPReport_v6_v1()
+                {
+                    if ($this->check_key()) {
+                        $this->layout = false;
+                        if ($this->validatePostRequest()) {
+                            $this->autoRender = false;
+                            $this->loadModel('PupTest');
+                            $this->loadModel('PupPointdata');
+                            $response = array();
+                            $faildRequest = array();
+                            $resultData = $saved_data = $faild_data = array();
+                            $data_arrays = json_decode(file_get_contents("php://input"), true);
+                            $request_data = file_get_contents("php://input");
+                            $reportdata['ReportRequestBackup']['data'] = $request_data;
+                            $reportdata['ReportRequestBackup']['api_name'] = 'saveMultiplePUPReport_v6';
+                            $reportdata['ReportRequestBackup']['status'] = 0;
+                            $result_bpk = $this->ReportRequestBackup->save($reportdata);
+                            $lastId_bpk = $this->ReportRequestBackup->id;
+                            if (isset($data_arrays['patient_id']) && !empty($data_arrays['patient_id'])) {
+                                if (!empty($data_arrays['pdf'])) {
+                                    $pid = isset($data_arrays['patient_id']) ? $data_arrays['patient_id'] : '0';
+                                    $foldername = "PupTestControllerData";
+                                    $imgstring = $data_arrays['pdf'];
+                                    $data_arrays['file'] = $this->base64_to_pdf($imgstring, $foldername, $pid);
+                                }
+                                $data['PupTest']['source'] = isset($data_arrays['source']) ? $data_arrays['source'] : 'C';
+                                $data['PupTest']['file'] = isset($data_arrays['file']) ? $data_arrays['file'] : '';
+                                $data['PupTest']['staff_id'] = isset($data_arrays['staff_id']) ? $data_arrays['staff_id'] : '';
+                                $data['PupTest']['staff_name'] = isset($data_arrays['staff_name']) ? $data_arrays['staff_name'] : '';
+                                $data['PupTest']['patient_id'] = isset($data_arrays['patient_id']) ? $data_arrays['patient_id'] : '';
+                                $data['PupTest']['patient_name'] = isset($data_arrays['patient_name']) ? $data_arrays['patient_name'] : '';
+                                $data['PupTest']['test_name'] = isset($data_arrays['test_name']) ? $data_arrays['test_name'] : 'VT';
+                                $data['PupTest']['created'] = (!empty($data_arrays['created_date'])) ? date('Y-m-d H:i:s', strtotime($data_arrays['created_date'])) : date('Y-m-d H:i:s');
+                                $data['PupTest']['created_date_utc'] = $data_arrays['created_date_utc'] ;
+                                $data['PupTest']['unique_id'] = (isset($data_arrays['unique_id']) && !empty($data_arrays['unique_id'])) ? $data_arrays['unique_id'] : null;
+                                $data['PupTest']['device_id'] = isset($data_arrays['device_id']) ? $data_arrays['device_id'] : 0;
+                                $data['PupTest']['office_id'] = isset($data_arrays['office_id']) ? $data_arrays['office_id'] : 0;
+                                $data['PupTest']['age_group'] = isset($data_arrays['age_group']) ? $data_arrays['age_group'] : 1;
+                                $data['PupTest']['version'] = isset($data_arrays['version']) ? $data_arrays['version'] : '1.0';
+                                $data['PupTest']['age'] = isset($data_arrays['age']) ? $data_arrays['ave'] : '';
+                                $result = $this->PupTest->save($data);
+                                if ($result) {
+                                    $saved_data[]['id'] = $this->PupTest->id;
+                                }else{
+                                      $fail=array();
+                                        $errors = $this->PupTest->validationErrors;
+                                        $response['message']='Some error occured in updating report.';
+                                        $result2 = $this->PupTest->find('first', array('conditions' => array('PupTest.unique_id' => $data_arrays['unique_id'])));
+                                        $response['result']=0;
+                                        $fail['id']=$result2['PupTest']['id'];
+                                        $fail['unique_id']=$data_arrays['unique_id'];
+                                        $name=$name=$result2['Patient']['first_name'];
+                                        if($result2['Patient']['middle_name']!=""){
+                                            $name=$name.' '.$result2['Patient']['middle_name'];
+                                        }
+                                        if($result2['Patient']['last_name']!=""){
+                                            $name=$name.' '.$result2['Patient']['last_name'];
+                                        }
+                                        $fail['patient_name']=$name;
+                                        $fail['message']=$errors[array_keys($errors)[0]][0];
+                                        $faild_data[]=$fail;
+                                    }
+                                if ($result) {
+                                    $lastId = $this->PupTest->id;
+
+                                    if(isset($input_data['diagnosis'])){
+                                            foreach($input_data['diagnosis'] as $value){
+                                                $diagnosis=array();
+                                                $diagnosis['pup_id'] = $lastId;
+                                                $diagnosis['diagnosis_id'] = $value;
+                                                $diagnosis_data[] = $diagnosis;
+                                                $this->PupDiagnosis->create();
+                                                $this->PupDiagnosis->save($pdata);
+
+                                            }
+
+                                        }
+                                    $result2 = $this->ReportRequestBackup->find('first', array('conditions' => array('ReportRequestBackup.id' => $lastId_bpk)));
+                                    $result2['ReportRequestBackup']['status'] = 1;
+                                    $this->ReportRequestBackup->save($result2);
+                                    if (!empty($data_arrays['file'])) {
+                                        $response['pdf'] = WWW_BASE . 'app/webroot/PupTestControllerData/' . $data_arrays['file'];
+                                        $response['new_id'] = $lastId;
+                                    } else {
+                                        $response['pdf'] = '';
+                                    }
+                                    foreach ($data_arrays['pupPointData'] as $pdatas) {
+                                        $pdata['PupPointdata']['pup_test_id'] = $lastId;
+                                        $pdata['PupPointdata']['time'] = isset($pdatas['time']) ? $pdatas['time'] : 0;
+                                        $pdata['PupPointdata']['pupilDiam_OS'] = isset($pdatas['pupilDiam_OS']) ? $pdatas['pupilDiam_OS'] : 0.00;
+                                        $pdata['PupPointdata']['pupilDiam_OD'] = isset($pdatas['pupilDiam_OD']) ? $pdatas['pupilDiam_OD'] : 0;
+                                        $pdata['PupPointdata']['testState'] = isset($pdatas['testState']) ? $pdatas['testState'] : 0;
+                                        $this->PupPointdata->create();
+                                        $result_p = $this->PupPointdata->save($pdata);
+                                    }
+                                    $response['data'] = $saved_data;
+                                    $response['message'] = 'Success.';
+                                    $response['result'] = 1;
+                                } else {
+                                    $response['message'] = $this->getFirstError($this->PupTest->validationErrors);
+                                    $response['result'] = 0;
+                                }
+                            } else {
+                                $response['message'] = 'Patient id can\'t be empty.';
+                                $response['result'] = 0;
+                            }
+                            $response['failed_data'] = $faild_data;
+                            echo json_encode($response);
+                            exit();
+                        }
+                    }
+                }
+
+
+                
+
+
+
+            /*Add single patient with UTC time 22-11-2022 by Madan*/
+                public function addPatient_v6_v1()
+                {
+                    if ($this->check_key()) {
+                        $this->layout = false;
+                        if ($this->validatePostRequest()) {
+                            $input_data = json_decode(file_get_contents("php://input"), true);
+                            $request_data = file_get_contents("php://input");
+                            if (empty($input_data)) {
+                                $input_data = $_POST;
+                                $request_data = json_encode($input_data);
+                            }
+
+                            $reportdata['ReportRequestBackup']['data'] = $request_data;
+				$reportdata['ReportRequestBackup']['api_name'] = 'addPatient_v6_v1';
+				$reportdata['ReportRequestBackup']['status'] = 0;
+				$result_bpk = $this->ReportRequestBackup->save($reportdata);
+                            /*$chekc_ID_number = $this->Patients->find('first',array('conditions'=>array('Patients.id_number'=>$input_data['id_number']),'fields'=>array('Patients.id')));
+                                if(!empty($chekc_ID_number)){
+                                    $response_array = array('message'=>'Patient already exists with provided Id number.','status'=>0);
+                                    header('Content-Type: application/json');
+                                    echo json_encode($response_array);die;
+                                }
+                             */
+                            @$input_data['od_left'] = isset($input_data['od_left']) ? $input_data['od_left'] : '';
+                            @$input_data['od_right'] = isset($input_data['od_right']) ? $input_data['od_right'] : '';
+                            @$input_data['os_left'] = isset($input_data['os_left']) ? $input_data['os_left'] : '';
+                            @$input_data['os_right'] = isset($input_data['os_right']) ? $input_data['os_right'] : '';
+                            @$input_data['unique_id'] = isset($input_data['unique_id']) ? $input_data['unique_id'] : null;
+                            $input_data['first_name'] = preg_replace('/[^A-Za-z0-9\-]/', '_', $input_data['first_name']);
+                            $input_data['middle_name'] = preg_replace('/[^A-Za-z0-9\-]/', '_', $input_data['middle_name']);
+                            $input_data['last_name'] = preg_replace('/[^A-Za-z0-9\-]/', '_', $input_data['last_name']);
+                            $input_data['first_name'] = str_replace('-', '_', $input_data['first_name']);
+                            $input_data['middle_name'] = str_replace('-', '_', $input_data['middle_name']);
+                            $input_data['last_name'] = str_replace("-", "_", $input_data['last_name']);
+                            $input_data['gender'] = isset($input_data['gender']) ? $input_data['gender'] : '';
+                            date_default_timezone_set('UTC');
+                            $UTCDate = date('Y-m-d H:i:s');
+                            $save_data = array(
+                                'user_id' => @$input_data['user_id'],
+                                'first_name' => @$input_data['first_name'],
+                                'middle_name' => @$input_data['middle_name'],
+                                'last_name' => @$input_data['last_name'],
+                                'id_number' => @$input_data['id_number'],
+                                'dob' => @$input_data['dob'],
+                                'notes' => @$input_data['notes'],
+                                'email' => @$input_data['email'],
+                                'phone' => @$input_data['phone'],
+                                'od_left' => @$input_data['od_left'],
+                                'od_right' => @$input_data['od_right'],
+                                'os_left' => @$input_data['os_left'],
+                                'os_right' => @$input_data['os_right'],
+                                'unique_id' => @$input_data['unique_id'],
+                                'race' => trim(@$input_data['race']),
+                                'created' => @$input_data['created'],
+                                'created_date_utc' => @$input_data['created_date_utc'],
+                                'created_at_for_archive' => @$UTCDate,
+                                'gender' => $input_data['gender']
+                            );
+                            //pr($save_data); die;
+                            if (isset($input_data['first_name']) && !isset($input_data['patient_id'])) {
+                                $user_office = $this->User->find('first', array('conditions' => array('User.id' => @$input_data['user_id']), 'fields' => array('User.office_id')));
+                                $save_data['office_id'] = $user_office['User']['office_id'];
+                                $this->Patientsnew->table = 'patients';
+                                $this->Patientsnew->useTable = 'patients';
+                                $this->Patientsnew->validate = array(
+                                    'unique_id' => array(
+                                        'notBlank' => array(
+                                            'rule' => 'notBlank',
+                                            'message' => 'Please enter Id number.'
+                                        ),
+                                        'unique' => array(
+                                            'rule' => 'isUnique',
+                                            'message' => 'Please enter another unique id it is already taken.'
+                                        ),
+                                    )
+                                );
+                                $this->Patientsnew->set($save_data);
+                                if ($this->Patientsnew->validates()) {
+                                     //date_default_timezone_set("America/Los_Angeles");
+                                    //$save_data['created'] = date('Y-m-d H:i:s');
+                                    //$save_data['created'] = $input_data['created'];
+                                    //$save_data['created_at_for_archive']= date('Y-m-d H:i:s');
+                                    /*date_default_timezone_set('UTC');
+                                    $UTCDate = date('Y-m-d H:i:s');*/
+                                    //$save_data['created_date_utc']= $input_data['created_date_utc'];
+
+                                    $result = $this->Patients->save($save_data);
+                                    if (count($result['Patients'])) {
+
+                                        if(isset($input_data['diagnosis'])){
+                                        	$diagnosis_array = explode(',', $input_data['diagnosis']);
+                                            foreach($diagnosis_array as $key => $value){
+                                                $diagnosis=array();
+                                                $diagnosis['patient_id'] = $result['Patients']['id'];
+                                                $diagnosis['diagnosis_id'] = $value;
+                                                $diagnosis_data[] = $value;
+                                                $this->PatientDiagnosis->create();
+                                                $this->PatientDiagnosis->save($diagnosis);
+
+                                            }
+
+                                        }
+                                        $result['Patients']['patient_id'] = $result['Patients']['id'];
+                                        unset($result['Patients']['id']);
+                                        $response_array = array('message' => 'Patients Added successfully.', 'status' => 1, 'data' => $result['Patients']);
+                                        header('Content-Type: application/json');
+                                        echo json_encode($response_array);
+                                        die;
+                                    } else {
+                                        $response_array = array('message' => 'Some problems occured during process. Please try again.', 'status' => 0);
+                                        header('Content-Type: application/json');
+                                        echo json_encode($response_array);
+                                        die;
+                                    }
+                                } else {
+                                    $response_array = array('message' => 'Unique id allready taken.', 'status' => 0);
+                                    header('Content-Type: application/json');
+                                    echo json_encode($response_array);
+                                    die;
+                                }
+                            } else {
+                                $user_office = $this->User->find('first', array('conditions' => array('User.id' => @$input_data['user_id']), 'fields' => array('User.office_id')));
+                                $save_data['office_id'] = $user_office['User']['office_id'];
+                                $save_data['id'] = $input_data['patient_id'];
+                                $save_data['created'] = (!empty($input_data['created_date'])) ? date('Y-m-d H:i:s', strtotime($input_data['created_date'])) : date('Y-m-d H:i:s');
+                                $result = $this->Patients->save($save_data);
+                                if ($result) {
+                                    $result['Patients']['patient_id'] = $result['Patients']['id'];
+                                    unset($result['Patients']['id']);
+                                    $response_array = array('message' => 'Patients Updated successfully.', 'status' => 1, 'data' => $result['Patients']);
+                                    header('Content-Type: application/json');
+                                    echo json_encode($response_array);
+                                    die;
+                                } else {
+                                    $response_array = array('message' => 'Some problems occured during process. Please try again.', 'status' => 0);
+                                    header('Content-Type: application/json');
+                                    echo json_encode($response_array);
+                                    die;
+                                }
+                            }
+                        }
+                    }
+                }
+                /*Add single patient with UTC time 22-11-2022 by Madan*/
 
 
 
 
 
-	/*Add patients by Utc time 22-11-2022 by Madan*/
-	 public function addMultiplePatients_v6_v1()
-	{
-		if ($this->check_key()) {
-			$this->layout = false;
-			if ($this->validatePostRequest()) {
-				$input_data = json_decode(file_get_contents("php://input"), true);
-				$save_data = $saved_data = array();
-				if (!empty($input_data['data']) && isset($input_data['user_id']) && !empty($input_data['user_id']) && isset($input_data['office_id']) && !empty($input_data['user_id'])) {		
-					
-					$i = 0;
-					foreach ($input_data['data'] as $data) { 
-						$patients = $data; 
-						if (!empty($data['patient_id'])) {
-							$patients['id'] = $patients['patient_id'];
-						} 
-						if($patients['unique_id']){
-							$patients['unique_id'] = $data['unique_id'];
-						}
-						//date_default_timezone_set("America/Los_Angeles");
-						$patients['race'] = trim(@$data['race']);
-						$patients['office_id'] = @$input_data['office_id'];
-						$patients['user_id'] = @$input_data['user_id'];
-						$patients['created_date_utc'] = @$data['created_date_utc'];
-						$patients['gender'] = @$data['gender'];
-						$patients['created'] = @$data['created'];
-						//date_default_timezone_set('UTC');
-            			//$UTCDate = date('Y-m-d H:i:s');
-            			//$patients['created_at_for_archive'] = @$UTCDate;
-						//$patients['created'] = (isset($data['created_date']) && !empty($data['created_date'])) ? date('Y-m-d H:i:s', strtotime($data['created_date'])) : date('Y-m-d H:i:s');
-						$this->Patientsnew->table = 'patients';
-						$this->Patientsnew->useTable = 'patients';
-						$this->Patientsnew->validate = array(
-							'unique_id' => array(
-								'notBlank' => array(
-									'rule' => 'notBlank',
-									'message' => 'Please enter Id number.'
-								),
-								'unique' => array(
-									'rule' => 'isUnique',
-									'message' => 'Please enter another unique id it is already taken.'
-								),
-							)
-						);
-						$this->Patientsnew->set($patients);
-						if ($this->Patientsnew->validates()) {
-							/*$rs = $this->Patients->save($patients);
-							if ($rs) {
-								$saved_data[$i]['id'] = $this->Patients->id;
-								//$saved_data[$i]['unique_id'] = $this->Patients->unique_id;
-								$saved_data[$i]['unique_id'] = $data['unique_id'];
-							} */
-						}
-						if(!empty($data['unique_id'])){
-							$result =$this->Patients->find('all', array('conditions' => array('Patients.unique_id' => $data['unique_id']), 'fields' => array('Patients.id')));
-							if(empty($result)){
-								$rs = $this->Patients->save($patients);
-								if ($rs) {
-									$countIds =$this->Patients->find('all', array('conditions' => array('Patients.unique_id' => $data['unique_id']), 'fields' => array('Patients.id')));
+                /*Add patients by Utc time 22-11-2022 by Madan*/
+                 public function addMultiplePatients_v6_v1()
+                {
+                    if ($this->check_key()) {
+                        $this->layout = false;
+                        if ($this->validatePostRequest()) {
+                            $input_data = json_decode(file_get_contents("php://input"), true);
+                            $request_data = file_get_contents("php://input");
+                            $save_data = $saved_data = array();
+
+                            $reportdata['ReportRequestBackup']['data'] = $request_data;
+				$reportdata['ReportRequestBackup']['api_name'] = 'addMultiplePatients_v6_v1';
+				$reportdata['ReportRequestBackup']['status'] = 0;
+				$result_bpk = $this->ReportRequestBackup->save($reportdata);
+                            if (!empty($input_data['data']) && isset($input_data['user_id']) && !empty($input_data['user_id']) && isset($input_data['office_id']) && !empty($input_data['user_id'])) {
+                                
+                                $i = 0;
+                                //print_r($input_data);
+                                foreach ($input_data['data'] as $data) {
+                                    $patients = $data;
+                                   // print_r($data);
+                                    if (!empty($data['patient_id'])) {
+                                        $patients['id'] = $data['patient_id'];
+                                    }
+                                    if($patients['unique_id']){
+                                        $patients['unique_id'] = $data['unique_id'];
+                                    }
+                                    //date_default_timezone_set("America/Los_Angeles");
+                                    $patients['race'] = trim(@$data['race']);
+                                    $patients['office_id'] = @$input_data['office_id'];
+                                    $patients['user_id'] = @$input_data['user_id'];
+                                    $patients['created_date_utc'] = @$data['created_date_utc'];
+                                    $patients['gender'] = @$data['gender'];
+                                    $patients['created'] = @$data['created'];
+                                    //date_default_timezone_set('UTC');
+                                    //$UTCDate = date('Y-m-d H:i:s');
+                                    //$patients['created_at_for_archive'] = @$UTCDate;
+                                    //$patients['created'] = (isset($data['created_date']) && !empty($data['created_date'])) ? date('Y-m-d H:i:s', strtotime($data['created_date'])) : date('Y-m-d H:i:s');
+                                    $this->Patientsnew->table = 'patients';
+                                    $this->Patientsnew->useTable = 'patients';
+                                    $this->Patientsnew->validate = array(
+                                        'unique_id' => array(
+                                            'notBlank' => array(
+                                                'rule' => 'notBlank',
+                                                'message' => 'Please enter Id number.'
+                                            ),
+                                            'unique' => array(
+                                                'rule' => 'isUnique',
+                                                'message' => 'Please enter another unique id it is already taken.'
+                                            ),
+                                        )
+                                    );
+                                    $this->Patientsnew->set($patients);
+                                    if ($this->Patientsnew->validates()) {
+                                        /*$rs = $this->Patients->save($patients);
+                                        if ($rs) {
+                                            $saved_data[$i]['id'] = $this->Patients->id;
+                                            //$saved_data[$i]['unique_id'] = $this->Patients->unique_id;
+                                            $saved_data[$i]['unique_id'] = $data['unique_id'];
+                                        } */
+                                    }
+                                    if(!empty($data['unique_id'])){
+                                        $result =$this->Patients->find('all', array('conditions' => array('Patients.unique_id' => $data['unique_id']), 'fields' => array('Patients.id'))); 
+                                        $result_new = null;
+                                        if(!empty($patients['id']) && $patients['id']!=""){
+                                        	$result_new =$this->Patients->find('all', array('conditions' => array('Patients.id' => $patients['id']), 'fields' => array('Patients.id'))); 
+                                        }
+                                        if(empty($result) || ($result_new !=null && !empty($result_new))){
+                                            $rs = $this->Patients->save($patients);
+                                            if ($rs) { 
+                                                $countIds =$this->Patients->find('all', array('conditions' => array('Patients.unique_id' => $data['unique_id']), 'fields' => array('Patients.id')));
+
+                                                 
+                                                if(isset($data['diagnosis'])){ 
+                                                	$this->PatientDiagnosis->deleteAll(array('PatientDiagnosis.patient_id' => $this->Patients->id));
+                                                    $diagnosis_array = explode(',', $data['diagnosis']);
+                                            		foreach($diagnosis_array as $key => $value){ 
+                                                        $diagnosis=array();
+                                                        $diagnosis['patient_id'] =  $this->Patients->id;
+                                                        $diagnosis['diagnosis_id'] = $value;
+                                                        $diagnosis_data[] = $value;
+                                                        $this->PatientDiagnosis->create();
+                                                        $this->PatientDiagnosis->save($diagnosis);
+
+                                                    }
+
+                                                }
+                                                if(count($countIds) > 1){
+                                                    foreach($countIds as $key=>$countId){
+                                                        if($key !== 0){
+                                                            $this->Patients->delete($countId['Patients']['id']);
+                                                        }else{
+                                                            $patientsId = $countId['Patients']['id'];
+                                                        }
+                                                    }
+                                                }
+                                                if(empty($patientsIds)){
+
+                                                        $saved_data[$i]['id'] = $this->Patients->id;
+                                                        $saved_data[$i]['unique_id'] = $data['unique_id'];
+                                                }else{
+                                                    $saved_data[$i]['id'] = $patientsIds;
+                                                    $saved_data[$i]['unique_id'] = $data['unique_id'];
+                                                }
+                                                //$saved_data[$i]['unique_id'] = $this->Patients->unique_id;
+                                            }
+                                        }else{
+                                        }
+                                        foreach($result as $key=>$val){
+                                            
+                                            /*$this->Patients->save($patients);
+                                                $this->Patients->delete($age_group_data['Masterdata']['id']);*/
+                                            $alreadyinsertid[$i]['id'] = $val['Patients']['id'];
+                                            $alreadyinsertid[$i]['unique_id'] = $data['unique_id'];
+                                        }
+                                    }
+                                    $i++;
+                                }
+
+                                foreach($saved_data as $key => $value){
+                                      $saved_datas[] = $value;
+                                }
+                                if (!empty($saved_data)) {
+
+                                    $response_array = array('message' => 'Patients Saved successfully.', 'status' => 1, 'data' => $saved_datas);
+                                }else if(empty($saved_data)){
+                                    $response_array = array('message' => 'Already patients added.', 'status' => 1, 'data' => $alreadyinsertid);
+                                } else {
+                                    $response_array = array('message' => 'Error in adding patients.', 'status' => 0, 'data' => $saved_datas);
+                                }
+                            } else {
+                                $response_array = array('message' => 'Please send all parameters.', 'status' => 0);
+                            }
+                            echo json_encode($response_array);
+                            die;
+                        }
+                    }
+                }
+                    
 
 
-									if(isset($input_data['diagnosis'])){
-										foreach($input_data['diagnosis'] as $value){
-		            						$diagnosis=array();
-		            						$diagnosis['patient_id'] =  $this->Patients->id;
-		            						$diagnosis['diagnosis_id'] = $value;
-		            						$diagnosis_data[] = $diagnosis;
-		            						$this->PatientDiagnosis->create();
-											$this->PatientDiagnosis->save($pdata);
-
-		            					}
-
-		            				}
-									if(count($countIds) > 1){
-										foreach($countIds as $key=>$countId){
-											if($key !== 0){ 
-												$this->Patients->delete($countId['Patients']['id']);
-											}else{
-												$patientsId = $countId['Patients']['id'];
-											}
-										}
-									}
-									if(empty($patientsIds)){
-
-											$saved_data[$i]['id'] = $this->Patients->id;
-											$saved_data[$i]['unique_id'] = $data['unique_id'];
-									}else{
-										$saved_data[$i]['id'] = $patientsIds;
-										$saved_data[$i]['unique_id'] = $data['unique_id'];
-									}
-									//$saved_data[$i]['unique_id'] = $this->Patients->unique_id;
-								}
-							}else{
-
-							}
-							foreach($result as $key=>$val){
-								
-								/*$this->Patients->save($patients);
-									$this->Patients->delete($age_group_data['Masterdata']['id']);*/
-								$alreadyinsertid[$i]['id'] = $val['Patients']['id'];
-								$alreadyinsertid[$i]['unique_id'] = $data['unique_id'];
-							}
-						}
-						$i++;
-					}
-
-					foreach($saved_data as $key => $value){
-					  	$saved_datas[] = $value;
-					}
-					if (!empty($saved_data)) {
-
-						$response_array = array('message' => 'Patients Saved successfully.', 'status' => 1, 'data' => $saved_datas);
-					}else if(empty($saved_data)){
-						$response_array = array('message' => 'Already patients added.', 'status' => 1, 'data' => $alreadyinsertid);
-					} else {
-						$response_array = array('message' => 'Error in adding patients.', 'status' => 0, 'data' => $saved_datas);
-					}
-				} else {
-					$response_array = array('message' => 'Please send all parameters.', 'status' => 0);
-				}
-				echo json_encode($response_array);
-				die;
-			}
-		}
-	}
-		
-
-
+	
 
 /*GEt all patients with UTC time by Madan 22-11-2022*/
-	public function unity_listPatients_v8()
+		public function unity_listPatients_v8()
 	{
 		if ($this->check_key()) {
 			$this->layout = false;
@@ -16819,16 +17814,7 @@ print_r($titlePos);
 							$all_staff_ids = explode(',', $all_staff_ids); 
 
 
-
-							$this->Patients->bindModel(array(
-								'hasMany'=>array(
-									'PatientDiagnosis'=>array(
-										'foreignKey'=>'patient_id',
-										'fields' => array('diagnosis_id'),
-									)
-								)
-							)); 
-
+ 
 							if (isset($data_arrays['last_sync_time_new']) && $data_arrays['last_sync_time_new']!="" ) {
 								$condition['Patients.created_date_utc >'] = date('Y-m-d H:i:s', strtotime($data_arrays['last_sync_time_new']));
 								$condition['Patients.user_id'] = $all_staff_ids;
@@ -16840,6 +17826,15 @@ print_r($titlePos);
 								$condition_deleted['OR'][]['Patients.merge_date >']=date('Y-m-d H:i:s', strtotime($data_arrays['last_sync_time_new']));
 								$condition_deleted['Patients.user_id']= $all_staff_ids;
 								$update_date = date('Y-m-d h:i:s', strtotime($data_arrays['last_sync_time_new']));
+								
+								$this->Patients->bindModel(array(
+								'hasMany'=>array(
+									'PatientDiagnosis'=>array(
+										'foreignKey'=>'patient_id',
+										'fields' => array('diagnosis_id'),
+									)
+								)
+							)); 
 								$result = $this->Patients->find('all',
 									array(
 										'fields' => array(
@@ -16852,6 +17847,15 @@ print_r($titlePos);
 										'limit' => $limit)
 								);
 							} else {
+								
+								$this->Patients->bindModel(array(
+								'hasMany'=>array(
+									'PatientDiagnosis'=>array(
+										'foreignKey'=>'patient_id',
+										'fields' => array('diagnosis_id'),
+									)
+								)
+							)); 
 								$result = $this->Patients->find('all',
 									array(
 										'fields' => array(
@@ -16885,6 +17889,24 @@ print_r($titlePos);
 								$condition_deleted['OR'][]['Patients.merge_date >']=date('Y-m-d H:i:s', strtotime($data_arrays['last_sync_time_new']));
 								$condition_deleted['Patients.user_id']= $all_staff_ids;
 								$update_date = date('Y-m-d h:i:s', strtotime($data_arrays['last_sync_time_new']));
+
+								$this->Patients->bindModel(array(
+								'hasMany'=>array(
+									'PatientDiagnosis'=>array(
+										'foreignKey'=>'patient_id',
+										'fields' => array('diagnosis_id'),
+									)
+								)
+							)); 
+								
+								$this->Patients->bindModel(array(
+								'hasMany'=>array(
+									'PatientDiagnosis'=>array(
+										'foreignKey'=>'patient_id',
+										'fields' => array('diagnosis_id'),
+									)
+								)
+							)); 
 								$result = $this->Patients->find('all',
 									array(
 										'fields' => array(
@@ -16908,6 +17930,15 @@ print_r($titlePos);
 										'limit' => $limit)
 								);
 							} else {
+								 
+								$this->Patients->bindModel(array(
+								'hasMany'=>array(
+									'PatientDiagnosis'=>array(
+										'foreignKey'=>'patient_id',
+										'fields' => array('diagnosis_id'),
+									)
+								)
+							)); 
 								$result = $this->Patients->find('all',
 									array(
 										'fields' => array(
@@ -16995,9 +18026,9 @@ print_r($titlePos);
 								foreach($value['PatientDiagnosis'] as $d_value){
 									$diagnosis[] = $d_value['diagnosis_id'];
 								}
+								unset($value['PatientDiagnosis']);
 							}
-							unset($value['PatientDiagnosis']);
-							$value['Patients']['diagnosis'] = $diagnosis;
+							$value['Patients']['diagnosis'] = implode(',', $diagnosis);
 							$data[] = $value['Patients'];
 						}
 					} //echo $last_sync_time; die;
@@ -17053,234 +18084,191 @@ print_r($titlePos);
 			}
 		}
 	}
-	/*GEt all patients with UTC time by Madan 22-11-2022*/
-
-
-
-	/*Save single report PUP Create new API by MAdan 24-11-2022*/
-	public function savePUPReport_v6_v1()
+	
+	
+		public function delete_test_report($id = NULL)
 	{
-		if ($this->check_key()) {
+	    
+	    if ($this->check_key()) {
+			$save_data = array();
 			$this->layout = false;
 			if ($this->validatePostRequest()) {
-				$this->autoRender = false;
-				$this->loadModel('PupTest');
-				$this->loadModel('PupPointdata');
-				$response =$faild_data= array();
-				$data_arrays = json_decode(file_get_contents("php://input"), true);
-				$request_data = file_get_contents("php://input");
-				$reportdata['ReportRequestBackup']['data'] = $request_data;
-				$reportdata['ReportRequestBackup']['api_name'] = 'savePUPReport_v6';
-				$reportdata['ReportRequestBackup']['status'] = 0;
-				$result_bpk = $this->ReportRequestBackup->save($reportdata);
-				$lastId_bpk = $this->ReportRequestBackup->id;
-				if (isset($data_arrays['patient_id']) && !empty($data_arrays['patient_id'])) {
-					if (!empty($data_arrays['pdf'])) {
-						$pid = isset($data_arrays['patient_id']) ? $data_arrays['patient_id'] : '0';
-						$foldername = "PupTestControllerData";
-						$imgstring = $data_arrays['pdf'];
-						$data_arrays['file'] = $this->base64_to_pdf($imgstring, $foldername, $pid);
-					}
-					$data['PupTest']['source'] = isset($data_arrays['source']) ? $data_arrays['source'] : 'C';
-					$data['PupTest']['file'] = isset($data_arrays['file']) ? $data_arrays['file'] : '';
-					$data['PupTest']['staff_id'] = isset($data_arrays['staff_id']) ? $data_arrays['staff_id'] : '';
-					$data['PupTest']['staff_name'] = isset($data_arrays['staff_name']) ? $data_arrays['staff_name'] : '';
-					$data['PupTest']['patient_id'] = isset($data_arrays['patient_id']) ? $data_arrays['patient_id'] : '';
-					$data['PupTest']['patient_name'] = isset($data_arrays['patient_name']) ? $data_arrays['patient_name'] : '';
-					$data['PupTest']['test_name'] = isset($data_arrays['test_name']) ? $data_arrays['test_name'] : 'Pupolimeter';
-					$data['PupTest']['created'] = (!empty($data_arrays['created_date'])) ? date('Y-m-d H:i:s', strtotime($data_arrays['created_date'])) : date('Y-m-d H:i:s');
-					$data['PupTest']['created_date_utc'] = $data_arrays['created_date_utc'];
-					$data['PupTest']['unique_id'] = (isset($data_arrays['unique_id']) && !empty($data_arrays['unique_id'])) ? $data_arrays['unique_id'] : null;
-					$data['PupTest']['device_id'] = isset($data_arrays['device_id']) ? $data_arrays['device_id'] : 0;
-					$data['PupTest']['office_id'] = isset($data_arrays['office_id']) ? $data_arrays['office_id'] : 0;
-					$data['PupTest']['age_group'] = isset($data_arrays['age_group']) ? $data_arrays['age_group'] : 1;
-					$data['PupTest']['version'] = isset($data_arrays['version']) ? $data_arrays['version'] : '1.0';
-					$data['PupTest']['age'] = isset($data_arrays['age']) ? $data_arrays['ave'] : '';
-					$result = $this->PupTest->save($data);
-					if ($result) {
-						$lastId = $this->PupTest->id;
-
-
-						if(isset($input_data['diagnosis'])){
-								foreach($input_data['diagnosis'] as $value){
-            						$diagnosis=array();
-            						$diagnosis['pup_id'] = $lastId;
-            						$diagnosis['diagnosis_id'] = $value;
-            						$diagnosis_data[] = $diagnosis;
-            						$this->PupDiagnosis->create();
-									$this->PupDiagnosis->save($pdata);
-
-            					}
-
-            				}
-
-
-						$result2 = $this->ReportRequestBackup->find('first', array('conditions' => array('ReportRequestBackup.id' => $lastId_bpk)));
-						$result2['ReportRequestBackup']['status'] = 1;
-						$this->ReportRequestBackup->save($result2);
-						if (!empty($data_arrays['file'])) {
-							$response['pdf'] = WWW_BASE . 'app/webroot/PupTestControllerData/' . $data_arrays['file'];
-							$response['new_id'] = $lastId;
-						} else {
-							$response['pdf'] = '';
-						}
-						foreach ($data_arrays['pupPointData'] as $pdatas) {
-							$pdata['PupPointdata']['pup_test_id'] = $lastId;
-							$pdata['PupPointdata']['time'] = isset($pdatas['time']) ? $pdatas['time'] : 0;
-							$pdata['PupPointdata']['pupilDiam_OS'] = isset($pdatas['pupilDiam_OS']) ? $pdatas['pupilDiam_OS'] : 0.00;
-							$pdata['PupPointdata']['pupilDiam_OD'] = isset($pdatas['pupilDiam_OD']) ? $pdatas['pupilDiam_OD'] : 0;
-							$pdata['PupPointdata']['testState'] = isset($pdatas['testState']) ? $pdatas['testState'] : 0;
-							$this->PupPointdata->create();
-							$result_p = $this->PupPointdata->save($pdata);
-						}
-						$response['message'] = 'Success.';
-						$response['result'] = 1;
-					} else {
-						$fail=array(); 
-						$errors = $this->PupTest->validationErrors;
-						$response['message']='Some error occured in updating report.';
-						$result2 = $this->PupTest->find('first', array('conditions' => array('PupTest.unique_id' => $data_arrays['PupTest']['unique_id'])));
-						$response['result']=0;
-						$fail['id']=$result2['PupTest']['id']; 
-						$fail['unique_id']=$resultData['PupTest']['unique_id'];
-						//pr($result2['Patient']);die; 
-						$name=$name=$result2['Patient']['first_name'];
-						if($result2['Patient']['middle_name']!=""){
-							$name=$name.' '.$result2['Patient']['middle_name'];
-						}
-						if($result2['Patient']['last_name']!=""){
-							$name=$name.' '.$result2['Patient']['last_name'];
-						}
-						$fail['patient_name']=$name; 
-						$fail['message']=$errors[array_keys($errors)[0]][0];
-						$faild_data[]=$fail; 
-					}
-				} else {
-					$response['message'] = 'Patient id can\'t be empty.';
-					$response['result'] = 0;
+				$input_data = json_decode(file_get_contents("php://input"), true);
+				if (empty($input_data)) {
+					$input_data = $_POST;
 				}
-				/*echo json_encode($response);
-				exit();*/
-				$response['failed_data'] = $faild_data;
-				echo json_encode($response);
-				exit;
+				if (isset($input_data['test_type']) && isset($input_data['test_id'])) {
+				    if($input_data['test_type']=='VF'){
+    		            $this->loadModel('Pointdata');
+    		            date_default_timezone_set('UTC');
+						$UTCDate = date('Y-m-d H:i:s');
+						$pointdata['Pointdata']['deleted_date_utc']=$UTCDate;
+						$pointdata['Pointdata']['is_delete']=1;
+						$pointdata['Pointdata']['id']=$input_data['test_id'];
+						$rs = $this->Pointdata->save($pointdata); 
+				    }else{
+				      $response_array = array('message' => 'Please send valid data.', 'status' => 0);
+    					header('Content-Type: application/json');
+    					echo json_encode($response_array);
+    					die;  
+				    }
+        			$response_array = array('message' => 'Point data Record deleted successfully.', 'status' => 1, 'test_id'=> $input_data['test_id']);
+					header('Content-Type: application/json');
+					echo json_encode($response_array);
+					die;
+        			
+				}else{
+				    $response_array = array('message' => 'Please send valid input data.', 'status' => 0);
+					header('Content-Type: application/json');
+					echo json_encode($response_array);
+					die;
+				}
+				
 			}
-		}
+	    } 
 	}
-	/*Save single report PUP Create new API by MAdan 24-11-2022*/
 
-/*Save multiple PUP report Craete Api by Madan 24-11-2022*/
-	public function saveMultiplePUPReport_v6_v1()
+			public function office_language()
 	{
-		if ($this->check_key()) {
+	    
+	    if ($this->check_key()) {
+			$save_data = array();
 			$this->layout = false;
 			if ($this->validatePostRequest()) {
-				$this->autoRender = false;
-				$this->loadModel('PupTest');
-				$this->loadModel('PupPointdata');
-				$response = array();
-				$faildRequest = array();
-				$resultData = $saved_data = $faild_data = array();
-				$data_arrays = json_decode(file_get_contents("php://input"), true);
-				$request_data = file_get_contents("php://input");
-				$reportdata['ReportRequestBackup']['data'] = $request_data;
-				$reportdata['ReportRequestBackup']['api_name'] = 'saveMultiplePUPReport_v6';
-				$reportdata['ReportRequestBackup']['status'] = 0;
-				$result_bpk = $this->ReportRequestBackup->save($reportdata);
-				$lastId_bpk = $this->ReportRequestBackup->id;
-				if (isset($data_arrays['patient_id']) && !empty($data_arrays['patient_id'])) {
-					if (!empty($data_arrays['pdf'])) {
-						$pid = isset($data_arrays['patient_id']) ? $data_arrays['patient_id'] : '0';
-						$foldername = "PupTestControllerData";
-						$imgstring = $data_arrays['pdf'];
-						$data_arrays['file'] = $this->base64_to_pdf($imgstring, $foldername, $pid);
-					}
-					$data['PupTest']['source'] = isset($data_arrays['source']) ? $data_arrays['source'] : 'C';
-					$data['PupTest']['file'] = isset($data_arrays['file']) ? $data_arrays['file'] : '';
-					$data['PupTest']['staff_id'] = isset($data_arrays['staff_id']) ? $data_arrays['staff_id'] : '';
-					$data['PupTest']['staff_name'] = isset($data_arrays['staff_name']) ? $data_arrays['staff_name'] : '';
-					$data['PupTest']['patient_id'] = isset($data_arrays['patient_id']) ? $data_arrays['patient_id'] : '';
-					$data['PupTest']['patient_name'] = isset($data_arrays['patient_name']) ? $data_arrays['patient_name'] : '';
-					$data['PupTest']['test_name'] = isset($data_arrays['test_name']) ? $data_arrays['test_name'] : 'VT';
-					$data['PupTest']['created'] = (!empty($data_arrays['created_date'])) ? date('Y-m-d H:i:s', strtotime($data_arrays['created_date'])) : date('Y-m-d H:i:s');
-					$data['PupTest']['created_date_utc'] = $data_arrays['created_date_utc'] ;
-					$data['PupTest']['unique_id'] = (isset($data_arrays['unique_id']) && !empty($data_arrays['unique_id'])) ? $data_arrays['unique_id'] : null;
-					$data['PupTest']['device_id'] = isset($data_arrays['device_id']) ? $data_arrays['device_id'] : 0;
-					$data['PupTest']['office_id'] = isset($data_arrays['office_id']) ? $data_arrays['office_id'] : 0;
-					$data['PupTest']['age_group'] = isset($data_arrays['age_group']) ? $data_arrays['age_group'] : 1;
-					$data['PupTest']['version'] = isset($data_arrays['version']) ? $data_arrays['version'] : '1.0';
-					$data['PupTest']['age'] = isset($data_arrays['age']) ? $data_arrays['ave'] : '';
-					$result = $this->PupTest->save($data);
-					if ($result) {
-						$saved_data[]['id'] = $this->PupTest->id;
-					}else{
-					  	$fail=array(); 
-							$errors = $this->PupTest->validationErrors;
-							$response['message']='Some error occured in updating report.';
-							$result2 = $this->PupTest->find('first', array('conditions' => array('PupTest.unique_id' => $data_arrays['unique_id'])));
-							$response['result']=0;
-							$fail['id']=$result2['PupTest']['id']; 
-							$fail['unique_id']=$data_arrays['unique_id'];
-							$name=$name=$result2['Patient']['first_name'];
-							if($result2['Patient']['middle_name']!=""){
-								$name=$name.' '.$result2['Patient']['middle_name'];
-							}
-							if($result2['Patient']['last_name']!=""){
-								$name=$name.' '.$result2['Patient']['last_name'];
-							}
-							$fail['patient_name']=$name; 
-							$fail['message']=$errors[array_keys($errors)[0]][0];
-							$faild_data[]=$fail; 
-						} 
-					if ($result) {
-						$lastId = $this->PupTest->id;
-
-						if(isset($input_data['diagnosis'])){
-								foreach($input_data['diagnosis'] as $value){
-            						$diagnosis=array();
-            						$diagnosis['pup_id'] = $lastId;
-            						$diagnosis['diagnosis_id'] = $value;
-            						$diagnosis_data[] = $diagnosis;
-            						$this->PupDiagnosis->create();
-									$this->PupDiagnosis->save($pdata);
-
-            					}
-
-            				}
-						$result2 = $this->ReportRequestBackup->find('first', array('conditions' => array('ReportRequestBackup.id' => $lastId_bpk)));
-						$result2['ReportRequestBackup']['status'] = 1;
-						$this->ReportRequestBackup->save($result2);
-						if (!empty($data_arrays['file'])) {
-							$response['pdf'] = WWW_BASE . 'app/webroot/PupTestControllerData/' . $data_arrays['file'];
-							$response['new_id'] = $lastId;
-						} else {
-							$response['pdf'] = '';
-						}
-						foreach ($data_arrays['pupPointData'] as $pdatas) {
-							$pdata['PupPointdata']['pup_test_id'] = $lastId;
-							$pdata['PupPointdata']['time'] = isset($pdatas['time']) ? $pdatas['time'] : 0;
-							$pdata['PupPointdata']['pupilDiam_OS'] = isset($pdatas['pupilDiam_OS']) ? $pdatas['pupilDiam_OS'] : 0.00;
-							$pdata['PupPointdata']['pupilDiam_OD'] = isset($pdatas['pupilDiam_OD']) ? $pdatas['pupilDiam_OD'] : 0;
-							$pdata['PupPointdata']['testState'] = isset($pdatas['testState']) ? $pdatas['testState'] : 0;
-							$this->PupPointdata->create();
-							$result_p = $this->PupPointdata->save($pdata);
-						}
-						$response['data'] = $saved_data;
-						$response['message'] = 'Success.';
-						$response['result'] = 1;
-					} else {
-						$response['message'] = $this->getFirstError($this->PupTest->validationErrors);
-						$response['result'] = 0;
-					}
-				} else {
-					$response['message'] = 'Patient id can\'t be empty.';
-					$response['result'] = 0;
+				$input_data = json_decode(file_get_contents("php://input"), true);
+				if (empty($input_data)) {
+					$input_data = $_POST;
 				}
-				$response['failed_data'] = $faild_data;
-				echo json_encode($response);
-				exit();
+				if (isset($input_data['office_id']) && isset($input_data['office_id'])) {
+				    $this->loadModel('Officelanguage'); 
+				     $data = $this->Officelanguage->find('all',array('conditions' =>  array('Officelanguage.office_id' =>$input_data['office_id'])));
+				     $datas = array();
+				     foreach($data as $key => $value){
+				         $value['Language']['language_id'] = $value['Language']['l_id'];
+				         unset($value['Language']['l_id']);
+				         unset($value['Language']['id']);
+				         unset($value['Language']['is_delete']);
+				         unset($value['Language']['created']);
+				         unset($value['Language']['modified']);
+				         $datas[]=$value['Language'];
+				     }
+        			$response_array = array('status' => 1, 'data'=> $datas);
+					header('Content-Type: application/json');
+					echo json_encode($response_array);
+					die;
+        			
+				}else{
+				    $response_array = array('message' => 'Please send valid input data.', 'status' => 0);
+					header('Content-Type: application/json');
+					echo json_encode($response_array);
+					die;
+				}
+				
 			}
-		}
+	    } 
 	}
+	
+		public function office_language_file()
+	{
+	    
+	    if ($this->check_key()) {
+			$save_data = array();
+			$this->layout = false;
+			if ($this->validatePostRequest()) {
+				$input_data = json_decode(file_get_contents("php://input"), true);
+				if (empty($input_data)) {
+					$input_data = $_POST;
+				}
+				if (isset($input_data['office_id']) && isset($input_data['office_id'])) {
+				    $this->loadModel('Officelanguage'); 
+				    $this->loadModel('LanguageFile'); 
+				     $last_sync=''; 
+				     $new_language_data = array();
+				    $data = $this->Officelanguage->find('list',array( 'conditions' =>  array('Officelanguage.office_id' =>$input_data['office_id']),'fields'=>array('language_id','language_id')));
+				     
+				    if(isset($input_data['last_sync_time']) && $input_data['last_sync_time']!=""){
+				         $last_sync=$input_data['last_sync_time'];
+				        $new_language_data=  $this->Officelanguage->find('all',array( 'conditions' =>  array('Officelanguage.office_id' =>$input_data['office_id'],'Officelanguage.created_at >' =>$input_data['last_sync_time']), 'fields'=>array('created_at','office_id','id','language_id')));
+				         $new_language=  $this->Officelanguage->find('list',array( 'conditions' =>  array('Officelanguage.office_id' =>$input_data['office_id'],'Officelanguage.created_at >' =>$input_data['last_sync_time']),'fields'=>array('language_id','language_id')));
+				        $data_all = $this->LanguageFile->find('all',array('recursive' => 3, 'order' => 'LanguageFile.modified ASC', 'conditions' =>  array('OR' => array(array("LanguageFile.language_id" => $new_language), array('LanguageFile.language_id' =>$data, 'LanguageFile.modified >' =>$input_data['last_sync_time'])))));
+				    }else{
+				        $new_language_data=  $this->Officelanguage->find('all',array( 'conditions' =>  array('Officelanguage.office_id' =>$input_data['office_id']), 'fields'=>array('created_at','office_id','id','language_id')));
+				        $data_all = $this->LanguageFile->find('all',array('recursive' => 3, 'order' => 'LanguageFile.modified ASC', 'conditions' =>  array('LanguageFile.language_id' =>$data)));
+				    }
+				    $datas = array();
+				     foreach($data_all as $key => $value){
+				         
+				         $value['LanguageFile']['folder_name'] =strtoupper($value['Language']['code']);
+				         $value['LanguageFile']['language_id'] =strtoupper($value['Language']['l_id']);
+				         $value['LanguageFile']['file_path'] = WWW_BASE . 'app/webroot/uploads/' . strtoupper($value['Language']['code']) . '/' . $value['LanguageFile']['file_name'];
+				         $datas[$value['LanguageFile']['folder_name']][] = $value['LanguageFile']; 
+				         $last_sync=$value['LanguageFile']['modified'];
+				     } 
+				     if(!empty($new_language_data)){
+				         foreach($new_language_data as $key => $value2){
+				             if($value2['Officelanguage']['created_at'] > $last_sync){
+				                 $last_sync = $value2['Officelanguage']['created_at'];
+				             }
+				         }
+				     }
+				     $data_new = array();
+				     foreach($datas as $key => $value){
+				     	$data_new = array_merge($data_new,$datas[$key]);
+				     }
+         			$response_array = array('status' => 1, 'last_sync_time' =>$last_sync, 'datas'=>$data_new);
+					header('Content-Type: application/json');
+					echo json_encode($response_array);
+					die;
+        			
+				}else{
+				    $response_array = array('message' => 'Please send valid input data.', 'status' => 0);
+					header('Content-Type: application/json');
+					echo json_encode($response_array);
+					die;
+				}
+				
+			}
+	    } 
+	}
+	
+		public function language_file_name()
+	{
+	    
+	    if ($this->check_key()) {
+			$save_data = array();
+			$this->layout = false;
+			if ($this->validatePostRequest()) {
+				$input_data = json_decode(file_get_contents("php://input"), true);
+				if (empty($input_data)) {
+					$input_data = $_POST;
+				}
+				if (isset($input_data['language_code']) && isset($input_data['language_code'])) {
+				    $this->loadModel('Language'); 
+				    $this->loadModel('LanguageFile'); 
+				    $language = $this->Language->find('first',array( 'conditions' =>  array('Language.code' =>$input_data['language_code'])));
+				   
+				    $data = $this->LanguageFile->find('list',array( 'conditions' =>  array('LanguageFile.language_id' =>$language['Language']['id']),'fields'=>array('file_name')));
+				      $datas = array();
+				     foreach($data as $key => $value){
+				         
+				         $datas[]['name'] = $value;  
+				     } 
+         			$response_array = array('status' => 1, 'datas'=>$datas);
+					header('Content-Type: application/json');
+					echo json_encode($response_array);
+					die;
+        			
+				}else{
+				    $response_array = array('message' => 'Please send valid input data.', 'status' => 0);
+					header('Content-Type: application/json');
+					echo json_encode($response_array);
+					die;
+				}
+				
+			}
+	    } 
+	}
+
+	 
 }
 ?>

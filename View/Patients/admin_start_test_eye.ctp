@@ -93,6 +93,10 @@ socket_close($socket);*/
 												<button id="setting-reliability-btn" class="btn"
 														style="background-color: #00ff00 "
 												><span id="setting-reliability">Reliability</span></button>
+
+												<button id="setting_vr_position" class="btn"
+														style="background-color: #ffffff;height: 33px; border: none; visibility: hidden; "
+												><span id="vr_position">Set VR Position</span></button>
 												<br>
 												<h3>Stm Size: <span id="setting-stm-size">3</span></h3>
 												<h3>Bkg Color: <span id="setting-bkg-color">0.7</span>db</h3>
@@ -346,15 +350,16 @@ socket_close($socket);*/
 														<span style="font-size: 16px;color: #990000;font-weight: 600; text-align: center;"
 															  class="setting-alert-message3"></span>
 													</div>
-													 <div style="position: relative;">
- <canvas id="layer2" width="1020" height="1020" 
-   style="position: absolute; left: 50%;
-    transform: translateX(-50%); top: 0; z-index: 0;"></canvas>
-   	<canvas id="myCanvas" height="1020" width="1020" style="background-color: #fff;
-                           z-index: 1; ">
+													<div style="position: relative;">
+ 
+   	<canvas id="myCanvas" height="1020" width="1020" style="position: absolute; left: 50%;
+    transform: translateX(-50%); top: 0; z-index: 0;background-color: #fff;"></canvas>
+                           <canvas id="layer2" width="1020" height="1020" style="
+                           z-index: 1;position: relative; "
+   ></canvas>
 </div>
 												
-													</canvas>
+													
 												</div>
 												<div class="mt-btns gz-trck d-phone">
 													<div class="mt-checkboxes mt-checkboxes-eye">
@@ -550,6 +555,30 @@ socket_close($socket);*/
 										<div class="modal-footer">
 											<button type="button" class="btn btn-danger" data-dismiss="modal">Close
 											</button>
+										</div>
+									</div>
+
+								</div>
+							</div>
+							<div class="modal fade" id="vrPositionmodel" role="dialog">
+								<div class="modal-dialog modal-sm">
+
+									<!-- Modal content-->
+									<div class="modal-content" style="background: #808080;">
+										 <div style="position: relative;">
+ <canvas id="vrlayer2" width="402" height="402" 
+   style="position: absolute; left: 50%;
+    transform: translateX(-50%); top: 0; z-index: 0;background-color: #ffffff;"></canvas>
+   	<canvas id="myvrCanvas" height="402" width="402" style="
+                           z-index: 1;position: relative; "> </canvas>
+</div>
+												
+													
+										<div class="modal-footer" style="text-align:center;border: none;">
+											<button type="button" class="btn btn-success" data-dismiss="modal"
+													>OK
+											</button>
+											 
 										</div>
 									</div>
 
@@ -1109,6 +1138,21 @@ socket_close($socket);*/
     var VR_POS_UPDATED = false;
     var VR_POS_STOPED_FLAG =false;
     var VR_COLOUR = null;
+    var draw_vr_position=false;
+    var size_new=400;
+
+    RE_Loc_sav_X = 0;
+    RE_Loc_sav_Y = 0;
+    LE_Loc_sav_X = 0;
+    LE_Loc_sav_Y = 0;
+
+	RE_Loc_sav_Xc = 0;
+    RE_Loc_sav_Yc = 0;
+    LE_Loc_sav_Xc = 0;
+    LE_Loc_sav_Yc = 0;
+
+
+
 	var zeroDbCutoff = "<?php echo @$defoult_device['zeroDbCutoff'] ?>";
 	var test_name = ["Screening", "Threshold", "Ptosis", "Neuro", "Kinetic/Ptosis"];
 	var items = [
@@ -1187,6 +1231,10 @@ socket_close($socket);*/
 
 	jQuery(document).ready(function () {
 
+		  $("#vrPositionmodel .modal-sm").css({
+    'width': (($("#myvrCanvas").width()+38) + 'px')
+  });
+
 		$('.reload_page').on('click', function () {
 			window.location.replace('');
 		});
@@ -1245,6 +1293,39 @@ socket_close($socket);*/
 			stop_save_yes();
 			botheyecount = 0; 
 			round1 = 0;
+		});
+
+		$('#setting_vr_position').on('click', function () {
+			if(!$("#setting_vr_position").hasClass("md-btn-desabley")){
+				draw_vr_position = true;
+				/// circle size, circle cordinate 
+				col1 = '#000000'
+				var cvr = document.getElementById("myvrCanvas");
+		        var ctxvr = cvr.getContext("2d");
+		        ctxvr.lineWidth = 1;
+		        ctxvr.clearRect(0, 0, cvr.width, cvr.height)
+		        ctxvr.beginPath();
+		        ctxvr.strokeStyle = col1;
+		        ctxvr.moveTo(1, Math.round(size_new / 2));
+		        ctxvr.lineTo(Math.round(size_new), Math.round(size_new / 2));
+		        ctxvr.moveTo(Math.round(size_new / 2), 1);
+		        ctxvr.lineTo(Math.round(size_new / 2), Math.round(size_new));
+		        ctxvr.stroke();
+
+		        ctxvr.beginPath();
+		        ctxvr.lineWidth = 7;
+				ctxvr.strokeStyle = "#00ff00";
+				ctxvr.arc((200-100), 200, 40, 0, 2 * Math.PI);
+				ctxvr.stroke();
+
+				ctxvr.beginPath();
+				ctxvr.strokeStyle = "#00ff00";
+				ctxvr.arc((200+100), 200, 40, 0, 2 * Math.PI);
+				ctxvr.stroke();
+
+
+				$('#vrPositionmodel').modal("show");
+			 }
 		});
 		$('#stop-save-no').on('click', function () {
 			$('#mystopModal').modal("hide");
@@ -2256,7 +2337,7 @@ socket_close($socket);*/
 			}
 			var feedback = $.ajax({
 				type: "POST",
-				url: "<?php echo WWW_BASE; ?>css/get_device_data_stop.php",
+				url: "<?php echo WWW_BASE; ?>css/get_device_data_stop2.php",
 				data: {"office_id": '<?php echo $user['office_id'] ?>', "device_id": deviceId},
 				async: false
 			}).success(function () {
@@ -2274,7 +2355,20 @@ socket_close($socket);*/
 						if (res[1] == 'BTN_PRESS') {
 							setting_alert_new('Ready to Start');
 							setting_alert_btn_press("Connection Verified");
-						}else if (res[1] == 'BATTERY_LEVEL') {	
+						}else if (res[1] == 'VR_POS') {
+							if(draw_vr_position){
+								const promises = VR_POS(obj.message[key]['message']);
+								await Promise.all([promises]);
+							}
+							
+						}
+						else if (res[1] == 'VR_POS_STOPED') {
+							if(draw_vr_position){
+								const promises = VR_POS_STOPED(res[2]);
+								await Promise.all([promises]);
+							}
+						} 
+						else if (res[1] == 'BATTERY_LEVEL') {	
 								var bat_con = '#00ff00';
 				if (res[2] > 20) {
 					bat_con = '#00ff00'; 
@@ -2675,12 +2769,12 @@ socket_close($socket);*/
 					await Promise.all([promises]);
 				}
 				else if (res[1] == 'VR_POS') {
-					const promises = VR_POS(res[2]);
-					await Promise.all([promises]);
+					// const promises = VR_POS(obj.message[key]['message']);
+					// await Promise.all([promises]);
 				}
 				else if (res[1] == 'VR_POS_STOPED') {
-					const promises = VR_POS_STOPED(res[2]);
-					await Promise.all([promises]);
+					// const promises = VR_POS_STOPED(res[2]);
+					// await Promise.all([promises]);
 				}  else if (res[0] == 'VF' && res[1] == 'VF_TEST_COMPLETED') {
 					/*const promises = await setpixcelVF_TEST_COMPLETED(obj.message[key]['DeviceMessage']['message'],obj.message[key]['DeviceMessage']['id'],obj.message[key]['DeviceMessage']['office_id'],obj.message[key]['DeviceMessage']['device_id']);
 	await Promise.all([[promises]]);*/
@@ -2836,7 +2930,6 @@ socket_close($socket);*/
 			ctx.fillStyle = col1;
 			ctx.fillRect(499, x1, 3, 3);
 		}
-		
 	}
 
 	function setpixcelVF_FIXATION(data) {
@@ -2944,38 +3037,36 @@ socket_close($socket);*/
 
                 //eyeTrackMsg = "VF|EYE_POS|1|10|20|30|40;
                 //eyeTrackMsg = "VF|EYE_POS|1|1|1|30|40;
+
+		if(1){
 		var splitData = data.split("|");
 		 x = parseFloat(splitData[3]);
         y = parseFloat(splitData[4]);
         ///   texEyeTracking, colEyeTrackWhite, colEyeTrackBlack 
+        colEyeTrackWhite2 = "#00000000";
         colEyeTrackWhite = "#ffffff";
         colEyeTrackBlack = "#00000073";
-        colEyeTrackBrown = "#53290b73";
+        colEyeTrackBrown = "#D3681C73";
          PoseStatus = parseFloat(splitData[5]);
          EyeOpenness = parseFloat(splitData[6]);
 
-         var c2 = document.getElementById("myCanvas");
+         var c2 = document.getElementById("layer2");
 		var ctx2 = c2.getContext("2d");
          if(zoomLevel <0.2){
          	linearDispFactor = 1000 / (2 * 8 * 10);
          	 x1 = parseInt(Math.round(x * linearDispFactor));
-             y1 = parseInt(Math.Round(y * linearDispFactor));
+             y1 = parseInt(Math.round(y * linearDispFactor));
 
             x1 = x1 + (1000 / 2);
             y1 = y1 + (1000 / 2);
-
-            if (EyeOpenness == 5){
-            	const promises22 = Circle2(x1Saved, y1Saved, 50, colEyeTrackWhite);
-							await Promise.all([promises22]);
-            }
+            y1 = (((y1-500) * -1) + 500) ;
+           
+            
             if (EyeOpenness > 0.0)
                     {
                         if ((x >= -2) && (x <= 2) && (y >= -2) && (y <= 2))
                         {
-                        	// const promises8 = Circle2(x1Saved, y1Saved, 50, colEyeTrackWhite);
-							// await Promise.all([promises8]);
-                           // Circle2(x1Saved, y1Saved, 50, colEyeTrackWhite);
-
+                        	
 							ctx2.beginPath();
 							ctx2.strokeStyle = colEyeTrackWhite;
 							ctx2.arc(Math.round(x1Saved), Math.round(y1Saved), 50, 0, 2 * Math.PI);
@@ -2983,11 +3074,8 @@ socket_close($socket);*/
 							ctx2.fill();
 							ctx2.stroke();
 
-                            // Circle2(x1, y1, 50, colEyeTrackBrown);
-                            // Circle2(x1, y1, 20, colEyeTrackBlack);
-							// const promises9 = Circle2(x1, y1, 50, colEyeTrackBrown);
-							// await Promise.all([promises9]);
-
+							ctx2.clearRect(0, 0, 1000, 1000);
+                            
 							ctx2.beginPath();
 							ctx2.strokeStyle = colEyeTrackBrown;
 							ctx2.arc(Math.round(x1), Math.round(y1), 50, 0, 2 * Math.PI);
@@ -2995,10 +3083,7 @@ socket_close($socket);*/
 							ctx2.fill();
 							ctx2.stroke();
 
-
-							// const promisesa = Circle2(x1, y1, 20, colEyeTrackBlack);
-							// await Promise.all([promisesa]);
-
+							 
 							ctx2.beginPath();
 							ctx2.strokeStyle = colEyeTrackBlack;
 							ctx2.arc(Math.round(x1), Math.round(y1), 20, 0, 2 * Math.PI);
@@ -3011,9 +3096,7 @@ socket_close($socket);*/
                         }
                         else
                         {
-                            //Circle2(x1Saved, y1Saved, 50, colEyeTrackWhite);
-                            // const promisesb = Circle2(x1Saved, y1Saved, 50, colEyeTrackWhite);
-							// await Promise.all([promisesb]);
+                             
 
 							ctx2.beginPath();
 							ctx2.strokeStyle = colEyeTrackWhite;
@@ -3021,13 +3104,12 @@ socket_close($socket);*/
 							ctx2.fillStyle = colEyeTrackWhite;
 							ctx2.fill();
 							ctx2.stroke();
+
+							ctx2.clearRect(0, 0, 1000, 1000);
                         }
                     }else
                     {
-                        //Draw closed eye at center
-                        //Circle2(x1Saved, y1Saved, 50, colEyeTrackWhite);
-                        // const promisesc = Circle2(x1Saved, y1Saved, 50, colEyeTrackWhite);
-						// await Promise.all([promisesc]);
+                        
 
 						ctx2.beginPath();
 						ctx2.strokeStyle = colEyeTrackWhite;
@@ -3036,12 +3118,12 @@ socket_close($socket);*/
 						ctx2.fill();
 						ctx2.stroke();
 
-                        x1 = (texEyeTracking.width / 2);
-                        y1 = (texEyeTracking.height / 2);
-                        //Circle2(x1, y1, 50, colEyeTrackBlack);
-                        // const promisesd = Circle2(x1, y1, 50, colEyeTrackBlack);
-						// await Promise.all([promisesd]);
+						ctx2.clearRect(0, 0, 1000, 1000);
 
+                        x1 = (size / 2);
+                        y1 = (size / 2);
+                        
+                        console.log('X = '+x1+" Y = "+y1);
 						ctx2.beginPath();
 						ctx2.strokeStyle = colEyeTrackBlack;
 						ctx2.arc(Math.round(x1), Math.round(y1), 50, 0, 2 * Math.PI);
@@ -3052,23 +3134,19 @@ socket_close($socket);*/
                         x1Saved = x1;
                         y1Saved = y1;
                     }
-         }else{
-         	zoomOffset = 3.0 / zoomLevel;
-            zoomMult = 1000.0 / (2 * zoomOffset);
+         }else{ 
+         	zoomOffset = 3.0 / zoomLevel; //15 
+            zoomMult = 1000.0 / (2 * zoomOffset); 33.33
             x1 = parseInt(Math.round((x + zoomOffset) * zoomMult));
             y1 = parseInt(Math.round((y + zoomOffset) * zoomMult));
-
-            if (EyeOpenness == 5){
-            	const promises22 = Circle2(x1Saved, y1Saved, 50, colEyeTrackWhite);
-							await Promise.all([promises22]);
-            }
-            else if (EyeOpenness > 0.0)
+              
+            y1 = (((y1-500) * -1) + 500) ;
+	       
+             if (EyeOpenness > 0.0)
                     {
                         if ((x >= -2) && (x <= 2) && (y >= -2) && (y <= 2))
                         {
-                           // Circle2(x1Saved, y1Saved, 50, colEyeTrackWhite);
-                            // const promises2 = Circle2(x1Saved, y1Saved, 50, colEyeTrackWhite);
-							// await Promise.all([promises2]);
+                           
 
 							ctx2.beginPath();
 							ctx2.strokeStyle = colEyeTrackWhite;
@@ -3077,11 +3155,7 @@ socket_close($socket);*/
 							ctx2.fill();
 							ctx2.stroke();
 
-                           // Circle2(x1, y1, 50, colEyeTrackBrown);
-                           // Circle2(x1, y1, 20, colEyeTrackBlack);
-
-                            // const promises3 = Circle2(x1, y1, 50, colEyeTrackBrown);
-							// await Promise.all([promises3]);
+                         ctx2.clearRect(0, 0, 1000, 1000);
 
 							ctx2.beginPath();
 							ctx2.strokeStyle = colEyeTrackBrown;
@@ -3091,8 +3165,7 @@ socket_close($socket);*/
 							ctx2.stroke();
 
 
-							// const promises4 = Circle2(x1, y1, 20, colEyeTrackBlack);
-							// await Promise.all([promises4]);
+							 
 
 							ctx2.beginPath();
 							ctx2.strokeStyle = colEyeTrackBlack;
@@ -3106,9 +3179,7 @@ socket_close($socket);*/
                         }
                         else
                         {
-                            //Circle2(x1Saved, y1Saved, 50, colEyeTrackWhite);
-                            // const promises5 = Circle2(x1Saved, y1Saved, 50, colEyeTrackWhite);
-							// await Promise.all([promises5]);
+                            
 
 							ctx2.beginPath();
 							ctx2.strokeStyle = colEyeTrackWhite;
@@ -3116,14 +3187,13 @@ socket_close($socket);*/
 							ctx2.fillStyle = colEyeTrackWhite;
 							ctx2.fill();
 							ctx2.stroke();
+
+							ctx2.clearRect(0, 0, 1000, 1000);
                         }
                     }
                     else
                     {
-                        //Draw closed eye
-                        //Circle2(x1Saved, y1Saved, 50, colEyeTrackWhite);
-                        // const promises6 = Circle2(x1Saved, y1Saved, 50, colEyeTrackWhite);
-						// 	await Promise.all([promises6]);
+                       
 
 						ctx2.beginPath();
 						ctx2.strokeStyle = colEyeTrackWhite;
@@ -3131,15 +3201,16 @@ socket_close($socket);*/
 						ctx2.fillStyle = colEyeTrackWhite;
 						ctx2.fill();
 						ctx2.stroke();
+
+
+						ctx2.clearRect(0, 0, 1000, 1000);
 
                         x = 0;
                         y = 0;
                         x1 = parseInt(Math.round((x + zoomOffset) * zoomMult));
                         y1 = parseInt(Math.round((y + zoomOffset) * zoomMult));
 
-                        //Circle2(x1, y1, 50, colEyeTrackBlack);
-                        // const promises7 = Circle2(x1, y1, 50, colEyeTrackBlack);
-						// 	await Promise.all([promises7]);
+                         
 
 						ctx2.beginPath();
 						ctx2.strokeStyle = colEyeTrackBlack;
@@ -3152,72 +3223,187 @@ socket_close($socket);*/
                         y1Saved = y1;
                     }
 
-                  //  texEyeTracking.Apply();
-               // imgEyeTracking.texture = texEyeTracking;
+                  
          }
-
+     }
 		 
 
 	}
-	const Circle2 = async function (x,y,radius,colour) {
-		console.log("cordinate = x = "+x+" y = "+y+" r = "+radius+" c = "+colour);
-		if(x!=null){
-			var c = document.getElementById("myCanvas");
-			var ctx = c.getContext("2d");
-			ctx.beginPath();
-			ctx.strokeStyle = colour;
-			ctx.arc(Math.round(x1), Math.round(y1), radius, 0, 2 * Math.PI);
-			ctx.fillStyle = colour;
-			ctx.fill();
-			ctx.stroke();
-		}
- 
-	}
-	function calculateVRColour(){
-		if(VR_POS_UPDATED){
-			VR_POS_UPDATED = false;
-			texEyeTrackingDisplay = 1000;
-			var RE_Loc_Y = parseInt(Math.round((RE_VR_POS_Y - 0.5) * texEyeTrackingDisplay));
-            var LE_Loc_Y = parseInt(Math.round((LE_VR_POS_Y - 0.5) * texEyeTrackingDisplay));
-            var RE_Loc_X = parseInt(Math.round((RE_VR_POS_X - 0.5) * texEyeTrackingDisplay));
-            var LE_Loc_X = parseInt(Math.round((LE_VR_POS_X - 0.5) * texEyeTrackingDisplay));
-
-            var slope;
-             dx = RE_VR_POS_X - LE_VR_POS_X + 0.1;
-             dy = RE_VR_POS_Y - LE_VR_POS_Y;
-            slope = Math.abs(dy / dx);
-
-            // var color = setVRPos.GetComponent<Button>().colors;
-            var color = VR_COLOUR
-            if ((Math.abs(RE_Loc_X) < 90) && (Math.abs(RE_Loc_Y) < 30) && (Math.abs(LE_Loc_X) < 90) && (Math.abs(LE_Loc_Y) < 30) && (slope < 0.3))
-            {
-                color = '#00ff00';
-            }
-            else
-            {
-            	color = '#ff0000';
-            }
-            VR_COLOUR = color;
-
-		}
-		if(VR_POS_STOPED_FLAG){
-			VR_POS_STOPED_FLAG = false;
-			VR_COLOUR = "#FFFFFF";
-		}
-	}
-
+	 
+	
 	const VR_POS = async function (data) {
-
 		// string msg = "GEN|VR_POS|" + LE_PositionY.ToString("0.0000") + "|" + RE_PositionY.ToString("0.0000")+ "|" + LE_PositionX.ToString("0.0000") + "|" + RE_PositionX.ToString("0.0000");
 
-//string msg = "GEN|VR_POS|10|20|30|40;
+		//string msg = "GEN|VR_POS|10|20|30|40;
 		var splitData = data.split("|");
 		LE_VR_POS_Y = parseFloat(splitData[2]);
         RE_VR_POS_Y = parseFloat(splitData[3]);
         LE_VR_POS_X = parseFloat(splitData[4]);
         RE_VR_POS_X = parseFloat(splitData[5]);
         VR_POS_UPDATED = true;
-        calculateVRColour()
+
+        var texEyeTrackingDisplay = 1000;
+		var RE_Loc_Y = parseInt(Math.round((RE_VR_POS_Y - 0.5) * size_new));
+        var LE_Loc_Y = parseInt(Math.round((LE_VR_POS_Y - 0.5) * size_new));
+        var RE_Loc_X = parseInt(Math.round((RE_VR_POS_X - 0.5) * size_new));
+        var LE_Loc_X = parseInt(Math.round((LE_VR_POS_X - 0.5) * size_new));
+
+        var slope;
+        var dx = RE_VR_POS_X - LE_VR_POS_X + 0.1;
+        var dy = RE_VR_POS_Y - LE_VR_POS_Y;
+        slope = Math.abs(dy / dx);
+        if ((Math.abs(RE_Loc_X) < 90) && (Math.abs(RE_Loc_Y) < 30) && (Math.abs(LE_Loc_X) < 90) && (Math.abs(LE_Loc_Y) < 30) && (slope < 0.3))
+        {
+        	$("#setting_vr_position").attr("style", "background-color: #00ff00;");
+            color = '#00ff00';
+        }
+        else
+        {
+        	$("#setting_vr_position").attr("style", "background-color: #ff0000;");
+        	color = '#ff0000';
+        }
+
+
+        ////  graph ploting  
+        var yCenter;
+        var xCenter;
+        
+        var c = "#808080";
+
+        yCenter = size_new / 2;
+        xCenter = size_new / 2;
+        circleSize =16;  // ?
+        x1_RE=size_new/2 +100;  //?
+        x1_LE =size_new/2 -100;  //?
+
+        var cvr = document.getElementById("vrlayer2");
+        var ctxvr = cvr.getContext("2d");
+        
+
+
+        // clear old image
+
+
+		var pp1_x = x1_RE + RE_Loc_sav_Xc - circleSize/2;
+        var pp1_y = yCenter + RE_Loc_sav_Yc;
+        var pp2_x = x1_LE + LE_Loc_sav_Xc + circleSize/2;
+        var pp2_y = yCenter + LE_Loc_sav_Yc;
+
+        pp1_y = (((pp1_y-200) * -1) + 200) ;
+        pp2_y = (((pp2_y-200) * -1) + 200) ;
+
+        yre = (((yCenter + RE_Loc_sav_Yc-200) * -1) + 200) ;
+        yle = (((yCenter + LE_Loc_sav_Yc-200) * -1) + 200) ;
+
+       //  ctxvr.lineWidth = 9;
+       //  ctxvr.beginPath();
+       //  ctxvr.strokeStyle = "#d2b3b3";
+       //  ctxvr.moveTo(pp1_x, pp1_y);
+       //  ctxvr.lineTo(pp2_x, pp2_y);
+       //  ctxvr.stroke();
+
+       //  ctxvr.beginPath();
+       //  ctxvr.strokeStyle = "#d2b3b3";
+       //  //ctxvr.arc((x1_RE + RE_Loc_sav_Xc), (yCenter + RE_Loc_sav_Yc), circleSize, 0, 2 * Math.PI);
+       //  ctxvr.arc((x1_RE + RE_Loc_sav_Xc), (yre), circleSize, 0, 2 * Math.PI);
+       //  ctxvr.fillStyle = "#d2b3b3";
+       //  ctxvr.fill();
+       //  ctxvr.stroke();
+
+       //  ctxvr.beginPath();
+       //  ctxvr.strokeStyle = "#d2b3b3";
+       // // ctxvr.arc((x1_LE + LE_Loc_sav_Xc), (yCenter + LE_Loc_sav_Yc), circleSize, 0, 2 * Math.PI);
+       //  ctxvr.arc((x1_LE + LE_Loc_sav_Xc), (yle), circleSize, 0, 2 * Math.PI);
+       //  ctxvr.fillStyle = "#d2b3b3";
+       //  ctxvr.fill();
+       //  ctxvr.stroke();
+	 
+
+
+
+        // draw last image
+
+		var pp1_x = x1_RE + RE_Loc_sav_X - circleSize/2;
+        var pp1_y = yCenter + RE_Loc_sav_Y;
+        var pp2_x = x1_LE + LE_Loc_sav_X + circleSize/2;
+        var pp2_y = yCenter + LE_Loc_sav_Y;
+
+        pp1_y = (((pp1_y-200) * -1) + 200) ;
+        pp2_y = (((pp2_y-200) * -1) + 200) ;
+        yre = (((yCenter + RE_Loc_sav_Y-200) * -1) + 200) ;
+        yle = (((yCenter + LE_Loc_sav_Y-200) * -1) + 200) ;
+
+        ctxvr.lineWidth = 9;
+        ctxvr.beginPath();
+        ctxvr.strokeStyle = "#ffffff";
+        ctxvr.moveTo(pp1_x, pp1_y);
+        ctxvr.lineTo(pp2_x, pp2_y);
+        ctxvr.stroke();
+
+        ctxvr.beginPath();
+        //ctxvr.strokeStyle = c;
+        ctxvr.strokeStyle = "#ffffff";
+        //ctxvr.arc((x1_RE + RE_Loc_sav_X), (yCenter + RE_Loc_sav_Y), circleSize, 0, 2 * Math.PI);
+        ctxvr.arc((x1_RE + RE_Loc_sav_X), (yre), circleSize, 0, 2 * Math.PI);
+        ctxvr.fillStyle = "#ffffff";
+		ctxvr.fill();
+        ctxvr.stroke();
+
+        ctxvr.beginPath();
+        ctxvr.strokeStyle = "#ffffff";
+       // ctxvr.arc((x1_LE + LE_Loc_sav_X), (yCenter + LE_Loc_sav_Y), circleSize, 0, 2 * Math.PI);
+        ctxvr.arc((x1_LE + LE_Loc_sav_X), (yle), circleSize, 0, 2 * Math.PI);
+        ctxvr.fillStyle = "#ffffff";
+        ctxvr.fill();
+
+        ctxvr.stroke();
+ 
+        // drow current image
+
+        pp1_x = x1_RE + RE_Loc_X - circleSize/2;
+        pp1_y = yCenter + RE_Loc_Y;
+        pp2_x = x1_LE + LE_Loc_X + circleSize/2;
+        pp2_y = yCenter + LE_Loc_Y;
+
+        pp1_y = (((pp1_y-200) * -1) + 200) ;
+        pp2_y = (((pp2_y-200) * -1) + 200) ;
+        yre = (((yCenter + RE_Loc_Y-200) * -1) + 200) ;
+        yle = (((yCenter + LE_Loc_Y-200) * -1) + 200) ;
+        ctxvr.lineWidth = 7;
+        ctxvr.beginPath();
+        ctxvr.strokeStyle = color;
+        ctxvr.moveTo(pp1_x, pp1_y);
+	    ctxvr.lineTo(pp2_x, pp2_y);
+        ctxvr.stroke();
+        
+
+        ctxvr.beginPath();
+        ctxvr.strokeStyle = color;
+       // ctxvr.arc((x1_RE + RE_Loc_X), (yCenter + RE_Loc_Y), circleSize, 0, 2 * Math.PI);
+        ctxvr.arc((x1_RE + RE_Loc_X), (yre), circleSize, 0, 2 * Math.PI);
+        ctxvr.fillStyle = color;
+		ctxvr.fill();
+        ctxvr.stroke();
+        
+
+        ctxvr.beginPath();
+        ctxvr.strokeStyle = color;
+       // ctxvr.arc((x1_LE + LE_Loc_X), (yCenter + LE_Loc_Y), circleSize, 0, 2 * Math.PI);
+        ctxvr.arc((x1_LE + LE_Loc_X), (yle), circleSize, 0, 2 * Math.PI);
+        ctxvr.fill();
+        ctxvr.stroke();
+ 
+        RE_Loc_sav_Xc = RE_Loc_sav_X;
+        RE_Loc_sav_Yc = RE_Loc_sav_Y;
+        LE_Loc_sav_Xc = LE_Loc_sav_X;
+        LE_Loc_sav_Yc = LE_Loc_sav_Y;
+
+        RE_Loc_sav_X = RE_Loc_X;
+        RE_Loc_sav_Y = RE_Loc_Y;
+        LE_Loc_sav_X = LE_Loc_X;
+        LE_Loc_sav_Y = LE_Loc_Y;
+
+       
 
 	}
 
@@ -3225,7 +3411,8 @@ socket_close($socket);*/
 
 //string msg = "GEN|VR_POS_STOPED;
 		VR_POS_STOPED_FLAG = true;
-		calculateVRColour();
+		$("#setting_vr_position").attr("style", "background-color: #ffffff;");
+
 
 	}
 
@@ -5904,6 +6091,11 @@ socket_close($socket);*/
 		degX = 40;
 		degSize = 3;
 
+		var c2 = document.getElementById("layer2");
+		var ctx2 = c2.getContext("2d");
+		ctx2.clearRect(0, 0, 1000, 1000);
+
+
 		var c = document.getElementById("myCanvas");
 		var ctx = c.getContext("2d");
 		ctx.lineWidth = 3;
@@ -6205,16 +6397,6 @@ socket_close($socket);*/
 
 		ctx.stroke();
 		setZoomLevel($("#test-type").val(), value);
-		
-		
-		var c2 = document.getElementById("layer2");
-		var ctx2 = c2.getContext("2d");
-		ctx2.beginPath();
-		ctx2.strokeStyle = "#00ff00";
-		ctx2.arc(190, 145, 50, 0, 2 * Math.PI);
-		ctx2.fillStyle = "#00ff00";
-		ctx2.fill();
-		ctx2.stroke();
 	}
 
 	function setZoomLevel(testTypeId, testName) {
@@ -6481,8 +6663,9 @@ socket_close($socket);*/
 	}
 
 	function startTest() {
-
+		draw_vr_position = false;
 		$("#recall_last_data").addClass("md-btn-desabley");
+		$("#setting_vr_position").addClass("md-btn-desabley");
 		$("#recall_last_data").removeClass("md-btn-gry");
 		$("#start").removeClass("md-btn-gry");
 		$("#start").removeClass("md-btn-desabley");
@@ -6498,6 +6681,8 @@ socket_close($socket);*/
 	}
 
 	function stopTest(type = 0) {
+		draw_vr_position = true;
+		$("#setting_vr_position").removeClass("md-btn-desabley");
 		$("#recall_last_data").removeClass("md-btn-desabley");
 		$("#recall_last_data").addClass("md-btn-gry");
 		$("#stop").removeClass("md-btn-gry");
@@ -6798,18 +6983,21 @@ socket_close($socket);*/
 		deviceTypeId = argument;
 		updateRelibility();
 		if (argument == 0) {
+			document.getElementById("setting_vr_position").style.visibility = "hidden";
 			$("#gaze_tracking_txt").html('Gaze Tracking');
 			document.getElementById("gaze_tracking_div").style.visibility = "visible";
 			document.getElementById("gaze_tracking_div").style.height = "20px";
 			$("#gaze-track").prop("checked", false);
 			GazeTracking = false;
 		} else if (argument == 2 || argument == 5) {
+			document.getElementById("setting_vr_position").style.visibility = "visible";
 			$("#gaze-track").prop("checked", true);
 			$("#gaze_tracking_txt").html('Eye Tracking');
 			document.getElementById("gaze_tracking_div").style.visibility = "visible";
 			document.getElementById("gaze_tracking_div").style.height = "20px";
 			GazeTracking = true;
 		} else {
+			document.getElementById("setting_vr_position").style.visibility = "hidden";
 			$("#gaze-track").prop("checked", false);
 			document.getElementById("gaze_tracking_div").style.visibility = "hidden";
 			document.getElementById("gaze_tracking_div").style.height = "1px";

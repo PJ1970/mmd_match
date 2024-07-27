@@ -47,8 +47,8 @@ class TestdeviceController extends AppController {
 		'limit'=>10,
 		'order'=>array('TestDevice.id'=>'DESC')); 
 		$datas=$this->paginate('TestDevice');
-		 //pr($datas) ;echo "<pre>";
-		 //die();
+		// print_r($datas);
+		// die();
 		$this->set(compact('datas'));
 		}else{
             $this->redirect(WWW_BASE.'admin/dashboards/index');
@@ -100,11 +100,10 @@ class TestdeviceController extends AppController {
 		$datas=$this->paginate('TestDevice'); //pr($datas);
 		$this->set(compact('datas'));
 	}
-	
 	/*Test Device view*/
 	public function admin_view($id=null){
-		$this->loadModel('User');
 		$this->layout=false;
+		$this->loadModel('User');
 		if(!empty($id)) {
 			//$data = $this->TestDevice->findById($id);
 			$this->Office->unbindModel(array('hasMany' => array('Officereport')));
@@ -120,6 +119,7 @@ class TestdeviceController extends AppController {
 				)
 			);
 			$data = $this->TestDevice->find('first', array('conditions' => array('TestDevice.id'=>$id), 'recursive' => 2));
+			//pr($data);die;
 			$this->set(compact('data'));
 		}	
 	}
@@ -200,8 +200,6 @@ class TestdeviceController extends AppController {
 				$bt_mac_address = $this->request->data['TestDevice']['bt_mac_address'];
 				$this->request->data['TestDevice']['bt_mac_address'] = str_replace(' ', '', $bt_mac_address);
 			}
-			//$bytes = random_bytes(5);
-			//$this->request->data['TestDevice']['deviceSeraial'] = bin2hex($bytes);
 			if($this->TestDevice->save($this->request->data)) {
 				$this->Session->setFlash('Device has been added successfully.','message',array('class'=>'message'));
 				$this->redirect(array('controller'=>'testdevice','action'=>'admin_test_device_list'));
@@ -259,6 +257,19 @@ class TestdeviceController extends AppController {
 			}
 			
 		}
+	}
+
+	public function admin_unlocl($id=null){
+		//if($this->Session->read('Auth.Admin.user_type')=='Admin'){
+		$data=$this->TestDevice->find('first',array('conditions'=>array('TestDevice.id'=>$id)));
+		$data['TestDevice']['lock_counter'] =0;
+		$data['TestDevice']['lock_counter_time'] = null;
+		$data['TestDevice']['lock_time'] = null;
+		$this->TestDevice->save($data);
+		$this->Session->setFlash('Device Unlock successfully.','message',array('class' => 'message'));
+		$this->redirect($this->referer());
+		 
+		
 	}
 }
 

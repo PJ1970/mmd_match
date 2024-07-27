@@ -68,7 +68,7 @@
 					    	        } ?>
 					    	         <span> <?php echo $value['Support']['created_at']; ?></span>
 					    	         <?php if($value['Support']['file']!=''){ ?>
-					    	        <a href="<?php echo WWW_BASE.'support/uploads/'.$value['Support']['file']; ?>" download="">Download attachment</a> 
+					    	        <a href="https://www.portal.micromedinc.com/support/uploads/<?php echo $value['Support']['file'] ?>" download="">Download attachment</a> 
 					    	    <?php } ?>
 					    	        </div>
 
@@ -90,7 +90,7 @@
 					    	        } ?>
 					    	         <span> <?php echo $data['Support']['created_at']; ?></span>
 					    	         <?php if($data['Support']['file']!=''){ ?>
-					    	        <a href="<?php echo WWW_BASE.'support/uploads/'.$data['Support']['file']; ?>" download="">Download attachment</a> 
+					    	        <a href="https://www.portal.micromedinc.com/support/uploads/<?php echo $data['Support']['file'] ?>" download="">Download attachment</a> 
 					    	    <?php } ?>
 					    	        </div>
 					    	     </div>

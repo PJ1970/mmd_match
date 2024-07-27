@@ -31,7 +31,8 @@ class Masterdata extends AppModel {
 	public $hasMany = array(
 		'VfMasterdata'=>array(
 			'className'=>'VfMasterdata',
-			'foreignKey'=>'master_data_id' 
+			'foreignKey'=>'master_data_id',
+			'order' => 'VfMasterdata.index ASC',
 		)
 			
 	);

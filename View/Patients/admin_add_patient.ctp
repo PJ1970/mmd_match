@@ -1,4 +1,4 @@
-<style>
+ <style>
 .switch {
   position: relative;
   display: inline-block;
@@ -68,6 +68,28 @@ input:checked + .slider:before {
           <h4 class="page-title">Add Patient </h4>
         </div>
       </div>
+        <?php echo $this->Session->flash()."<br/>"; ?>
+         <div id="reportView" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+      <div class="modal-content" id="reportContent">
+      </div>
+    </div>
+  </div>
+  <?php
+   
+  if($this->Session->check('lastId')){ 
+  $lastId=$this->Session->read('lastId');
+  unset($_SESSION['lastId'])
+  ?>
+<script>
+jQuery(document).ready(function() {
+jQuery("#reportContent").load("<?php echo WWW_BASE; ?>admin/patients/startTestOption/<?php echo $lastId?>?" + new Date().getTime()+ new Date().getMilliseconds(), function(result) {
+      jQuery("#reportView").modal("show");
+      $('.customFacebox').remove();
+    });
+});
+      </script>
+      <?php } ?>
       <div class="page-content-wrapper ">
         <div class="container">
           <div class="row">
@@ -142,7 +164,7 @@ input:checked + .slider:before {
                                   $type_device = $value['TestDevice']['device_type'];
                                 }
                           }
-                          if($type_device == 6){ ?>
+                          if(@$type_device == 6){ ?>
                           <h4>For Home Use</h4>
                           <div class="container" style="border: 1px solid;margin-top: 10px;">
                             <div class="row">
@@ -159,7 +181,7 @@ input:checked + .slider:before {
                             <label>Test Name (Threshold)</label>
                             <div>
                             <?php   
-                              echo $this->Form->input('test_name',array('options' =>@$TestTypethresholdArray,'empty'=>'Select Test Name','id'=>'testName','div'=>false,'legend'=>false,'class' => 'form-control','label' => false, 'data-live-search' => 'true','required'=>true, 'data-selected-text-format' => 'count > 3'));
+                              echo $this->Form->input('test_name_ihu',array('options' =>@$TestTypethresholdArray,'empty'=>'Select Test Name','id'=>'testName','div'=>false,'legend'=>false,'class' => 'form-control','label' => false, 'data-live-search' => 'true','required'=>true, 'data-selected-text-format' => 'count > 3'));
                             ?>  
                             </div>
                         </div>
@@ -268,7 +290,14 @@ input:checked + .slider:before {
 							?>  
                             </div>
                         </div>
-
+                        <div class="form-group">
+                            <label>Gender</label>
+                            <div>
+              <?php   
+                echo $this->Form->input('race',array('options' =>array("Male"=>"Male","Female"=>"Female"),'empty'=>'Select Gender','id'=>'gender','div'=>false,'legend'=>false,'class' => 'form-control','label' => false, 'data-live-search' => 'true', 'data-selected-text-format' => 'count > 3'));
+              ?>  
+                            </div>
+                        </div>
                          <div class="form-group">
                             <label>Visual Acuity (optional)</label>
                             <!--<input type="text" class="form-control" required placeholder="Type something"/>-->
@@ -295,9 +324,83 @@ input:checked + .slider:before {
               
                            </div>
 
+                            <div class="form-group">
+                              <div class="row">
+                               <div class="col-sm-12 col-xs-6 col-lg-6">
+                              <label> Ocular Diagnosis</label><br/>
+                              <?php
+                             $checked_data = array();
+                              if (isset($patientDiagnosis)) {
+                                  foreach ($checked_data as $filter_cost_value) {
+                                      $checked_data = $filter_cost_value['diagnosis_id'];
+                                  }
+                              }
+
+                              //pr($filter_cost_value_array);
+                              $checked = '';
+                              $arr = $diagnosis;
+                              $i = 0;
+							  foreach ($arr as $key => $val) {
+                                  if (in_array($key, $checked_data)) {
+                                      $checked = 'checked';
+                                  } else {
+                                      $checked = '';
+                                  }
+                                  ?>
+                                  <div class="change_checkbox">
+                                      <?php
+                                      echo $this->Form->input("PatientDiagnosi.$i.patient_iagnosis", array('value' => $key, 'label' => array('text' => $val), 'type' => 'checkbox', $checked));
+
+                                        
+
+                                      $i++;
+                                      ?>
+                                  </div>
+                                  <?php
+                              } 
+                              ?>
+                            </div>
+
+                            <div class="col-sm-12 col-xs-6 col-lg-6">
+                              <label> Neuro Diagnosis</label><br/>
+                              <?php
+                             $checked_data = array();
+                              if (isset($patientDiagnosis)) {
+                                  foreach ($checked_data as $filter_cost_value) {
+                                      $checked_data = $filter_cost_value['diagnosis_id'];
+                                  }
+                              }
+
+                              //pr($filter_cost_value_array);
+                              $checked = '';
+                              $arr = $diagnosis_neuro; 
+                foreach ($arr as $key => $val) {
+                                  if (in_array($key, $checked_data)) {
+                                      $checked = 'checked';
+                                  } else {
+                                      $checked = '';
+                                  }
+                                  ?>
+                                  <div class="change_checkbox">
+                                      <?php
+                                      echo $this->Form->input("PatientDiagnosi.$i.patient_iagnosis", array('value' => $key, 'label' => array('text' => $val), 'type' => 'checkbox', $checked));
+
+                                        
+
+                                      $i++;
+                                      ?>
+                                  </div>
+                                  <?php
+                              } 
+                              ?>
+                            </div>
+                          </div>
+                          </div>
+
                           <div class="form-group m-b-0">
                             <div>
-                               <button type="submit" class="btn btn-primary waves-effect waves-light"> Submit </button>
+                                <button type="submit" name="setup_test" value="1" class="btn btn-primary waves-effect waves-light" style="margin-top:30px;float:left; width: 47%; height: 50px; font-weight: bolder; font-size: 18px;"> Submit & Start Test </button>
+                               <button type="submit"  name="setup_test" value="2" class="btn btn-primary waves-effect waves-light" style="margin-top:30px;float:right;width: 47%; height: 50px; font-weight: bolder; font-size: 18px;"> Submit & Add Next Patient </button>
 							  <!-- <button type="reset" class="btn btn-default waves-effect m-l-5"> Cancel </button>--.
                             </div>
                           </div>
@@ -349,7 +452,6 @@ $(document).ready(function(){
 var time = new Date();
   $("#cTimeSystem").val(time);
 });
-
 $(".ihudevice").on("input", function() {
    var getV = $(this).val(); 
    if(getV == 0 && getV != ''){

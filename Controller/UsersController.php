@@ -1,4 +1,4 @@
-<?php
+<?php 
 App::uses('AppController','Controller');
 App::uses('CakeEmail','Network/Email');
 App::import('Controller','ChatApi');
@@ -14,12 +14,13 @@ class UsersController extends AppController {
 	var $helpers = array('Html', 'Form','Js' => array('Jquery'), 'Custom');
 
     public $components = array('Auth'=>array('authorize'=>array('Controller')),'Session','Email','Common','RememberMe','Upload');
+
 	public $allowedActions =array('admin_forgot_password','admin_login','admin_logout', 'admin_reset_password','admin_login2');
 
 
-	function beforeFilter(){
-		parent::beforeFilter();
-		$this->Auth->allow($this->allowedActions);
+	function beforeFilter(){ 
+		parent::beforeFilter(); 
+		$this->Auth->allow($this->allowedActions);  
 	}
 
 	protected function _setCookie($options = array(), $cookieKey = 'rememberMe') {
@@ -29,24 +30,102 @@ class UsersController extends AppController {
 	}
 
 	public function isAuthorized($user=null){
-		$userDeatils = $this->User->find('first', ['conditions' => array('User.username' =>@$user['User']['username'])]);
+		  
+		$user_name = '';
+		if(isset($user['User']['username'])){
+			$user_name = $user['User']['username']; 
+		}else if(isset($user['username'])){
+			$user_name = $user['username'];
+		}
+		$userDeatils = $this->User->find('first', ['conditions' => array('User.username' =>@$user_name)]);
+		 
+		date_default_timezone_set('UTC');
+        $UTCDate = date('Y-m-d H:i:s');
+
+		if(isset($userDeatils['User']['lock_time']) && $userDeatils['User']['lock_time']!=null && $userDeatils['User']['lock_time'] > $UTCDate){
+			$this->Session->setFlash(__('Your account is lock for 24 hr. Please contact to admin'),'message');
+			return $this->redirect(array('action'=>'admin_login'));
+		} 
+		if(isset($userDeatils['Office']['high_security']) && $userDeatils['Office']['high_security']==1){
+			if(isset($userDeatils['User']['password_expiry_date']) && $userDeatils['User']['password_expiry_date']!=null && $userDeatils['User']['password_expiry_date'] < $UTCDate){
+				$this->Session->setFlash(__('Your password is expired. Please contact to admin or reset it.'),'message');
+				return $this->redirect(array('action'=>'admin_login'));
+			}
+		}
 		if(!empty($userDeatils)){
 			if($userDeatils['User']['user_type']==='Admin' || $userDeatils['User']['user_type']==='SupportSuperAdmin' || $userDeatils['User']['user_type']==='RepAdmin' || $userDeatils['User']['user_type']==='SuperRepAdmin'){
 				return true;
 			}else if($userDeatils['Office']['status']==1){
 				return true;
-			}else {
+			}else {  
 				return false;
 			}
 		}else{
 			return true;
-		}
+		} 
 	  /*   parent::beforeFilter();
 		if(isset($user['user_type']) && (($user['user_type'] == 'Admin') || ($user['user_type'] == 'Subadmin') || ($user['user_type'] == 'Staffuser')) && isset($this->request->prefix) && ($this->request->prefix == 'admin')){
 			return true;
 		}else{
 			$this->redirect($this->referer());
 		} */
+    }
+
+    public function recordLog($username, $event, $source, $timezone=''){
+    	$this->loadModel('UserLoginLog');
+    	 
+    	$userDeatils = $this->User->find('first', ['conditions' => array('User.username' => $username)]);
+    	$ip_address = $this->request->clientIp();
+    	date_default_timezone_set('UTC');
+        $UTCDate = date('Y-m-d H:i:s');
+
+    	$user_login_log['UserLoginLog']['UTCtimestamp'] = $UTCDate;
+    	$user_login_log['UserLoginLog']['timezone'] = $timezone;
+    	$user_login_log['UserLoginLog']['username'] = $username;
+    	$user_login_log['UserLoginLog']['action'] = $event;
+    	$user_login_log['UserLoginLog']['ip_address'] = $ip_address;
+    	$user_login_log['UserLoginLog']['source'] = $source;
+    	$user_login_log['UserLoginLog']['office_id'] = $userDeatils['User']['office_id']??null; 
+    	$this->UserLoginLog->save($user_login_log); 
+    }
+     
+    public function resetLock($username){
+		 $userDeatils = $this->User->find('first', ['conditions' => array('User.username' => $username)]);
+		 $this->User->id = $userDeatils['User']['id'];
+		 $this->User->saveField('lock_counter_time',null);
+		 $this->User->saveField('lock_time',null);
+		 $this->User->saveField('lock_counter',0);
+
+    }
+    public function updateLock($username){
+		 $userDeatils = $this->User->find('first', ['conditions' => array('User.username' => $username)]); 
+		 if(!empty($userDeatils)){
+		 	date_default_timezone_set('UTC');
+        	$UTCDate = date('Y-m-d H:i:s');
+        	$UTCDateNext = date('Y-m-d H:i:s', time() - 86400);
+
+		 	if($userDeatils['User']['lock_counter_time'] == null || $userDeatils['User']['lock_counter_time'] < $UTCDateNext){
+		 	  	$data['lock_counter_time'] = $UTCDate;
+		 		$data['lock_counter'] = 1;
+		 	 
+		 	}else if($userDeatils['User']['lock_counter'] >= 9){
+		 		 $data['lock_time'] = $UTCDateNext = date('Y-m-d H:i:s', time() + 86400); 
+				 $data['lock_counter'] = 10; 
+				 $this->Session->setFlash(__('Your account is lock for 24 hr. Please contact to admin'),'message');
+		 	}else{
+		 		$data['lock_counter'] = $userDeatils['User']['lock_counter']+ 1;
+		 	}
+		 	$this->User->id = $userDeatils['User']['id'];
+		 	if(isset($data['lock_counter_time'])){
+		 		$this->User->saveField('lock_counter_time',$data['lock_counter_time']);
+		 	}
+		 	if(isset($data['lock_time'])){
+		 		$this->User->saveField('lock_time',$data['lock_time']);
+		 	}
+		 	if(isset($data['lock_counter'])){
+		 		$this->User->saveField('lock_counter',$data['lock_counter']);
+		 	} 
+		 }
     }
 
 
@@ -71,6 +150,8 @@ class UsersController extends AppController {
 							return $this->redirect(array('action'=>'admin_login'));
 						}
 						if($this->Auth->login()){
+							$this->recordLog($this->request->data['User']['username'],'login-success', 'S');
+							$this->resetLock($this->request->data['User']['username']);
 							//Cache::delete('test_device_list', '_cake_model_');
 							/* $user_name = $this->Auth->user('first_name');
 							$profile_pic = $this->Auth->user('profile_pic');
@@ -94,6 +175,8 @@ class UsersController extends AppController {
 							//$this->Session->setFlash(__('Welcome '.$user_name),'message');
 							return $this->redirect($this->Auth->redirectUrl());
 						}else{
+							$this->recordLog($this->request->data['User']['username'],'login-fail', 'S');
+							$this->updateLock($this->request->data['User']['username']);
 							$this->Session->setFlash(__('Invalid Email/Password,try again.'),'message');
 							return $this->redirect(array('action'=>'admin_login'));
 						}
@@ -104,6 +187,9 @@ class UsersController extends AppController {
 	}
 	/*Logout*/
 	function admin_logout(){
+
+		$Admin = $this->Session->read('Auth.Admin'); 
+		$this->recordLog($Admin['username'],'logout', 'S'); 
 		$this->Session->destroy();
 		$this->RememberMe->destroyCookie();
 		$this->redirect($this->Auth->logout());
@@ -184,7 +270,7 @@ class UsersController extends AppController {
 
 					try{
 						$Email = new CakeEmail();
-						$Email->config('smtp');
+						$Email->config('gmail');
 						$Email->viewVars($user['User']);
 						$Email->template('forgot_password');
 						$Email->from(array(FROM_EMAIL=>'MMD'));
@@ -217,7 +303,15 @@ class UsersController extends AppController {
 			//$this->User->validator()->remove('email','unique');
 			$this->User->validator()->remove('username','unique');
 			$this->User->set($this->request->data);
-			if(strcmp($this->request->data['User']['password'], $this->request->data['User']['confirm_password'])==0){
+			$pattern = '/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[\W_]).+$/';
+			if (!preg_match($pattern, $this->data['User']['password'])) {
+				$this->Session->setFlash("Please follow the password rule.",'message',array('class' => 'message')); 
+			}else if (strlen($this->data['User']['password']) <8 || strlen($this->data['User']['password']) >16) {
+				$this->Session->setFlash("Please follow the password rule.",'message',array('class' => 'message'));
+			}else if(strcmp($this->request->data['User']['password'], $this->request->data['User']['confirm_password'])==0){
+
+ 
+ 
 				//$email = $this->data['User']['email'];
 				//$username = $this->data['User']['username'];
 				$user = array();
@@ -232,6 +326,8 @@ class UsersController extends AppController {
 					$this->User->reset_token = null;
 					$this->User->saveField('password', $password);
 					$this->User->saveField('reset_token', null);
+					$password_expiry =  date('Y-m-d H:i:s', strtotime("+90 days"));
+					$this->User->saveField('password_expiry_date', $password_expiry); 
 					$this->Session->setFlash('The password has been sent to your email.','message',array('class' => 'message'));
 					$this->Session->destroy();
                     $this->redirect(array('controller'=>'users','action'=>'admin_login'));
@@ -256,27 +352,34 @@ class UsersController extends AppController {
 
 		if($this->request->isPost())
 		{
+			
 			$userdata = $this->User->findById($uid);
 			if(!empty($this->data['User']['oldpassword'])&& !empty($this->data['User']['password']) && !empty($this->data['User']['confirm_password'])){
 
-				if(($this->data['User']['password']!=$this->data['User']['confirm_password']) || (($this->BlowFish->check( $this->data['User']['oldpassword'] , $userdata['User']['password'] )) == false) || ($this->data['User']['oldpassword'] == $this->data['User']['password']))
-                {
-					if($this->data['User']['oldpassword'] == $this->data['User']['password'])
-					 $this->User->validationErrors['password'] = "New password cann't be same as old.";
-
-					if($this->data['User']['password']!=$this->data['User']['confirm_password'])
+				 $pattern = '/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[\W_]).+$/';
+					if($this->data['User']['oldpassword'] == $this->data['User']['password']){
+					$this->User->validationErrors['password'] = "New password cann't be same as old.";
+					 
+					
+					}else if (!preg_match($pattern, $this->data['User']['password'])) {
+					    $this->User->validationErrors['password'] = "Please follow the password rule.";
+					}else if (strlen($this->data['User']['password']) <8 || strlen($this->data['User']['password']) >16) {
+						    $this->User->validationErrors['password'] = "Please follow the password rule..";
+					}else if($this->data['User']['password']!=$this->data['User']['confirm_password']){
 					   $this->User->validationErrors['confirm_password'] = "Password's doesn't match.";
-
-					if(($this->BlowFish->check( $this->data['User']['oldpassword'] , $userdata['User']['password'] )) == false)
+					}else if(($this->BlowFish->check( $this->data['User']['oldpassword'] , $userdata['User']['password'] )) == false){
 						$this->User->validationErrors['oldpassword'] = "Old Password not correct.";
-                }
+					}
                 else
 				{
+					 
 					$this->User->create();
 					$this->User->id = $this->Auth->user('id');
 					$password = $this->data['User']['password'];
-
+					
 					if($this->User->saveField('password', $password)){
+						$password_expiry =  date('Y-m-d H:i:s', strtotime("+90 days"));
+						$this->User->saveField('password_expiry_date', $password_expiry); 
 						$this->Session->setFlash('Your password changed successfully.','message',array('class' => 'message'));
 						return $this->redirect(array('controller'=>'dashboards','action' => 'admin_index'));
 					}
@@ -311,6 +414,8 @@ class UsersController extends AppController {
 			$password = $this->request->data['User']['password'];
 			$confirm_pass = $this->request->data['User']['confirm_pass'];
 			unset($this->request->data['User']['confirm_pass']);
+			$password_expiry =  date('Y-m-d H:i:s', strtotime("+90 days"));
+			$this->request->data['User']['password_expiry_date'] = $password_expiry;  
 			if($password == $confirm_pass){
 				$this->request->data['User']['user_type']='Subadmin';
 				$this->request->data['User']['created_by'] = $Admin['id'];
@@ -363,12 +468,13 @@ class UsersController extends AppController {
 			}
 		}
 		}else{
-            $this->redirect(WWW_BASE.'admin/dashboards/index');
+            $this->redirect('https://www.portal.micromedinc.com/admin/dashboards/index');
         }
 	}
 
 //SubAdmin Listing
 	public function admin_super_subadmin_listing(){
+	 
 		if($this->Session->read('Auth.Admin.user_type')=='Admin'){
 		$conditions = array('User.is_delete'=>0);
 		$conditions['AND'][] = array('User.user_type'=>'SuperSubadmin');
@@ -397,7 +503,7 @@ class UsersController extends AppController {
 		//pr($datas); die;
 		$this->set(compact('datas'));
 		}else{
-            $this->redirect(WWW_BASE.'admin/dashboards/index');
+            $this->redirect('https://www.portal.micromedinc.com/admin/dashboards/index');
         }
 	}
 	/*Edit SubAdmin*/
@@ -412,6 +518,9 @@ class UsersController extends AppController {
 		if($this->request->is(array('post','put'))){
 			if(empty($this->request->data['User']['password'])){
 				unset($this->request->data['User']['password']);
+			}else{
+				$password_expiry =  date('Y-m-d H:i:s', strtotime("+90 days"));
+				$this->request->data['User']['password_expiry_date'] = $password_expiry; 
 			}
 			if(!empty($this->request->data['User']['office_id'])) {
 				$office_assign = $this->Office->findById($this->request->data['User']['office_id']);
@@ -483,7 +592,7 @@ class UsersController extends AppController {
 			$this->request->data = $data;
 		}
 		}else{
-            $this->redirect(WWW_BASE.'admin/dashboards/index');
+            $this->redirect('https://www.portal.micromedinc.com/admin/dashboards/index');
         }
 	}
 
@@ -496,6 +605,8 @@ class UsersController extends AppController {
 			$password = $this->request->data['User']['password'];
 			$confirm_pass = $this->request->data['User']['confirm_pass'];
 			unset($this->request->data['User']['confirm_pass']);
+			$password_expiry =  date('Y-m-d H:i:s', strtotime("+90 days"));
+			$this->request->data['User']['password_expiry_date'] = $password_expiry;  
 			if($password == $confirm_pass){
 				$this->request->data['User']['user_type']='SuperSubadmin';
 				$this->request->data['User']['created_by'] = $Admin['id'];
@@ -548,7 +659,7 @@ class UsersController extends AppController {
 			}
 		}
 		}else{
-            $this->redirect(WWW_BASE.'admin/dashboards/index');
+            $this->redirect('https://www.portal.micromedinc.com/admin/dashboards/index');
         }
 	}
 
@@ -579,7 +690,7 @@ class UsersController extends AppController {
 		//pr($datas); die;
 		$this->set(compact('datas'));
 		}else{
-            $this->redirect(WWW_BASE.'admin/dashboards/index');
+            $this->redirect('https://www.portal.micromedinc.com/admin/dashboards/index');
         }
 	}
 	/*Add RepAdmin*/
@@ -591,6 +702,8 @@ class UsersController extends AppController {
 			$password = $this->request->data['User']['password'];
 			$confirm_pass = $this->request->data['User']['confirm_pass'];
 			unset($this->request->data['User']['confirm_pass']);
+			$password_expiry =  date('Y-m-d H:i:s', strtotime("+90 days"));
+			$this->request->data['User']['password_expiry_date'] = $password_expiry;  
 			if($password == $confirm_pass){
 				//$this->request->data['User']['user_type']='RepAdmin';
 				$this->request->data['User']['created_by'] = $Admin['id'];
@@ -629,7 +742,7 @@ class UsersController extends AppController {
 			}
 		}
 		}else{
-            $this->redirect(WWW_BASE.'admin/dashboards/index');
+            $this->redirect('https://www.portal.micromedinc.com/admin/dashboards/index');
         }
 	}
 
@@ -644,6 +757,9 @@ class UsersController extends AppController {
 		if($this->request->is(array('post','put'))){
 			if(empty($this->request->data['User']['password'])){
 				unset($this->request->data['User']['password']);
+			}else{
+				$password_expiry =  date('Y-m-d H:i:s', strtotime("+90 days"));
+				$this->request->data['User']['password_expiry_date'] = $password_expiry; 
 			}
 				$username=$this->User->field('username');
 				if($username==$this->request->data['User']['username']){
@@ -682,7 +798,7 @@ class UsersController extends AppController {
 			$this->request->data = $data;
 		}
 		}else{
-            $this->redirect(WWW_BASE.'admin/dashboards/index');
+            $this->redirect('https://www.portal.micromedinc.com/admin/dashboards/index');
         }
 	}
 
@@ -714,7 +830,7 @@ class UsersController extends AppController {
 		$datas=$this->paginate('User');
 		$this->set(compact('datas'));
 		}else{
-            $this->redirect(WWW_BASE.'admin/dashboards/index');
+            $this->redirect('https://www.portal.micromedinc.com/admin/dashboards/index');
         } 
 	}
 
@@ -787,6 +903,9 @@ class UsersController extends AppController {
 		if($this->request->is(array('post','put'))){
 			if(empty($this->request->data['User']['password'])){
 				unset($this->request->data['User']['password']);
+			}else{
+				$password_expiry =  date('Y-m-d H:i:s', strtotime("+90 days"));
+				$this->request->data['User']['password_expiry_date'] = $password_expiry; 
 			}
 			if(!empty($this->request->data['User']['office_id'])) {
 				$office_assign = $this->Office->findById($this->request->data['User']['office_id']);
@@ -830,7 +949,7 @@ class UsersController extends AppController {
 			}
 
 			if(!isset($this->User->validationErrors['office_id'])){
-
+			 
 				if($this->User->save($this->request->data)){
 					if(isset($this->request->data['User']['rotate'])&&(!empty($this->request->data['User']['rotate']))){
 						$this->User->id=$this->request->data['User']['id'];
@@ -858,7 +977,7 @@ class UsersController extends AppController {
 			$this->request->data = $data;
 		}
 		}else{
-            $this->redirect(WWW_BASE.'admin/dashboards/index');
+            $this->redirect('https://www.portal.micromedinc.com/admin/dashboards/index');
         }
 	}
 
@@ -878,7 +997,8 @@ class UsersController extends AppController {
 
 
 	/*Edit profile*/
-	function admin_edit_profile(){
+	function admin_edit_profile(){ 
+		 
 		$Admin = $this->Auth->user('id');
 		$data = $this->User->find('first',array('conditions'=>array('User.id'=>$Admin)));
 		$this->set(compact('data'));
@@ -929,15 +1049,18 @@ class UsersController extends AppController {
 	#Admin module started-----------------------------------
 
 	public function admin_add_admin(){
+
 		if($this->Session->read('Auth.Admin.user_type') !='Admin'){
 			$this->redirect($this->referer());
-		}
+		}  
 		$this->loadModel('Office');
-		$Admin = $this->Session->read('Auth.Admin');
+		$Admin = $this->Session->read('Auth.Admin'); 
 		if($this->request->is('post')){
 			$password = $this->request->data['User']['password'];
 			$confirm_pass = $this->request->data['User']['confirm_pass'];
 			unset($this->request->data['User']['confirm_pass']);
+			$password_expiry =  date('Y-m-d H:i:s', strtotime("+90 days"));
+			$this->request->data['User']['password_expiry_date'] = $password_expiry;  
 			if($password == $confirm_pass){
 				$this->request->data['User']['user_type']='Admin';
 				$this->request->data['User']['created_by'] = $Admin['id'];
@@ -978,7 +1101,7 @@ class UsersController extends AppController {
 			} else {
 				$this->User->validationErrors['confirm_pass'] = array("Password and confirm mismatch.");
 			}
-		}
+		} 
 	}
 
 	public function admin_edit_admin($id=null){
@@ -990,9 +1113,15 @@ class UsersController extends AppController {
 		$data=$this->User->find('first',array('conditions'=>array('User.id'=>$id)));
 		$data['User']['dob'] = date('m/d/Y', strtotime($data['User']['dob']));
 		$data['User']['practice_id']=explode(',',$data['User']['practice_id']);
+		unset($data['User']['password']);
 		$this->set(compact('data'));
 		if($this->request->is(array('post','put'))){
-
+			if(empty($this->request->data['User']['password'])){
+				unset($this->request->data['User']['password']);
+			}else{
+				$password_expiry =  date('Y-m-d H:i:s', strtotime("+90 days"));
+				$this->request->data['User']['password_expiry_date'] = $password_expiry; 
+			}
 			if(isset($this->request->data['User']['profile_pic']['name'])&&(!empty($this->request->data['User']['profile_pic']['name']))){
 				$profile_pic=time().$this->request->data['User']['profile_pic']['name'];
 				$image_type=strtolower(substr($profile_pic,strrpos($profile_pic,'.')+1));
@@ -1031,7 +1160,7 @@ class UsersController extends AppController {
 			$this->request->data = $data;
 		}
 		}else{
-            $this->redirect(WWW_BASE.'admin/dashboards/index');
+            $this->redirect('https://www.portal.micromedinc.com/admin/dashboards/index');
         } 
 	}
 
@@ -1076,6 +1205,17 @@ class UsersController extends AppController {
 									array('User.id' => $id)
 								);
 		//$this->Session->setFlash("Consent Cleard successfully.",'message',array('class' => 'message'));
+		$this->redirect($this->referer());
+	}
+
+	public function admin_unlocl($id=null){
+		//if($this->Session->read('Auth.Admin.user_type')=='Admin'){
+		$data=$this->User->find('first',array('conditions'=>array('User.id'=>$id)));
+		$this->User->id = $data['User']['id'];
+		$this->User->saveField('lock_counter_time',null);
+		$this->User->saveField('lock_time',null);
+		$this->User->saveField('lock_counter',0);
+		$this->Session->setFlash('Unlock successfully.','message',array('class' => 'message'));
 		$this->redirect($this->referer());
 	}
 }

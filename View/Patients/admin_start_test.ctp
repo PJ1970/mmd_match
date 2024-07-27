@@ -12,43 +12,51 @@
 			$checked_data = Hash::extract($data['Office']['Officereport'], '{n}.office_report');
 		}
 		?>
-		<div class="page-header-title">
+			<div class="page-header-title">
 			<div class="row">
-				<div class="col-sm-3 mts-box-1">
-					<h3 class="page-title2" style="color: #ffffff; margin-top:6px;">Manage Patients<span
-								class="pull-right" style="color:white"></span></h3>
-				</div>
-
+			   
 				<div class="col-sm-2 mts-box-1">
-					<h4 class="page-title2" style="color: #ffffff;">Duration: <span id="setting-duration" class=""
+					<h4 class="page-title2" style="background-color: #93b2c1;border-radius: 11px; padding-left: 10px;color: #000000;font-weight: 500; padding-top: 3px; padding-bottom: 3px;">Duration: <span id="setting-duration" class=""
 																					style="color: #ffffff;"></span></h4>
 				</div>
-				<div class="col-sm-2 mts-box-1">
-					<h4 class="page-title2" id="patients_name" style="color: #ffffff;">
+				<div class="col-sm-3 mts-box-1">
+					<h4 class="page-title2" id="patients_name" style="background-color: #93b2c1;border-radius: 11px; padding-left: 10px;color: #000000;font-weight: 500; padding-top: 3px; padding-bottom: 3px;">
 						Name: <?php echo $data['Patient']['first_name'] . " " . $data['Patient']['last_name'] ?></h4>
 				</div>
 				<div class="col-sm-2 mts-box-1">
-					<?php if (in_array(14, $checked_data)) {
-						echo "<a style='width: 57px; background: #3292e0; color: white; border: 2px solid #f3ecec; margin-top: 3px;'   href='javascript:void(0);' class='btn' title='Start VF Test' >VF</a>";
-					} ?>
-					<?php if (in_array(15, $checked_data)) {
-						echo "<a style='width: 57px; background: #7e7e7e; color: white; border: 2px solid white;  margin-top: 3px;' class='btn'   href='" . WWW_BASE . "admin/patients/start_test_fdt/" . $data['Patient']['id'] . "' title='Start FDT Test' >FDT</a>";
-					} ?>
-					<?php if (in_array(23, $checked_data)) {
-						echo "<a style='width: 57px; background: #7e7e7e; color: white; border: 2px solid white;  margin-top: 3px;' href='" . WWW_BASE . "admin/patients/start_test_da/" . $data['Patient']['id'] . "' title='Start DA Test' class='btn' >DA</a>";
-					} ?>
-					<?php if (in_array(25, $checked_data)) {
-						echo "<a style='width: 57px; background: #7e7e7e; color: white; border: 2px solid white;  margin-top: 3px;' href='" . WWW_BASE . "admin/patients/start_test_vs/" . $data['Patient']['id'] . "' title='Start VS Test' class='btn ' >VS</a>";
-					} ?>
-					<?php if (in_array(34, $checked_data)) {
-						echo "<a style='width: 57px; background: #7e7e7e; color: white; border: 2px solid white;  margin-top: 3px;' href='" . WWW_BASE . "admin/patients/start_test_pup/" . $data['Patient']['id'] . "' title='Start Pupilometer Test' class='btn ' >PUP</a>";
-					} ?>
+				    <h4 class="page-title2" id="patients_dob" style="background-color: #93b2c1;border-radius: 11px; padding-left: 10px;color: #000000;font-weight: 500; padding-top: 3px; padding-bottom: 3px;">
+						DOB: <?php echo $data['Patient']['dob'] ?></h4>
+				</div>
+				<div class="col-sm-2 mts-box-1">
+				     <h4 class="page-title2" id="patients_id_number" style="background-color: #93b2c1;border-radius: 11px; padding-left: 10px;color: #000000;font-weight: 500; padding-top: 3px; padding-bottom: 3px;">
+						Patient ID: <?php echo $data['Patient']['id_number'] ?></h4>
 				</div>
 				<div class="col-sm-3 mts-box-1">
 					<h4 class="page-title"><span class="pull-right" style="color:white"></span></h4>
 				</div>
 			</div>
-
+            <div class="row">
+                <div class="col-sm-12 mts-box-1" style="text-align:center;">
+					<?php if (in_array(14, $checked_data)) {
+						echo "<a style='width: 75px; background: #3292e0; color: white; border: 2px solid #f3ecec; margin-top: 3px;'   href='javascript:void(0);' class='btn' title='Start VF Test' >VF</a>";
+					} ?>
+					<?php if (in_array(15, $checked_data)) {
+						echo "<a style='width: 75px; background: #7e7e7e; color: white; border: 2px solid white;  margin-top: 3px;' class='btn'   href='" . WWW_BASE . "admin/patients/start_test_fdt/" . $data['Patient']['id'] . "' title='Start FDT Test' >FDT</a>";
+					} ?>
+					<?php if (in_array(23, $checked_data)) {
+						//echo "<a style='width: 75px; background: #7e7e7e; color: white; border: 2px solid white;  margin-top: 3px;' href='" . WWW_BASE . "admin/patients/start_test_da/" . $data['Patient']['id'] . "' title='Start DA Test' class='btn' >DA</a>";
+					} ?>
+					<?php if (in_array(25, $checked_data)) {
+						echo "<a style='width: 75px; background: #7e7e7e; color: white; border: 2px solid white;  margin-top: 3px;' href='" . WWW_BASE . "admin/patients/start_test_vs/" . $data['Patient']['id'] . "' title='Start VS Test' class='btn ' >VS</a>";
+					} ?>
+					<?php if (in_array(34, $checked_data)) {
+						//echo "<a style='width: 75px; background: #7e7e7e; color: white; border: 2px solid white;  margin-top: 3px;' href='" . WWW_BASE . "admin/patients/start_test_pup/" . $data['Patient']['id'] . "' title='Start Pupilometer Test' class='btn ' >PUP</a>";
+					} ?>
+					<?php if(in_array(35, $checked_data)){ 
+						echo "<a href='javascript:void(0);' style='visibility: visible; color: rgb(255, 255, 255); border: 2px solid rgb(255, 255, 255) !important;' class='waves-effect waves-light notification-icon-box test-patient-section view_start_test_video' title='View Video'><i class='mdi mdi-video'></i></a>";
+					 } ?>
+				</div>
+            </div>
 
 		</div>
 		<?php
@@ -76,9 +84,9 @@ socket_close($socket);*/
 					<div class="panel panel-primary" style="margin:0px;">
 						<link rel="stylesheet"
 							  href="https://code.ionicframework.com/ionicons/1.5.2/css/ionicons.min.css">
-
+							  <?php echo $this->Session->flash(); ?>
 						<!-- 6 may 2020 -->
-						<?php echo $this->Html->css(array('admin/mmd-custom.css?v=10')); ?>
+						<?php echo $this->Html->css(array('admin/mmd-custom.css?v=12')); ?>
 						<div class="panel-body mmd-st">
 							<div class="mmds-box">
 								<div class="container">
@@ -93,6 +101,10 @@ socket_close($socket);*/
 												<button id="setting-reliability-btn" class="btn"
 														style="background-color: #00ff00 "
 												><span id="setting-reliability">Reliability</span></button>
+
+												<button id="setting_vr_position" class="btn"
+														style="background-color: #ffffff;height: 33px; border: none; visibility: hidden; "
+												><span id="vr_position">Set VR Position</span></button>
 												<br>
 												<h3>Stm Size: <span id="setting-stm-size">3</span></h3>
 												<h3>Bkg Color: <span id="setting-bkg-color">0.7</span>db</h3>
@@ -127,34 +139,11 @@ socket_close($socket);*/
 																onChange="updateDevice();" style="height: 30px;">
 
 															<option value="0">Select Language</option>
-															<option value="1" <?php echo (!empty($user_default)) ? ($user_default['UserDefault']['language_id'] == 1) ? 'selected' : '' : '' ?>>
-																English
+															<?php foreach($language_datas as $key => $value){ ?> 
+															<option value="<?php echo $value['language_id'] ?>" <?php echo (!empty($user_default)) ? ($user_default['UserDefault']['language_id'] == $value['language_id']) ? 'selected' : '' : '' ?>>
+																<?php echo $value['name'] ?>
 															</option>
-															<option value="2" <?php echo (!empty($user_default)) ? ($user_default['UserDefault']['language_id'] == 2) ? 'selected' : '' : '' ?>>
-																Spanish
-															</option>
-															<option value="3" <?php echo (!empty($user_default)) ? ($user_default['UserDefault']['language_id'] == 3) ? 'selected' : '' : '' ?>>
-																French
-															</option>
-															<option value="4" <?php echo (!empty($user_default)) ? ($user_default['UserDefault']['language_id'] == 4) ? 'selected' : '' : '' ?>>
-																Portuguese
-															</option>
-															<option value="5" <?php echo (!empty($user_default)) ? ($user_default['UserDefault']['language_id'] == 5) ? 'selected' : '' : '' ?>>
-																Arabic
-															</option>
-															<option value="6" <?php echo (!empty($user_default)) ? ($user_default['UserDefault']['language_id'] == 6) ? 'selected' : '' : '' ?>>
-																Hindi
-															</option>
-															<option value="7" <?php echo (!empty($user_default)) ? ($user_default['UserDefault']['language_id'] == 7) ? 'selected' : '' : '' ?>>
-																Chinese
-															</option>
-															<option value="8" <?php echo (!empty($user_default)) ? ($user_default['UserDefault']['language_id'] == 8) ? 'selected' : '' : '' ?>>
-																Vietnamese
-															</option>
-															<option value="9" <?php echo (!empty($user_default)) ? ($user_default['UserDefault']['language_id'] == 9) ? 'selected' : '' : '' ?>>
-																Chinese-Cantonese
-															</option>
-															<!--   <option value="8" <?php echo (!empty($user_default)) ? ($user_default['UserDefault']['language_id'] == 8) ? 'selected' : '' : '' ?>>No Voice Instructions</option> -->
+															<?php } ?> 
 														</select>
 
 													</div>
@@ -266,7 +255,14 @@ socket_close($socket);*/
 																								 id="view_patient_test_txt"
 																								 title="Viewer Mode allows you to monitor tests started on another browser.">Viewer Mode</span></label>
 														</div>
-														<br><br>
+														<div class="form-group" id="patient_training_div">
+															<input type="checkbox" id="patient_training"
+																   class="patient_training" aria-label="..."
+																   onchange="patienTrainingUpdate(this)">
+															<label for="patient_training"><span type="checkbox"
+																								  style="font-weight: 500;"
+																								  id="patient_training_txt">Patient Training</span></label>
+														</div>
 														<div class="form-group" id="voice_instructions_div">
 															<input type="checkbox" id="voice_instructions"
 																   class="voice_instructions" aria-label="..."
@@ -327,6 +323,7 @@ socket_close($socket);*/
 															style="visibility: hidden; background-color: #d63636 !important;"
 															onclick="stopalarm();">Dismiss Alarm
 													</button>
+													<span style="text-align: center;display:none;" class="binocular_message">Test is Binocular</span>
 												</div>
 												<div style="visibility: hidden;">
 													<canvas id="myCanvas2" width="128" height="128"
@@ -346,9 +343,16 @@ socket_close($socket);*/
 														<span style="font-size: 16px;color: #990000;font-weight: 600; text-align: center;"
 															  class="setting-alert-message3"></span>
 													</div>
-													<canvas id="myCanvas" height="1020" width="1020" style="background-color: #fff;
-                            ">
-													</canvas>
+													<div style="position: relative;">
+ 
+   	<canvas id="myCanvas" height="1020" width="1020" style="position: absolute; left: 50%;
+    transform: translateX(-50%); top: 0; z-index: 0;background-color: #fff;"></canvas>
+                           <canvas id="layer2" width="1020" height="1020" style="
+                           z-index: 1;position: relative; "
+   ></canvas>
+</div>
+												
+													
 												</div>
 												<div class="mt-btns gz-trck d-phone">
 													<div class="mt-checkboxes mt-checkboxes-eye">
@@ -360,6 +364,14 @@ socket_close($socket);*/
 																								 style="font-weight: 500;"
 																								 id="view_patient_test_txt"
 																								 title="Viewer Mode allows you to monitor tests started on another browser.">Viewer Mode</span></label>
+														</div>
+														<div class="form-group" id="patient_training_div">
+															<input type="checkbox" id="patient_training"
+																   class="patient_training" aria-label="..."
+																   onchange="patienTrainingUpdate(this)">
+															<label for="patient_training"><span type="checkbox"
+																								  style="font-weight: 500;"
+																								  id="patient_training_txt">Voice Instructions</span></label>
 														</div>
 														<div class="form-group" id="voice_instructions_div">
 															<input type="checkbox" id="voice_instructions"
@@ -373,6 +385,17 @@ socket_close($socket);*/
                                   <input type="checkbox"  id="progression_analysis" class="progression_analysis" aria-label="..." onchange="progressionanalysis(this)">
                                   <label for="progression_analysis"><span type="checkbox" style="font-weight: 500;" id="progression_analysis_txt">Progression Analysis</span></label>
                               </div>-->
+                              <div class="form-group" id="eye_click_div" style="display: none;">
+															<input type="checkbox" id="eye-click" class="eye-clcik"
+																   aria-label="..." onchange="eyeclick(this)">
+															<label for=""><span type="checkbox"
+																						  style="font-weight: 500;"
+																						  id="">Eye Click</span></label>
+														</div>
+														 <div class="form-group">
+                                  <input type="checkbox" id="bilateral-fixation"   class="bilateral-fixation" onchange="bilateral_fixation(this)" aria-label="...">
+                                  <label for="bilateral-fixation"><span type="checkbox"  style="font-weight: 500;">Bilateral Fixation</span></label>
+                              </div>
 														<div class="form-group" id="gaze_tracking_div">
 															<input type="checkbox" id="gaze-track" class="gaze-track"
 																   aria-label="..." onchange="gazetrack(this)">
@@ -380,17 +403,7 @@ socket_close($socket);*/
 																						  style="font-weight: 500;"
 																						  id="gaze_tracking_txt">Gaze Tracking</span></label>
 														</div>
-														<div class="form-group" id="eye_click_div" style="display: none;">
-															<input type="checkbox" id="eye-click" class="eye-clcik"
-																   aria-label="..." onchange="eyeclick(this)">
-															<label for=""><span type="checkbox"
-																						  style="font-weight: 500;"
-																						  id="">Eye Click</span></label>
-														</div>
-														<div class="form-group">
-                                  <input type="checkbox" id="bilateral-fixation"   class="bilateral-fixation" onchange="bilateral_fixation(this)" aria-label="...">
-                                  <label for="bilateral-fixation"><span type="checkbox"  style="font-weight: 500;">Bilateral Fixation</span></label>
-                              </div>
+                            
 														<div class="form-group">
 															<input type="checkbox" id="alarm-stop" class="alarm-stop"
 																   onchange="alarmstop(this)" aria-label="...">
@@ -420,6 +433,7 @@ socket_close($socket);*/
 															style="visibility: hidden; background-color: #d63636 !important;"
 															onclick="stopalarm();" value="1">Dismiss Alarm
 													</button>
+													<span style="text-align: center;display:none;" class="binocular_message">Test is Binocular</span>
 												</div>
 
 												<div class="mt-btns">
@@ -543,6 +557,30 @@ socket_close($socket);*/
 										<div class="modal-footer">
 											<button type="button" class="btn btn-danger" data-dismiss="modal">Close
 											</button>
+										</div>
+									</div>
+
+								</div>
+							</div>
+							<div class="modal fade" id="vrPositionmodel" role="dialog">
+								<div class="modal-dialog modal-sm">
+
+									<!-- Modal content-->
+									<div class="modal-content" style="background: #808080;">
+										 <div style="position: relative;">
+ <canvas id="vrlayer2" width="402" height="402" 
+   style="position: absolute; left: 50%;
+    transform: translateX(-50%); top: 0; z-index: 0;background-color: #ffffff;"></canvas>
+   	<canvas id="myvrCanvas" height="402" width="402" style="
+                           z-index: 1;position: relative; "> </canvas>
+</div>
+												
+													
+										<div class="modal-footer" style="text-align:center;border: none;">
+											<button type="button" class="btn btn-success" data-dismiss="modal"
+													>OK
+											</button>
+											 
 										</div>
 									</div>
 
@@ -907,7 +945,25 @@ socket_close($socket);*/
 		</div>
 	</div>
 </div>
+<script>
+function setRelativeWidth(){
 
+   let i = 0;
+    $('.page-header-title .mts-box-1').each(function(){
+        i = i + 1;
+        const width = $(this).outerWidth();
+        if(i<=4){
+            const element = document.querySelector(`.item.item${i}`);
+            element.style.setProperty('--rel-width', `${width}px`);
+        }
+    
+    }); 
+    $('body').addClass('start_test_page');
+}
+setRelativeWidth();
+
+window.addEventListener('resize', setRelativeWidth);
+</script>
 <script>
 
 
@@ -1092,6 +1148,32 @@ socket_close($socket);*/
 	var messageCount = 0;
 	var view_patient_test_flag = 0;
 	var view_patient_test_flag_json = 0;
+	var x1Saved = null;
+    var y1Saved = 1;
+
+    var LE_VR_POS_Y = 0;
+    var RE_VR_POS_Y = 0;
+    var LE_VR_POS_X = 0;
+    var RE_VR_POS_X = 0;
+    var VR_POS_UPDATED = false;
+    var VR_POS_STOPED_FLAG =false;
+    var VR_COLOUR = null;
+    var draw_vr_position=false;
+    var size_new=400;
+    var patinet_traning_value = "0";
+
+    RE_Loc_sav_X = 0;
+    RE_Loc_sav_Y = 0;
+    LE_Loc_sav_X = 0;
+    LE_Loc_sav_Y = 0;
+
+	RE_Loc_sav_Xc = 0;
+    RE_Loc_sav_Yc = 0;
+    LE_Loc_sav_Xc = 0;
+    LE_Loc_sav_Yc = 0;
+
+
+    var patient_previous_test = "<?php echo  $patient_previous_test ?>";
 	var zeroDbCutoff = "<?php echo @$defoult_device['zeroDbCutoff'] ?>";
 	var test_name = ["Screening", "Threshold", "Ptosis", "Neuro", "Kinetic/Ptosis"];
 	var items = [
@@ -1099,12 +1181,12 @@ socket_close($socket);*/
 		["Central_10_2", "Central_24_1", "Central_24_2", "Central_30_1", "Central_30_2","Central_24_2C"],
 		["Superior_24_2", "Superior_30_2", "Superior_50_1", "Superior_64"],
 		["Neuro_20", "Neuro_35", "Full_Field_120_PTS"],
-		["Kinetic_60_16","Kinetic_30_16","Kinetic_60_28","Kinetic_30_28","Ptosis_9_PT","Ptosis_Auto_9_PT","AFVF"]
+		["Kinetic_60_16", "Kinetic_30_16", "Kinetic_60_28", "Kinetic_30_28", "Ptosis_9_PT", "Ptosis_Auto_9_PT","AFVF"]
 	];
 
 	var items1 = [
 		["Central_20_Point", "Esterman_120_point"],
-		["Central_10_2", "Central_24_2", "Central_30_2","Central_24_2C"],
+		["Central_10_2", "Central_24_2", "Central_30_2"],
 		["Superior_64"],
 		["Neuro_20"],
 		["Kinetic_30_16", "Ptosis_9_PT"]
@@ -1170,6 +1252,10 @@ socket_close($socket);*/
 
 	jQuery(document).ready(function () {
 
+		  $("#vrPositionmodel .modal-sm").css({
+    'width': (($("#myvrCanvas").width()+38) + 'px')
+  });
+ $(".test-patient-section").css('visibility', 'visible');
 		$('.reload_page').on('click', function () {
 			window.location.replace('');
 		});
@@ -1228,6 +1314,39 @@ socket_close($socket);*/
 			stop_save_yes();
 			botheyecount = 0; 
 			round1 = 0;
+		});
+
+		$('#setting_vr_position').on('click', function () {
+			if(!$("#setting_vr_position").hasClass("md-btn-desabley")){
+				draw_vr_position = true;
+				/// circle size, circle cordinate 
+				col1 = '#000000'
+				var cvr = document.getElementById("myvrCanvas");
+		        var ctxvr = cvr.getContext("2d");
+		        ctxvr.lineWidth = 1;
+		        ctxvr.clearRect(0, 0, cvr.width, cvr.height)
+		        ctxvr.beginPath();
+		        ctxvr.strokeStyle = col1;
+		        ctxvr.moveTo(1, Math.round(size_new / 2));
+		        ctxvr.lineTo(Math.round(size_new), Math.round(size_new / 2));
+		        ctxvr.moveTo(Math.round(size_new / 2), 1);
+		        ctxvr.lineTo(Math.round(size_new / 2), Math.round(size_new));
+		        ctxvr.stroke();
+
+		        ctxvr.beginPath();
+		        ctxvr.lineWidth = 7;
+				ctxvr.strokeStyle = "#00ff00";
+				ctxvr.arc((200-100), 200, 40, 0, 2 * Math.PI);
+				ctxvr.stroke();
+
+				ctxvr.beginPath();
+				ctxvr.strokeStyle = "#00ff00";
+				ctxvr.arc((200+100), 200, 40, 0, 2 * Math.PI);
+				ctxvr.stroke();
+
+
+				$('#vrPositionmodel').modal("show");
+			 }
 		});
 		$('#stop-save-no').on('click', function () {
 			$('#mystopModal').modal("hide");
@@ -1316,7 +1435,6 @@ socket_close($socket);*/
 			}
 		});
 
-
 		$(document).on("change","#progression_analysis",function(){ 
 			var chbox = $(this).is(':checked');
 			if(chbox){
@@ -1326,14 +1444,13 @@ socket_close($socket);*/
 			}
 		});
 
-		
+
 		$('#start').on('click', function () {
+
+			//console.log(cleardata);
 			testType = $("#test-type").val();
 			testSubType = $("#test-strategy").val();
 			deviceId = $("#test-device").val();
-			//console.log(testType);
-			//console.log(testSubType);
-			//console.log(deviceId);
 			var lang = $("#language").val();
 			if ((testType != 0) && (dropdownThresholdType != 0) && (testSubType != 0) && (restartReady) && deviceId != '' && lang != 0 && view_patient_test_flag == 0) {
 
@@ -1402,6 +1519,9 @@ socket_close($socket);*/
 								if (botheyecount == 0) {
 									botheyecount = 1;
 								} else {
+									// remove patient traning after 1st eye
+									patinet_traning_value = "0";
+									$(".patient_training").prop("checked", false);
 									//console.log('start flip');
 									botheyecount++;
 									selectEye = (selectEye - 1) * -1;
@@ -1529,7 +1649,7 @@ socket_close($socket);*/
 		}
 		
 		$(window).load(function () {
-			var device_saved_message = "<?php echo $defoult_device['device_message'] ?>"; 
+			let device_saved_message = "<?php echo @$defoult_device['device_message'] ;?>"; 
 			var res = device_saved_message.split("|");
 			if (res[1] == 'BATTERY_LEVEL') {
 				var bat_con = '#00ff00';
@@ -1628,6 +1748,7 @@ socket_close($socket);*/
 			<?php if(!empty($defoult_device)){ ?>
 			setGaze(<?php echo $defoult_device['device_type'] ?>);
 			<?php } ?>
+
 			<?php if(isset($_GET['selectEye'])){ ?>
 			$('.eye').addClass("md-btn-gry");
 			$('.eye').removeClass("md-btn-yellow");
@@ -1648,6 +1769,7 @@ socket_close($socket);*/
 			}
 			?>
 			$(".gaze-track").prop("checked", GazeTracking);
+
 			<?php } ?>
 
 			<?php if(isset($_GET['EyeClick'])){
@@ -1704,6 +1826,8 @@ socket_close($socket);*/
 			<?php } ?>
 			$(".progression_analysis").prop("checked", progression_analysis);
 
+
+
 			<?php if(isset($_GET['alarm_stop'])){
 			if($_GET['alarm_stop'] == "true"){
 			?> alarm_stop = true;<?php
@@ -1741,14 +1865,14 @@ socket_close($socket);*/
 			<?php } ?>
 
 			<?php }else{ ?>
-			for (i = 0; i < items[1].length; i++) { //console.log(items);
+			for (i = 0; i < items[1].length; i++) {
 				var colour = 'md-btn-gry';
 				if (i == 2) {
 
 					drawImage(items[1][i]);
 					colour = '';
 				}
-				var test_name_temp = '"' + items[1][i] + '"'; //console.log(test_name_temp);
+				var test_name_temp = '"' + items[1][i] + '"';
 				$("#test-type-option").append("<a class='mmd-dash-btn " + colour + "  test-type-name' onclick='reloadPage(" + test_name_temp + ")'>" + items[1][i] + "</a>");
 
 				$("#test-type-option2").append("<a class='mmd-dash-btn " + colour + " test-type-name' onclick='reloadPage(" + test_name_temp + ")'>" + items[1][i] + "</a>");
@@ -1817,7 +1941,7 @@ socket_close($socket);*/
 
 		$('.eye').on('click', function () {
 
-			if (selectEye != $(this).val() && view_patient_test_flag == 0) {
+			if (selectEye != $(this).val() && view_patient_test_flag == 0  && testTypeName != 'Esterman_120_point') {
 				if ((dataCaptured) || (dataCapturedpause)) {
 				} else {
 					clertData();
@@ -1927,17 +2051,17 @@ socket_close($socket);*/
 	}
 
 	function PopulateList(value, stragigy = '', testname = '') {
-		//value = 1; 
+
 		if (value != "-1") {
 			$("#test-type-option").html("");
 			$("#test-type-option2").html("");
-			for (i = 0; i < items[(value - 1)].length; i++) { 
+			for (i = 0; i < items[(value - 1)].length; i++) {
 				var test_name_temp = '"' + items[(value - 1)][i] + '"';
-				if (testname != '' && testname == items[(value - 1)][i]) { //console.log(items[(value - 1)][i]);
+				if (testname != '' && testname == items[(value - 1)][i]) {
 					drawImage(items[(value - 1)][i]);
 					$("#test-type-option").append("<a class='mmd-dash-btn  test-type-name' onclick='reloadPage(" + test_name_temp + ")'>" + items[(value - 1)][i] + "</a>");
 					$("#test-type-option2").append("<a class='mmd-dash-btn  test-type-name' onclick='reloadPage(" + test_name_temp + ")'>" + items[(value - 1)][i] + "</a>");
-				} else if (testname != '') {//console.log(items[(value - 1)][i]);
+				} else if (testname != '') {
 					$("#test-type-option").append("<a class='mmd-dash-btn md-btn-gry test-type-name' onclick='reloadPage(" + test_name_temp + ")'>" + items[(value - 1)][i] + "</a>");
 					$("#test-type-option2").append("<a class='mmd-dash-btn md-btn-gry test-type-name' onclick='reloadPage(" + test_name_temp + ")'>" + items[(value - 1)][i] + "</a>");
 				}
@@ -2010,7 +2134,7 @@ socket_close($socket);*/
 			$("#test-type-option").html("");
 			$("#test-type-option2").html("");
 			for (i = 0; i < items[(value - 1)].length; i++) {
-				var test_name_temp = '"' + items[(value - 1)][i] + '"'; //console.log(test_name_temp);
+				var test_name_temp = '"' + items[(value - 1)][i] + '"';
 				$("#test-type-option").append("<a class='mmd-dash-btn md-btn-gry test-type-name' onclick='reloadPage(" + test_name_temp + ")'>" + items[(value - 1)][i] + "</a>");
 				$("#test-type-option2").append("<a class='mmd-dash-btn md-btn-gry test-type-name' onclick='reloadPage(" + test_name_temp + ")'>" + items[(value - 1)][i] + "</a>");
 
@@ -2056,7 +2180,6 @@ socket_close($socket);*/
 
 		});
 	}
-
 
 	jQuery(document).ready(function () {
 		$('.dash-control').on('click', function () {
@@ -2228,9 +2351,17 @@ socket_close($socket);*/
 
 		if ((!dataCaptured) && (!restartdata) && (saveresult) && view_patient_test_flag == 0) {
 			deviceId = $("#test-device").val();
+			if(deviceId == ''){
+				$("#test-device option").each(function(key)	{ 
+				    if(key=='1'){
+				     deviceId = $(this).val(); 
+					}
+					return true;
+				});
+			}
 			var feedback = $.ajax({
 				type: "POST",
-				url: "<?php echo WWW_BASE; ?>css/get_device_data_stop.php",
+				url: "<?php echo WWW_BASE; ?>css/get_device_data_stop2.php",
 				data: {"office_id": '<?php echo $user['office_id'] ?>', "device_id": deviceId},
 				async: false
 			}).success(function () {
@@ -2248,7 +2379,55 @@ socket_close($socket);*/
 						if (res[1] == 'BTN_PRESS') {
 							setting_alert_new('Ready to Start');
 							setting_alert_btn_press("Connection Verified");
-						}else if (res[1] == 'BATTERY_LEVEL') {	
+						}else if (res[1] == 'VR_POS') {
+							if(draw_vr_position){
+								const promises = VR_POS(obj.message[key]['message']);
+								await Promise.all([promises]);
+							}
+							
+						}else if (res[1] == 'VIDEO_COMPLETED') {
+							 var viewed_message=null;
+							 if(res[5]==2){
+							 	viewed_message = res[6];
+							 }else if(res[5]==1){
+							 	viewed_message = "Viewed "+ res[3]+"/"+res[4]+" Sec";
+							 }else {
+							 	viewed_message=null;
+							 }
+							 if(viewed_message){
+								var video_element_name = '#video_id_'+res[2];
+								var video_element_viewed_name = '#video_viewed_id_'+res[2];
+
+
+								 if($(video_element_name).length){
+								 	$(video_element_name).prop("checked", true);
+								 }
+								 if($(video_element_viewed_name).length){
+								 	$(video_element_viewed_name).html(viewed_message);
+								 }
+							}
+
+						}else if (res[1] == 'ALL_VIDEO_COMPLETED') {
+							if($('#video_play').length){
+							 	$("#video_play").addClass('md-btn-gry');
+						  		$("#video_pouse").addClass('md-btn-desabley');
+						  		$("#video_resume").addClass('md-btn-desabley');
+						  		$("#video_stop").addClass('md-btn-desabley');
+						  		$('.video_request_for_view').prop("checked", false);
+						  		$('.video_cheked_order').html('');
+							 	if (typeof videos !== 'undefined') {
+								    videos=[];
+								}
+								$('#view_video_popup_close').attr("data-dismiss","modal");
+							}
+						}
+						else if (res[1] == 'VR_POS_STOPED') {
+							if(draw_vr_position){
+								const promises = VR_POS_STOPED(res[2]);
+								await Promise.all([promises]);
+							}
+						} 
+						else if (res[1] == 'BATTERY_LEVEL') {	
 								var bat_con = '#00ff00';
 				if (res[2] > 20) {
 					bat_con = '#00ff00'; 
@@ -2333,7 +2512,9 @@ socket_close($socket);*/
 					/*console.log(obj.message[key]['testData']);
           console.log(typeof obj.message[key]['testData']);*/
 					var d1 = JSON.parse(obj.message[key]['testData']);
-					
+					//console.log(typeof d1);
+					//console.log(d1.StartTest);
+					//console.log(d1.StartTest.staff_name);
 
 
 					measureReactionTime = d1.StartTest.REACTION_TIME;
@@ -2388,7 +2569,7 @@ socket_close($socket);*/
 					document.getElementById("test-strategy").value = testSubType;
 
 					$(".test-type-name").each((key, element) => {
-						let value = $(element).text(); //console.log(value);
+						let value = $(element).text();
 						if (testTypeName == value) {
 							$(element).removeClass("md-btn-gry");
 						} else {
@@ -2645,7 +2826,15 @@ socket_close($socket);*/
 				} else if (res[1] == 'DETAILED_PROG_PROCESSING') {
 					const promises = DETAILED_PROG_PROCESSING(res[2]);
 					await Promise.all([promises]);
-				} else if (res[0] == 'VF' && res[1] == 'VF_TEST_COMPLETED') {
+				}
+				else if (res[1] == 'VR_POS') {
+					// const promises = VR_POS(obj.message[key]['message']);
+					// await Promise.all([promises]);
+				}
+				else if (res[1] == 'VR_POS_STOPED') {
+					// const promises = VR_POS_STOPED(res[2]);
+					// await Promise.all([promises]);
+				}  else if (res[0] == 'VF' && res[1] == 'VF_TEST_COMPLETED') {
 					/*const promises = await setpixcelVF_TEST_COMPLETED(obj.message[key]['DeviceMessage']['message'],obj.message[key]['DeviceMessage']['id'],obj.message[key]['DeviceMessage']['office_id'],obj.message[key]['DeviceMessage']['device_id']);
 	await Promise.all([[promises]]);*/
 					const promises = setpixcelVF_TEST_COMPLETED(obj.message[key]['message'], obj.message[key]['id'], obj.message[key]['office_id'], obj.message[key]['device_id']);
@@ -2764,6 +2953,11 @@ socket_close($socket);*/
         await Promise.all([[promises]]); */
 
 										const promises = setpixcelVF_FILE_UPLOADED(item_new);
+										await Promise.all([promises]);
+
+									}else if (res3[0] == 'EYE_POS') {
+
+										const promises = setpixcelVF_EYE_POS(item_new);
 										await Promise.all([promises]);
 
 									} else if (res3[0] == 'FIXATION') {
@@ -2894,6 +3088,391 @@ socket_close($socket);*/
 		dtStartTime = new Date().getTime();
 		testduration();
 		setting_alert_new2('Starting Test', 3000);
+	}
+
+	const setpixcelVF_EYE_POS = async function (data) {
+		//console.log('setpixcelVF_setpixcelVF_EYE_POS',data);
+		//eyeTrackMsg = "VF|EYE_POS|1|" + avgPosX.ToString("0.0000") + "|" + avgPosY.ToString("0.0000") + "|" + eyePoseData.rightEyePoseStatus.ToString("0.0") + "|" + eyePoseData.rightEyeOpenness.ToString("0.0");
+
+                //eyeTrackMsg = "VF|EYE_POS|1|10|20|30|40;
+                //eyeTrackMsg = "VF|EYE_POS|1|1|1|30|40;
+
+		if(1){
+		var splitData = data.split("|");
+		 x = parseFloat(splitData[3]);
+        y = parseFloat(splitData[4]);
+        ///   texEyeTracking, colEyeTrackWhite, colEyeTrackBlack 
+        colEyeTrackWhite2 = "#00000000";
+        colEyeTrackWhite = "#ffffff";
+        colEyeTrackBlack = "#00000073";
+        colEyeTrackBrown = "#D3681C73";
+         PoseStatus = parseFloat(splitData[5]);
+         EyeOpenness = parseFloat(splitData[6]);
+
+         var c2 = document.getElementById("layer2");
+		var ctx2 = c2.getContext("2d");
+         if(zoomLevel <0.2){
+         	linearDispFactor = 1000 / (2 * 8 * 10);
+         	 x1 = parseInt(Math.round(x * linearDispFactor));
+             y1 = parseInt(Math.round(y * linearDispFactor));
+
+            x1 = x1 + (1000 / 2);
+            y1 = y1 + (1000 / 2);
+            y1 = (((y1-500) * -1) + 500) ;
+           
+            
+            if (EyeOpenness > 0.0)
+                    {
+                        if ((x >= -2) && (x <= 2) && (y >= -2) && (y <= 2))
+                        {
+                        	
+							ctx2.beginPath();
+							ctx2.strokeStyle = colEyeTrackWhite;
+							ctx2.arc(Math.round(x1Saved), Math.round(y1Saved), 50, 0, 2 * Math.PI);
+							ctx2.fillStyle = colEyeTrackWhite;
+							ctx2.fill();
+							ctx2.stroke();
+
+							ctx2.clearRect(0, 0, 1000, 1000);
+                            
+							ctx2.beginPath();
+							ctx2.strokeStyle = colEyeTrackBrown;
+							ctx2.arc(Math.round(x1), Math.round(y1), 50, 0, 2 * Math.PI);
+							ctx2.fillStyle = colEyeTrackBrown;
+							ctx2.fill();
+							ctx2.stroke();
+
+							 
+							ctx2.beginPath();
+							ctx2.strokeStyle = colEyeTrackBlack;
+							ctx2.arc(Math.round(x1), Math.round(y1), 20, 0, 2 * Math.PI);
+							ctx2.fillStyle = colEyeTrackBlack;
+							ctx2.fill();
+							ctx2.stroke();
+
+                            x1Saved = x1;
+                            y1Saved = y1;
+                        }
+                        else
+                        {
+                             
+
+							ctx2.beginPath();
+							ctx2.strokeStyle = colEyeTrackWhite;
+							ctx2.arc(Math.round(x1Saved), Math.round(y1Saved), 50, 0, 2 * Math.PI);
+							ctx2.fillStyle = colEyeTrackWhite;
+							ctx2.fill();
+							ctx2.stroke();
+
+							ctx2.clearRect(0, 0, 1000, 1000);
+                        }
+                    }else
+                    {
+                        
+
+						ctx2.beginPath();
+						ctx2.strokeStyle = colEyeTrackWhite;
+						ctx2.arc(Math.round(x1Saved), Math.round(y1Saved), 50, 0, 2 * Math.PI);
+						ctx2.fillStyle = colEyeTrackWhite;
+						ctx2.fill();
+						ctx2.stroke();
+
+						ctx2.clearRect(0, 0, 1000, 1000);
+
+                        x1 = (size / 2);
+                        y1 = (size / 2);
+                        
+                        console.log('X = '+x1+" Y = "+y1);
+						ctx2.beginPath();
+						ctx2.strokeStyle = colEyeTrackBlack;
+						ctx2.arc(Math.round(x1), Math.round(y1), 50, 0, 2 * Math.PI);
+						ctx2.fillStyle = colEyeTrackBlack;
+						ctx2.fill();
+						ctx2.stroke();
+
+                        x1Saved = x1;
+                        y1Saved = y1;
+                    }
+         }else{ 
+         	zoomOffset = 3.0 / zoomLevel; //15 
+            zoomMult = 1000.0 / (2 * zoomOffset); 33.33
+            x1 = parseInt(Math.round((x + zoomOffset) * zoomMult));
+            y1 = parseInt(Math.round((y + zoomOffset) * zoomMult));
+              
+            y1 = (((y1-500) * -1) + 500) ;
+	       
+             if (EyeOpenness > 0.0)
+                    {
+                        if ((x >= -2) && (x <= 2) && (y >= -2) && (y <= 2))
+                        {
+                           
+
+							ctx2.beginPath();
+							ctx2.strokeStyle = colEyeTrackWhite;
+							ctx2.arc(Math.round(x1Saved), Math.round(y1Saved), 50, 0, 2 * Math.PI);
+							ctx2.fillStyle = colEyeTrackWhite;
+							ctx2.fill();
+							ctx2.stroke();
+
+                         ctx2.clearRect(0, 0, 1000, 1000);
+
+							ctx2.beginPath();
+							ctx2.strokeStyle = colEyeTrackBrown;
+							ctx2.arc(Math.round(x1), Math.round(y1), 50, 0, 2 * Math.PI);
+							ctx2.fillStyle = colEyeTrackBrown;
+							ctx2.fill();
+							ctx2.stroke();
+
+
+							 
+
+							ctx2.beginPath();
+							ctx2.strokeStyle = colEyeTrackBlack;
+							ctx2.arc(Math.round(x1), Math.round(y1), 20, 0, 2 * Math.PI);
+							ctx2.fillStyle = colEyeTrackBlack;
+							ctx2.fill();
+							ctx2.stroke();
+
+                            x1Saved = x1;
+                            y1Saved = y1;
+                        }
+                        else
+                        {
+                            
+
+							ctx2.beginPath();
+							ctx2.strokeStyle = colEyeTrackWhite;
+							ctx2.arc(Math.round(x1Saved), Math.round(y1Saved), 50, 0, 2 * Math.PI);
+							ctx2.fillStyle = colEyeTrackWhite;
+							ctx2.fill();
+							ctx2.stroke();
+
+							ctx2.clearRect(0, 0, 1000, 1000);
+                        }
+                    }
+                    else
+                    {
+                       
+
+						ctx2.beginPath();
+						ctx2.strokeStyle = colEyeTrackWhite;
+						ctx2.arc(Math.round(x1Saved), Math.round(y1Saved), 50, 0, 2 * Math.PI);
+						ctx2.fillStyle = colEyeTrackWhite;
+						ctx2.fill();
+						ctx2.stroke();
+
+
+						ctx2.clearRect(0, 0, 1000, 1000);
+
+                        x = 0;
+                        y = 0;
+                        x1 = parseInt(Math.round((x + zoomOffset) * zoomMult));
+                        y1 = parseInt(Math.round((y + zoomOffset) * zoomMult));
+
+                         
+
+						ctx2.beginPath();
+						ctx2.strokeStyle = colEyeTrackBlack;
+						ctx2.arc(Math.round(x1), Math.round(y1), 50, 0, 2 * Math.PI);
+						ctx2.fillStyle = colEyeTrackBlack;
+						ctx2.fill();
+						ctx2.stroke();
+
+                        x1Saved = x1;
+                        y1Saved = y1;
+                    }
+
+                  
+         }
+     }
+		 
+
+	}
+	 
+	
+	const VR_POS = async function (data) {
+		// string msg = "GEN|VR_POS|" + LE_PositionY.ToString("0.0000") + "|" + RE_PositionY.ToString("0.0000")+ "|" + LE_PositionX.ToString("0.0000") + "|" + RE_PositionX.ToString("0.0000");
+
+		//string msg = "GEN|VR_POS|10|20|30|40;
+		var splitData = data.split("|");
+		LE_VR_POS_Y = parseFloat(splitData[2]);
+        RE_VR_POS_Y = parseFloat(splitData[3]);
+        LE_VR_POS_X = parseFloat(splitData[4]);
+        RE_VR_POS_X = parseFloat(splitData[5]);
+        VR_POS_UPDATED = true;
+
+        var texEyeTrackingDisplay = 1000;
+		var RE_Loc_Y = parseInt(Math.round((RE_VR_POS_Y - 0.5) * size_new));
+        var LE_Loc_Y = parseInt(Math.round((LE_VR_POS_Y - 0.5) * size_new));
+        var RE_Loc_X = parseInt(Math.round((RE_VR_POS_X - 0.5) * size_new));
+        var LE_Loc_X = parseInt(Math.round((LE_VR_POS_X - 0.5) * size_new));
+
+        var slope;
+        var dx = RE_VR_POS_X - LE_VR_POS_X + 0.1;
+        var dy = RE_VR_POS_Y - LE_VR_POS_Y;
+        slope = Math.abs(dy / dx);
+        if ((Math.abs(RE_Loc_X) < 90) && (Math.abs(RE_Loc_Y) < 30) && (Math.abs(LE_Loc_X) < 90) && (Math.abs(LE_Loc_Y) < 30) && (slope < 0.3))
+        {
+        	$("#setting_vr_position").attr("style", "background-color: #00ff00;");
+            color = '#00ff00';
+        }
+        else
+        {
+        	$("#setting_vr_position").attr("style", "background-color: #ff0000;");
+        	color = '#ff0000';
+        }
+
+
+        ////  graph ploting  
+        var yCenter;
+        var xCenter;
+        
+        var c = "#808080";
+
+        yCenter = size_new / 2;
+        xCenter = size_new / 2;
+        circleSize =16;  // ?
+        x1_RE=size_new/2 +100;  //?
+        x1_LE =size_new/2 -100;  //?
+
+        var cvr = document.getElementById("vrlayer2");
+        var ctxvr = cvr.getContext("2d");
+        
+
+
+        // clear old image
+
+
+		var pp1_x = x1_RE + RE_Loc_sav_Xc - circleSize/2;
+        var pp1_y = yCenter + RE_Loc_sav_Yc;
+        var pp2_x = x1_LE + LE_Loc_sav_Xc + circleSize/2;
+        var pp2_y = yCenter + LE_Loc_sav_Yc;
+
+        pp1_y = (((pp1_y-200) * -1) + 200) ;
+        pp2_y = (((pp2_y-200) * -1) + 200) ;
+
+        yre = (((yCenter + RE_Loc_sav_Yc-200) * -1) + 200) ;
+        yle = (((yCenter + LE_Loc_sav_Yc-200) * -1) + 200) ;
+
+       //  ctxvr.lineWidth = 9;
+       //  ctxvr.beginPath();
+       //  ctxvr.strokeStyle = "#d2b3b3";
+       //  ctxvr.moveTo(pp1_x, pp1_y);
+       //  ctxvr.lineTo(pp2_x, pp2_y);
+       //  ctxvr.stroke();
+
+       //  ctxvr.beginPath();
+       //  ctxvr.strokeStyle = "#d2b3b3";
+       //  //ctxvr.arc((x1_RE + RE_Loc_sav_Xc), (yCenter + RE_Loc_sav_Yc), circleSize, 0, 2 * Math.PI);
+       //  ctxvr.arc((x1_RE + RE_Loc_sav_Xc), (yre), circleSize, 0, 2 * Math.PI);
+       //  ctxvr.fillStyle = "#d2b3b3";
+       //  ctxvr.fill();
+       //  ctxvr.stroke();
+
+       //  ctxvr.beginPath();
+       //  ctxvr.strokeStyle = "#d2b3b3";
+       // // ctxvr.arc((x1_LE + LE_Loc_sav_Xc), (yCenter + LE_Loc_sav_Yc), circleSize, 0, 2 * Math.PI);
+       //  ctxvr.arc((x1_LE + LE_Loc_sav_Xc), (yle), circleSize, 0, 2 * Math.PI);
+       //  ctxvr.fillStyle = "#d2b3b3";
+       //  ctxvr.fill();
+       //  ctxvr.stroke();
+	 
+
+
+
+        // draw last image
+
+		var pp1_x = x1_RE + RE_Loc_sav_X - circleSize/2;
+        var pp1_y = yCenter + RE_Loc_sav_Y;
+        var pp2_x = x1_LE + LE_Loc_sav_X + circleSize/2;
+        var pp2_y = yCenter + LE_Loc_sav_Y;
+
+        pp1_y = (((pp1_y-200) * -1) + 200) ;
+        pp2_y = (((pp2_y-200) * -1) + 200) ;
+        yre = (((yCenter + RE_Loc_sav_Y-200) * -1) + 200) ;
+        yle = (((yCenter + LE_Loc_sav_Y-200) * -1) + 200) ;
+
+        ctxvr.lineWidth = 9;
+        ctxvr.beginPath();
+        ctxvr.strokeStyle = "#ffffff";
+        ctxvr.moveTo(pp1_x, pp1_y);
+        ctxvr.lineTo(pp2_x, pp2_y);
+        ctxvr.stroke();
+
+        ctxvr.beginPath();
+        //ctxvr.strokeStyle = c;
+        ctxvr.strokeStyle = "#ffffff";
+        //ctxvr.arc((x1_RE + RE_Loc_sav_X), (yCenter + RE_Loc_sav_Y), circleSize, 0, 2 * Math.PI);
+        ctxvr.arc((x1_RE + RE_Loc_sav_X), (yre), circleSize, 0, 2 * Math.PI);
+        ctxvr.fillStyle = "#ffffff";
+		ctxvr.fill();
+        ctxvr.stroke();
+
+        ctxvr.beginPath();
+        ctxvr.strokeStyle = "#ffffff";
+       // ctxvr.arc((x1_LE + LE_Loc_sav_X), (yCenter + LE_Loc_sav_Y), circleSize, 0, 2 * Math.PI);
+        ctxvr.arc((x1_LE + LE_Loc_sav_X), (yle), circleSize, 0, 2 * Math.PI);
+        ctxvr.fillStyle = "#ffffff";
+        ctxvr.fill();
+
+        ctxvr.stroke();
+ 
+        // drow current image
+
+        pp1_x = x1_RE + RE_Loc_X - circleSize/2;
+        pp1_y = yCenter + RE_Loc_Y;
+        pp2_x = x1_LE + LE_Loc_X + circleSize/2;
+        pp2_y = yCenter + LE_Loc_Y;
+
+        pp1_y = (((pp1_y-200) * -1) + 200) ;
+        pp2_y = (((pp2_y-200) * -1) + 200) ;
+        yre = (((yCenter + RE_Loc_Y-200) * -1) + 200) ;
+        yle = (((yCenter + LE_Loc_Y-200) * -1) + 200) ;
+        ctxvr.lineWidth = 7;
+        ctxvr.beginPath();
+        ctxvr.strokeStyle = color;
+        ctxvr.moveTo(pp1_x, pp1_y);
+	    ctxvr.lineTo(pp2_x, pp2_y);
+        ctxvr.stroke();
+        
+
+        ctxvr.beginPath();
+        ctxvr.strokeStyle = color;
+       // ctxvr.arc((x1_RE + RE_Loc_X), (yCenter + RE_Loc_Y), circleSize, 0, 2 * Math.PI);
+        ctxvr.arc((x1_RE + RE_Loc_X), (yre), circleSize, 0, 2 * Math.PI);
+        ctxvr.fillStyle = color;
+		ctxvr.fill();
+        ctxvr.stroke();
+        
+
+        ctxvr.beginPath();
+        ctxvr.strokeStyle = color;
+       // ctxvr.arc((x1_LE + LE_Loc_X), (yCenter + LE_Loc_Y), circleSize, 0, 2 * Math.PI);
+        ctxvr.arc((x1_LE + LE_Loc_X), (yle), circleSize, 0, 2 * Math.PI);
+        ctxvr.fill();
+        ctxvr.stroke();
+ 
+        RE_Loc_sav_Xc = RE_Loc_sav_X;
+        RE_Loc_sav_Yc = RE_Loc_sav_Y;
+        LE_Loc_sav_Xc = LE_Loc_sav_X;
+        LE_Loc_sav_Yc = LE_Loc_sav_Y;
+
+        RE_Loc_sav_X = RE_Loc_X;
+        RE_Loc_sav_Y = RE_Loc_Y;
+        LE_Loc_sav_X = LE_Loc_X;
+        LE_Loc_sav_Y = LE_Loc_Y;
+
+       
+
+	}
+
+	const VR_POS_STOPED = async function (data) {
+
+//string msg = "GEN|VR_POS_STOPED;
+		VR_POS_STOPED_FLAG = true;
+		$("#setting_vr_position").attr("style", "background-color: #ffffff;");
+
+
 	}
 
 	const setpixcelVF_FILE_UPLOADED = async function (data) {
@@ -5571,6 +6150,11 @@ socket_close($socket);*/
 		degX = 40;
 		degSize = 3;
 
+		var c2 = document.getElementById("layer2");
+		var ctx2 = c2.getContext("2d");
+		ctx2.clearRect(0, 0, 1000, 1000);
+
+
 		var c = document.getElementById("myCanvas");
 		var ctx = c.getContext("2d");
 		ctx.lineWidth = 3;
@@ -5886,7 +6470,7 @@ socket_close($socket);*/
 		} else if (testTypeId == 2) {
 			if (testName == 'Central_10_2') {
 				zoomLevel = 3.5;
-			} else if (testName == 'Central_24_1' || testName == 'Central_24_2'|| testName == 'Central_24_2C') {
+			} else if (testName == 'Central_24_1' || testName == 'Central_24_2' || testName == 'Central_24_2C') {
 				zoomLevel = 1.75;
 			} else if (testName == 'Central_30_1' || testName == 'Central_30_2') {
 				zoomLevel = 1.5;
@@ -6092,6 +6676,8 @@ socket_close($socket);*/
 			}
 			getPrevTest(value);
 		}
+
+
 	}
 
 	function SetEyeTaped(status, value, disable) {
@@ -6136,8 +6722,9 @@ socket_close($socket);*/
 	}
 
 	function startTest() {
-
+		draw_vr_position = false;
 		$("#recall_last_data").addClass("md-btn-desabley");
+		$("#setting_vr_position").addClass("md-btn-desabley");
 		$("#recall_last_data").removeClass("md-btn-gry");
 		$("#start").removeClass("md-btn-gry");
 		$("#start").removeClass("md-btn-desabley");
@@ -6153,6 +6740,8 @@ socket_close($socket);*/
 	}
 
 	function stopTest(type = 0) {
+		draw_vr_position = true;
+		$("#setting_vr_position").removeClass("md-btn-desabley");
 		$("#recall_last_data").removeClass("md-btn-desabley");
 		$("#recall_last_data").addClass("md-btn-gry");
 		$("#stop").removeClass("md-btn-gry");
@@ -6305,7 +6894,7 @@ socket_close($socket);*/
 		}
 		enabletestnameliest = [];
 		$(".test-type-name").each((key, element) => {
-			let value_n = $(element).text(); //console.log(value_n);
+			let value_n = $(element).text();
 			value_n2 = value_n.split(" ");
 
 			let value = value_n2[0];
@@ -6321,10 +6910,10 @@ socket_close($socket);*/
 	}
 
 	function desableTestName(argument, type, level = 1) {
-		device_type = ''; 
+		device_type = '';
 		if (type == 1) {
 			device_type = '_Go';
-		} else if (type == 2 || type == 4) {
+		} else if (type == 2 || type == 4 || type == 8) {
 			device_type = '_PICO';
 		} else if (type == 3) {
 			device_type = '_Quest';
@@ -6342,7 +6931,7 @@ socket_close($socket);*/
 		enabletestnameliest = [];
 		$(".test-type-name").addClass("md-btn-desabley");
 		$(".test-type-name").each((key, element) => {
-			let value_n = $(element).text(); //console.log(value_n);
+			let value_n = $(element).text();
 			value_n2 = value_n.split(" ");
 			let value = value_n2[0];
 			//console.log(value);
@@ -6357,11 +6946,15 @@ socket_close($socket);*/
 							enabletestnameliest.push(value);
 						}
 					});
+					if(type==0 && value =='Central_24_2C'){
+						$(element).addClass("md-btn-desabley");
+					}
 				}
 			});
 
 
 		});
+		 
 	}
 
 	function stop_save_yes(argument) {
@@ -6453,18 +7046,21 @@ socket_close($socket);*/
 		deviceTypeId = argument;
 		updateRelibility();
 		if (argument == 0) {
+			document.getElementById("setting_vr_position").style.visibility = "hidden";
 			$("#gaze_tracking_txt").html('Gaze Tracking');
 			document.getElementById("gaze_tracking_div").style.visibility = "visible";
 			document.getElementById("gaze_tracking_div").style.height = "20px";
 			$("#gaze-track").prop("checked", false);
 			GazeTracking = false;
 		} else if (argument == 2 || argument == 5) {
-			$("#gaze_tracking_txt").html('Eye Tracking');
+			document.getElementById("setting_vr_position").style.visibility = "visible";
 			$("#gaze-track").prop("checked", true);
-			GazeTracking = true;
+			$("#gaze_tracking_txt").html('Eye Tracking');
 			document.getElementById("gaze_tracking_div").style.visibility = "visible";
 			document.getElementById("gaze_tracking_div").style.height = "20px";
+			GazeTracking = true;
 		} else {
+			document.getElementById("setting_vr_position").style.visibility = "hidden";
 			$("#gaze-track").prop("checked", false);
 			document.getElementById("gaze_tracking_div").style.visibility = "hidden";
 			document.getElementById("gaze_tracking_div").style.height = "1px";
@@ -6483,6 +7079,11 @@ socket_close($socket);*/
 			}
 			$(".both-eye").prop("checked", false);
 			testBothEyes = false;
+		}
+		if (testname == 'Esterman_120_point') {
+			 //
+			 $('.eye').addClass("md-btn-yellow");
+			 $('.binocular_message').attr("style", "text-align: center; display:block");
 		}
 		testname2 = testname.toString();
 		selectTest(value, stragigy, testname);
@@ -6642,9 +7243,14 @@ socket_close($socket);*/
 		}else{
 			dob = res[0] + '-' + res[1] + '-' + res[2];
 		}
+		//console.log(res);
+		//console.log('dob=' + dob);
 		var ageDifMs = Date.now() - Date.parse(dob);
+		//console.log('dob1=' + ageDifMs);
 		var ageDate = new Date(ageDifMs); // miliseconds from epoch
+		//console.log('dob2=' + ageDate);
 		var age = Math.abs(ageDate.getUTCFullYear() - 1970);
+		//console.log('dob3=' + age);
 		if ((age > 0) && (age <= 30)) {
 			agegroup = 1;
 		} else if ((age > 30) && (age <= 50)) {
@@ -6755,7 +7361,7 @@ socket_close($socket);*/
 						document.getElementById("test-strategy").value = testSubType;
 
 						$(".test-type-name").each((key, element) => {
-							let value = $(element).text(); //console.log(value);
+							let value = $(element).text();
 							if (testTypeName == value) {
 								$(element).removeClass("md-btn-gry");
 							} else {
@@ -6882,6 +7488,10 @@ socket_close($socket);*/
 	function botheye(obj) {
 
 		if ($(obj).is(":checked")) {
+			if(patient_previous_test==1){
+				patinet_traning_value = "1";
+				$(".patient_training").prop("checked", true);
+			}
 			testBothEyes = true;
 			botheyecount = 0; 
 			round1 = 0;
@@ -6900,6 +7510,10 @@ socket_close($socket);*/
 			//          }
 			//        });
 		} else {
+			if(patient_previous_test==1){
+				patinet_traning_value = "0";
+				$(".patient_training").prop("checked", false);
+			}
 			testBothEyes = false;
 		}
 	}
@@ -6958,6 +7572,14 @@ socket_close($socket);*/
 			voice_instractuin = false;
 		}
 	}
+	function patienTrainingUpdate(obj) {
+		if ($(obj).is(":checked")) {
+			patinet_traning_value = "1";
+		} else {
+			patinet_traning_value = "0";
+		}
+	}
+	
 	function zerodbutoff(obj){
 		if($(obj).is(":checked")){
 			zeroDbCutoff = true;
@@ -6966,7 +7588,6 @@ socket_close($socket);*/
 		}
 		updateDevice();
 	}
-
 
 	function progressionanalysis(obj) {
 		if ($(obj).is(":checked")) {
@@ -6986,7 +7607,8 @@ socket_close($socket);*/
 			$('#eye_click_div').hide();
 		}
 		updateRelibility();
-	}	
+	}
+
 	function eyeclick(obj) {
 		if ($(obj).is(":checked")) {
 			EyeClick = true;
@@ -7443,7 +8065,7 @@ socket_close($socket);*/
 										return x;
 									});
 								}
-								if (testType == 2 || testType == 1 || testType == 4) {
+								if (testType == 2) {
 									if (data.hasOwnProperty('previousTest')) {
 
 										var resultm2 = data.previousTest.map(function (testdata) {
@@ -7530,8 +8152,9 @@ socket_close($socket);*/
 								StartTestData.voice_instractuin = voice_instractuin;
 								StartTestData.progression_analysis = progression_analysis;
 								StartTestData.zeroDbCutoff = zeroDbCutoff;
+								StartTestData.PATIENT_TRAINING = patinet_traning_value;
 								var obj = '';
-								if (testType == 2 || testType == 1 || testType == 4) {
+								if (testType == 2) {
 									var obj = {
 										/// previous_test:((data.hasOwnProperty('previousTest')) && progression_analysis==true)?data.previousTest:[],
 										previous_test: ((data.hasOwnProperty('previousTest'))) ? data.previousTest : [],
@@ -7743,7 +8366,7 @@ socket_close($socket);*/
 							return x;
 						});
 					}
-					if (testType == 2 || testType == 1 || testType == 4) {
+					if (testType == 2) {
 						if (data.hasOwnProperty('previousTest')) {
 
 							var resultm2 = data.previousTest.map(function (testdata) {
@@ -7829,8 +8452,9 @@ socket_close($socket);*/
 					StartTestData.voice_instractuin = voice_instractuin;
 					StartTestData.progression_analysis = progression_analysis;
 					StartTestData.zeroDbCutoff = zeroDbCutoff;
+					StartTestData.PATIENT_TRAINING = patinet_traning_value;
 					var obj = '';
-					if (testType == 2 || testType == 1 || testType == 4) {
+					if (testType == 2) {
 						var obj = {
 							previous_test: ((data.hasOwnProperty('previousTest'))) ? data.previousTest : [],
 							///  previous_test:((data.hasOwnProperty('previousTest')) && progression_analysis==true)?data.previousTest:[],
@@ -7874,6 +8498,7 @@ socket_close($socket);*/
 	}
 
 	function getPrevTest(val) {
+
 		$(".progression_analysis").prop("checked", val);
 		var language = $("#language").val();
 
@@ -7906,9 +8531,10 @@ socket_close($socket);*/
 					// masterData.vfpointdata = data.VfMasterdata.slice();
 
 					$(".test-type-name").each((key, element) => {
-						let value_n = $(element).text(); //console.log(value_n);
+						let value_n = $(element).text();
 						value_n2 = value_n.split(" ");
-						let value = value_n2[0]; 
+
+						let value = value_n2[0];
 						<?php $flg = (isset($user['Office']['detailed_progression'])) ? $user['Office']['detailed_progression'] : 1; ?>
 						if (<?php echo $flg ?>) {
 							if (typeof data.previousTest[value] == 'number') {
@@ -7925,6 +8551,7 @@ socket_close($socket);*/
 										}
 									}
 									$(".progression_analysis").prop("checked", val);
+									//$(".progression_analysis").prop("checked", false);
 									var elems = document.getElementsByClassName("progression_analysis");
 									for (var i = 0; i < elems.length; i++) {
 										elems[i].disabled = false;
@@ -8007,4 +8634,4 @@ socket_close($socket);*/
 		audioVolume = (parseInt($("#myinput-4").val()) / 100).toFixed(2);
 		$("#myinput-4-val").html(audioVolume);
 	};
-</script>
+</script>s

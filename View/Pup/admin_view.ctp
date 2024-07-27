@@ -34,9 +34,9 @@
 		<span class=" col-md-4"></span>
 		<span class=" col-md-4"></span>
 		<span class=" col-md-4">
-<!--			--><?php //if ($session_check_parent == 'Admin') { ?>
-<!--				<a href="--><?php //echo $this->Html->url(['controller' => 'act', 'action' => 'export', $data['Act']['id']]); ?><!--" class="btn btn-default" style="float: right;">Export</a>-->
-<!--			--><?php //} ?>
+			<?php if ($session_check_parent == 'Admin') { ?>
+				<a href="<?php echo $this->Html->url(['controller' => 'pup', 'action' => 'export', $data['PupTest']['id']]); ?>" class="btn btn-default" style="float: right;">Export</a>
+			<?php } ?>
 		</span>
 	</div>
 	<?php if ($session_check_parent == 'Admin') { ?>

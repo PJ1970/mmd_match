@@ -2,7 +2,9 @@
       <div class="">
         <div class="page-header-title">
           <h4 class="page-title">Offices Listing</h4>
+		 
         </div>
+		 
       </div>
       <div class="page-content-wrapper ">
        <div class="container">
@@ -27,6 +29,8 @@
 					<div align="right" class="col-md-4">
 						<a href="<?php echo $this->HTML->url('/admin/offices/add'); ?>" class="btn btn-large btn-primary" >Add Office</a>
 						<a href="<?php echo $this->HTML->url('/admin/offices/export'); ?>" class="btn btn-large btn-primary" >Export</a>
+						<a href="<?php echo $this->HTML->url('/admin/offices/export_device'); ?>" class="btn btn-large btn-primary" >Export  <i class="fa fa-tablet" aria-hidden="true"></i>
+</a>
 							<h4 class="m-b-30 m-t-0"></h4>
 					</div>
 				</div>
@@ -38,7 +42,7 @@
 							<th style="width:34px;">S.No</th>
                             <th>  <?php echo $this->Paginator->sort('Office.name','Office Name'); ?> </th>
                             <th>  <?php echo $this->Paginator->sort('Office.email','Office Email'); ?> </th>
-                            <th>  <?php echo $this->Paginator->sort('Office.second_email','Office Secondary Email'); ?> </th>
+                            <th>  <?php echo $this->Paginator->sort('Office.second_email','Office second_email'); ?> </th>
 							<!-- <th>  <?php echo $this->Paginator->sort('Office.per_use_cost','Per Use Cost'); ?> </th> -->
 							<th>  <?php echo $this->Paginator->sort('Office.credits','Credits'); ?> </th>
 							<th>Rep Admin name</th>
@@ -53,7 +57,7 @@
 						
 						<?php if(!empty($datas))
 							{ 
-								foreach($datas as $key => $data){   ?>
+								foreach($datas as $key => $data){  ?>
 						<tr> 
 							<td data-order="<?php echo $data['Office']['id']; ?>"><?php echo $key+1; ?></td>
 							<td><?php echo $data['Office']['name']; ?></td>

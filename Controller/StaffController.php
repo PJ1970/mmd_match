@@ -37,6 +37,8 @@ class StaffController extends AppController {
 		if($this->request->is('post')){
 			$password = $this->request->data['User']['password'];
 			$confirm_pass = $this->request->data['User']['confirm_pass'];
+			$password_expiry =  date('Y-m-d H:i:s', strtotime("+90 days"));
+			$this->request->data['User']['password_expiry_date'] = $password_expiry;  
 			unset($this->request->data['User']['confirm_pass']);
 			if($password == $confirm_pass) {
 				if($Admin['user_type'] == 'Subadmin'){ 
@@ -94,36 +96,51 @@ class StaffController extends AppController {
 		if($id){
 			$check_user=$this->User->find('first',array(
 				'conditions'=>array('User.id'=>$id),
-				'fields'=>array('User.id,User.user_type','created_by')
+				'fields'=>array('User.id,User.user_type','created_by','office_id')
 			));
-			if(!empty($check_user) && !empty($check_user['User']['created_by'])){
+			if(!empty($check_user) && !empty($check_user['User']['created_by']) && !empty($check_user['User']['office_id'])){
 				/*update status of staff */ 
-				$delete_staff['User']['id']=$id;
-				$delete_staff['User']['is_delete']=1;
-				if($this->User->save($delete_staff)){
-					/*Delete All patients of staff(Manage status)*/
-					$all_patient_ids=$this->Patient->find('list',array('conditions'=>array('Patient.user_id'=>$id),'fields'=>array('Patient.id')));
-					//pr($all_patient_ids);die;
-					if(!empty($all_patient_ids)){
-						$this->Patient->updateAll(
-							array('Patient.user_id'=>$check_user['User']['created_by']),
-							array('Patient.id' => $all_patient_ids)
-						);
+				$check_subAdmin = $this->User->find('first',array(
+									'conditions'=>array('User.office_id'=>$check_user['User']['office_id'], 'User.user_type'=>'Subadmin' , 'User.is_delete' => 0),
+									'fields'=>array('User.id')
+								));
+				/*if(empty($check_subAdmin)){
+					$check_subAdmin = $this->User->find('first',array(
+									'conditions'=>array('User.office_id'=>$check_user['User']['office_id'], 'User.user_type'=>'Staffuser' , 'User.is_delete' => 0),
+									'fields'=>array('User.id')
+								));
+				}*/
+				if(!empty($check_subAdmin)){
+					$delete_staff['User']['id']=$id;
+					$delete_staff['User']['is_delete']=1;
+					if($this->User->save($delete_staff)){
+						/*Delete All patients of staff(Manage status)*/
+						$all_patient_ids=$this->Patient->find('list',array('conditions'=>array('Patient.user_id'=>$id),'fields'=>array('Patient.id')));
+						//pr($all_patient_ids);die;
+						if(!empty($all_patient_ids)){
+							$this->Patient->updateAll(
+								array('Patient.user_id'=>$check_subAdmin['User']['id']),
+								array('Patient.id' => $all_patient_ids)
+							);
+						}
+						$this->Testreport->updateAll(array('Testreport.staff_id' => $check_subAdmin['User']['id']),array('Testreport.staff_id' => $id));
+				
+						$this->Pointdata->updateAll(array('Pointdata.staff_id' => $check_subAdmin['User']['id']),array('Pointdata.staff_id' => $id));
+						
+						$this->VaData->updateAll(array('VaData.staff_id' => $check_subAdmin['User']['id']),array('VaData.staff_id' => $id));
+						
+						/*end*/
+						
+						$this->Session->setFlash('Staff user has been deleted successfully.','message',array('class' => 'message'));
+						$this->redirect(array('controller'=>'staff','action'=>'admin_staff_listing'));
+					}else{
+						$this->Session->setFlash('Oops! There is some problem in deleting satff user.','message',array('class' => 'message'));
+						$this->redirect(array('controller'=>'staff','action'=>'admin_staff_listing'));
+						
 					}
-					$this->Testreport->updateAll(array('Testreport.staff_id' => $check_user['User']['created_by']),array('Testreport.staff_id' => $id));
-			
-					$this->Pointdata->updateAll(array('Pointdata.staff_id' => $check_user['User']['created_by']),array('Pointdata.staff_id' => $id));
-					
-					$this->VaData->updateAll(array('VaData.staff_id' => $check_user['User']['created_by']),array('VaData.staff_id' => $id));
-					
-					/*end*/
-					
-					$this->Session->setFlash('Staff user has been deleted successfully. And it\'s associated patients and  records  has been assigned to respective Subadmin/Admin.','message',array('class' => 'message'));
-					$this->redirect(array('controller'=>'staff','action'=>'admin_staff_listing'));
 				}else{
-					$this->Session->setFlash('Oops! There is some problem in deleting satff user.','message',array('class' => 'message'));
+					$this->Session->setFlash('Invalid satff user.','message',array('class' => 'message'));
 					$this->redirect(array('controller'=>'staff','action'=>'admin_staff_listing'));
-					
 				}
 			}else{
 				$this->Session->setFlash('Invalid satff user.','message',array('class' => 'message'));
@@ -150,6 +167,9 @@ class StaffController extends AppController {
 			if(empty($this->request->data['User']['password'])){
 				unset($this->request->data['User']['password']);
 				unset($this->request->data['User']['confirm_pass']);
+			}else{
+				$password_expiry =  date('Y-m-d H:i:s', strtotime("+90 days"));
+				$this->request->data['User']['password_expiry_date'] = $password_expiry; 
 			}
 			//pr($this->request->data);die;
 			//check patient assign to staff
@@ -199,8 +219,8 @@ class StaffController extends AppController {
 			$this->request->data = $data; 
 		}
 		/*}else{
-            $this->redirect(WWW_BASE.'admin/dashboards/index');
-        }*/	
+            $this->redirect('https://www.portal.micromedinc.com/admin/dashboards/index');
+        }	*/
 	}
 	
 	
@@ -230,6 +250,7 @@ class StaffController extends AppController {
 	
 	/*Staff listing*/
 	public function admin_staff_listing() {
+		 
 		//if($this->Session->read('Auth.Admin.user_type')!='Admin'){
 		$Admin = $this->Session->read('Auth.Admin');
 		if($Admin['user_type'] == 'Admin') {
@@ -387,6 +408,17 @@ class StaffController extends AppController {
 		 }
 		
 	}
+	public function admin_unlocl($id=null){
+		//if($this->Session->read('Auth.Admin.user_type')=='Admin'){
+		$data=$this->User->find('first',array('conditions'=>array('User.id'=>$id)));
+		$this->User->id = $data['User']['id'];
+		$this->User->saveField('lock_counter_time',null);
+		$this->User->saveField('lock_time',null);
+		$this->User->saveField('lock_counter',0);
+		$this->Session->setFlash('Staff Unlock successfully.','message',array('class' => 'message'));
+		$this->redirect($this->referer());
+	}
+	
 }
 
 ?>

@@ -30,7 +30,7 @@ App::import('Controller','ChatApi');
  * @link http://book.cakephp.org/2.0/en/controllers/pages-controller.html
  */
 class OfficesController extends AppController {
-	public $uses = array('Admin','User', 'Module', 'AssignModule','AssignCoach','Office','Patient','Officereport','Test','OfficeReportBackup','Pointdata');
+	public $uses = array('Admin','User', 'Module', 'AssignModule','AssignCoach','Office','Patient','Officereport','Test','OfficeReportBackup','Pointdata','Language','Officelanguage');
 			
 	var $helpers = array('Html', 'Form','Js' => array('Jquery'), 'Custom');
 
@@ -102,6 +102,18 @@ class OfficesController extends AppController {
 		$second_last_sunday=date('Y-m-d',strtotime('last sunday -7 days')); 
 		$three_month_back = date('Y-m-d',strtotime(date('Y-m-d').' -3 months'));
 		$this->Office->unbindModel(array('hasMany' => array('Officereport')));
+
+		$this->Office->bindModel(
+						array(
+							'hasMany' => array(
+								'TestDevice' => array(
+									'className' => 'TestDevice',
+									'foreignKey' => 'office_id',
+								)
+							)
+						)
+					);
+		
 		$this->Office->virtualFields['total_test_current_week'] ='select (select count(pointdatas.id) from mmd_pointdatas as pointdatas  INNER JOIN mmd_users ON (mmd_users.id=pointdatas.staff_id)  where mmd_users.office_id =Office.id  AND pointdatas.created >= "'.$last_sunday.'") + (select count(pointdatas.id) from mmd_dark_adaptions as pointdatas  INNER JOIN mmd_users ON (mmd_users.id=pointdatas.staff_id)  where mmd_users.office_id =Office.id AND pointdatas.created >= "'.$last_sunday.'") + (select count(pointdatas.id) from mmd_pointdatas as pointdatas  INNER JOIN mmd_users ON (mmd_users.id=pointdatas.staff_id)  where pointdatas.staff_id =Office.id AND pointdatas.created >= "'.$last_sunday.'") + (select count(pointdatas.id) from mmd_dark_adaptions as pointdatas  INNER JOIN mmd_users ON (mmd_users.id=pointdatas.staff_id)  where pointdatas.staff_id =Office.id AND pointdatas.created >= "'.$last_sunday.'" )';
 	 	$this->Office->virtualFields['total_test_last_week'] ='select (select count(pointdatas.id) from mmd_pointdatas as pointdatas  INNER JOIN mmd_users ON (mmd_users.id=pointdatas.staff_id)  where mmd_users.office_id =Office.id AND pointdatas.created >= "'.$second_last_sunday.'"  AND pointdatas.created < "'.$last_sunday.'" ) + (  select count(pointdatas.id) from mmd_dark_adaptions as pointdatas  INNER JOIN mmd_users ON (mmd_users.id=pointdatas.staff_id)  where mmd_users.office_id =Office.id AND pointdatas.created >= "'.$second_last_sunday.'"  AND pointdatas.created < "'.$last_sunday.'") + (select count(pointdatas.id) from mmd_pointdatas as pointdatas  INNER JOIN mmd_users ON (mmd_users.id=pointdatas.staff_id)  where pointdatas.staff_id =Office.id AND pointdatas.created >= "'.$second_last_sunday.'"  AND pointdatas.created < "'.$last_sunday.'" ) + (  select count(pointdatas.id) from mmd_dark_adaptions as pointdatas  INNER JOIN mmd_users ON (mmd_users.id=pointdatas.staff_id)  where pointdatas.staff_id =Office.id AND pointdatas.created >= "'.$second_last_sunday.'"  AND pointdatas.created < "'.$last_sunday.'")';
 	 	$this->Office->virtualFields['total_test_three_month'] ='select (select count(pointdatas.id) from mmd_pointdatas as pointdatas  INNER JOIN mmd_users ON (mmd_users.id=pointdatas.staff_id)  where mmd_users.office_id =Office.id AND pointdatas.created >= "'.$three_month_back.'" ) + (  select count(pointdatas.id) from mmd_dark_adaptions as pointdatas  INNER JOIN mmd_users ON (mmd_users.id=pointdatas.staff_id)  where mmd_users.office_id =Office.id AND pointdatas.created >= "'.$three_month_back.'") + (select count(pointdatas.id) from mmd_pointdatas as pointdatas  INNER JOIN mmd_users ON (mmd_users.id=pointdatas.staff_id)  where pointdatas.staff_id =Office.id AND pointdatas.created >= "'.$three_month_back.'" ) + (  select count(pointdatas.id) from mmd_dark_adaptions as pointdatas  INNER JOIN mmd_users ON (mmd_users.id=pointdatas.staff_id)  where pointdatas.staff_id =Office.id AND pointdatas.created >= "'.$three_month_back.'")';
@@ -131,31 +143,36 @@ class OfficesController extends AppController {
 	
 	
 	//This function for adding offices
-	public function admin_add($id=null){ 
-		if($this->Session->read('Auth.Admin.user_type') == 'Admin'){ 
-			$user_credit_total = 0;
-			$editData = "";
-			$test_c = $this->Test->find('list',array('fields'=>array('id','name')),array( 'conditions' =>  array('Test.is_delete' =>'0')));
+	public function admin_add($id=null){
+		if($this->Session->read('Auth.Admin.user_type') == 'Admin'){  
+		$user_credit_total = 0;
+		$editData = "";
+		$test_c = $this->Test->find('list',array('fields'=>array('id','name')),array( 'conditions' =>  array('Test.is_delete' =>'0')));
 		//pr($test_c);die;
+		$language = $this->Language->find('list',array('fields'=>array('id','name')), array('conditions' => array('Language.is_delete'=>0))); 
 		if($id){
-			$editData = $this->Office->find('first',array('conditions'=>array('Office.id'=>$id)));
-			$editData['Office']['password']=$editData['Office']['password2'];
-			$password=$editData['Office']['password2'];
-			$user_c = $this->User->find('all',array( 'conditions' =>  array('User.office_id' =>$id)));
+		$editData = $this->Office->find('first',array('conditions'=>array('Office.id'=>$id)));
+		$editData['Office']['password']=$editData['Office']['password2'];
+		$password=$editData['Office']['password2'];
+		$user_c = $this->User->find('all',array( 'conditions' =>  array('User.office_id' =>$id)));
 		if(!empty($user_c)){
 			foreach($user_c as $c_value){
 				$user_credit_total = $user_credit_total+$c_value['User']['credits'];
+				//pr($c_value);die;
 			}
 		}else{
 			$user_credit_total = 0;
 		}
+		//pr($user_c);die;
 		}else{
 		    $password='';
 		}
 		if($this->request->is(array('post','put'))){
+
 			unset($this->request->data['Office']['left_credits']);
 			$this->request->data['Officereport'] = Hash::remove($this->request->data['Officereport'], '{n}[office_report=0]');
-
+			
+			$this->request->data['Officelanguage'] = Hash::remove($this->request->data['Officelanguage'], '{n}[language_id=0]');
 				if(empty($this->request->data['Office']['email'])){
 					$this->Office->validator()->remove('email');
 				}
@@ -169,18 +186,40 @@ class OfficesController extends AppController {
 				if(!empty($this->request->data['Office']['password2'])){
 					$this->request->data['Office']['password2']=trim(preg_replace('/\s\s+/', '', $this->request->data['Office']['password2']));
 				}
+
 				if($id){
 					$this->request->data['Office']['password']=$this->request->data['Office']['password2'];
 				   unset($this->request->data['Office']['password']);
 					$deletedata = $this->Officereport->deleteAll(array('Officereport.office_id'=>$id),false);
+					//pr($deletedata);die;
+					//$this->Officelanguage->deleteAll(array('Officelanguage.office_id'=>$id),false);
+					$old_language = $this->Officelanguage->find('list',array( 'conditions' =>  array('Officelanguage.office_id' =>$id),'fields'=>array('id','language_id')));
+				    foreach($old_language as $key => $value){
+				        if(!empty($this->request->data['Officelanguage'])){
+    				        foreach($this->request->data['Officelanguage'] as $key2 =>$value2){
+    				            if($value==$value2['language_id']){
+    				                unset($old_language[$key]);
+    				                unset($this->request->data['Officelanguage'][$key2]);
+    				            }
+    				        }
+				        }
+				    }
+				    if(!empty($old_language)){
+				        $this->Officelanguage->deleteAll(array('Officelanguage.office_id'=>$id, 'Officelanguage.language_id'=>$old_language),false);   
+				    }
 				}
+				 
 				if(isset($this->request->data['Office']['office_pic']['name'])&&(!empty($this->request->data['Office']['office_pic']['name']))){
 					$office_pic=time().$this->request->data['Office']['office_pic']['name'];
 					$image_type=strtolower(substr($office_pic,strrpos($office_pic,'.')+1));
+					  
 					$uploadFiles = $this->request->data['Office']['office_pic'];
+					$image_info = getimagesize($this->request->data['Office']['office_pic']);
 					$fileName = $office_pic;
 					$upload_path=getcwd()."/app/webroot/img/office/";
+					
 					$data12 = array('type' => 'resize', 'size' => array(150, 150), 'output' => $image_type, 'quality' => 100);
+					
 					$status = $this->Upload->upload($uploadFiles,$upload_path, $fileName, $data12, null);
 					$this->request->data['Office']['office_pic']=$office_pic;
 				}else{
@@ -188,6 +227,7 @@ class OfficesController extends AppController {
 					$office_pic=$this->Office->field('office_pic');
 					$this->request->data['Office']['office_pic']=$office_pic;
 				} 
+				//echo "<pre>";
 				if($this->request->data['Office']['rep_admin']==''){
 					$this->request->data['Office']['rep_admin']=0;
 				}
@@ -195,50 +235,56 @@ class OfficesController extends AppController {
 				if($archiveTime == 0 || empty($archiveTime)){ 
 					$this->Patient->updateAll(array('Patient.device_type' => NULL,'Patient.ihuunassigntime' => NULL,'Patient.progression_deatild' => NULL,'Patient.language' => NULL,'Patient.test_name_ihu' => NULL,'Patient.eye_type' => NULL),array('Patient.office_id'=>$id));
 				}
-				 
-					if($this->Office->saveAll($this->request->data)) {
-						 $office_id=$this->Office->id;  
-						 $currentOrderAlert  		=  $this->Office->query("CREATE OR REPLACE VIEW mmd_pointdatas_".$office_id." AS  SELECT  `id`, `test_type_id`, `test_name`, `numpoints`, `color`, `backgroundcolor`, `stmsize`, `file`, `staff_id`, `patient_id`, `eye_select`, `baseline`, `is_delete`, `master_key`, `test_color_fg`, `test_color_bg`, `mean_dev`, `pattern_std`, `mean_sen`, `mean_def`, `pattern_std_hfa`, `loss_var`, `mean_std`, `psd_hfa_2`, `psd_hfa`, `vission_loss`, `false_p`, `false_n`, `false_f`, `threshold`, `strategy`, `ght`, `latitude`, `longitude`, `unique_id`, `version`, `diagnosys`, `age_group`, `device_id`, `office_id`, `source`, `stereopsis`, `created`  FROM   `mmd_pointdatas` WHERE mmd_pointdatas.staff_id in (SELECT id from mmd_users where office_id=".$office_id.")");
+				//pr($this->request->data);die();
+				if($this->Office->saveAll($this->request->data)) {
+					//echo "saved";
+					 $office_id=$this->Office->id;  
+					 $currentOrderAlert  		=  $this->Office->query("CREATE OR REPLACE VIEW mmd_pointdatas_".$office_id." AS  SELECT  `id`, `test_type_id`, `test_name`, `numpoints`, `color`, `backgroundcolor`, `stmsize`, `file`, `staff_id`, `patient_id`, `eye_select`, `baseline`, `is_delete`, `master_key`, `test_color_fg`, `test_color_bg`, `mean_dev`, `pattern_std`, `mean_sen`, `mean_def`, `pattern_std_hfa`, `loss_var`, `mean_std`, `psd_hfa_2`, `psd_hfa`, `vission_loss`, `false_p`, `false_n`, `false_f`, `threshold`, `strategy`, `ght`, `latitude`, `longitude`, `unique_id`, `version`, `diagnosys`, `age_group`, `device_id`, `office_id`, `source`, `stereopsis`, `created`  FROM   `mmd_pointdatas` WHERE mmd_pointdatas.staff_id in (SELECT id from mmd_users where office_id=".$office_id.")");
 
-					    $staffuserAdmin=$this->User->find('list',array('conditions'=>array('User.office_id'=>$office_id),'fields'=>array('User.id')));
-	    				$conditions['Pointdata.staff_id']=$staffuserAdmin;
-	    				$this->Pointdata->unbindModel(array('hasMany' => array('VfPointdata'), 'belongsTo' => array('User','Patient','Test')));
-	    				$data=$this->Pointdata->find('first',array('conditions'=>$conditions,'order' => 'Pointdata.id DESC')); 
-					    $this->OfficeReportBackup->primaryKey = 'office_id';
-	        			$officereport = $this->OfficeReportBackup->find('first',array('conditions'=>array('OfficeReportBackup.office_id'=>$office_id))); 
-	        			$officereport['OfficeReportBackup']['office_id']=$office_id;
-	        			//if(!empty($officereport['id'])){
-	        				unset($officereport['OfficeReportBackup']['id']);
-	        			//}
-	        			$officereport['OfficeReportBackup']['last_backup']=(isset($data['Pointdata']))?$data['Pointdata']['id']:0; 
-	        			$this->OfficeReportBackup->save($officereport); 
+					  $currentOrderAlert  		=  $this->Office->query("CREATE OR REPLACE VIEW mmd_patients_".$office_id." AS  SELECT  `id`, `unique_id`, `user_id`, `first_name`,`middle_name`, `last_name`,`email`,`phone`,`id_number`,`office_id`,`dob`, `is_delete`,`merge_status`,`merge_date`,`delete_date`,`notes`,`status`,`archived_date`,`p_profilepic`, `od_left`,`od_right`, `os_left`,`os_right`,`race`,`created_date_utc`,`created`,`created_at_for_archive` from `mmd_patients` where `user_id` in (select `mmd_users`.`id` from `mmd_users` where `mmd_users`.`office_id`=".$office_id.")");
 
-						if(is_null($id)){
-							$this->Session->setFlash('Office has been created successfully.','message',array('class'=>'message'));
-						} else {
-							
-							$this->loadModel('AppConstant');
-							$Admin = $this->Session->read('Auth.Admin');
-							$role_constant = Configure::read('role_constant');
-							//pr($Admin['user_type']);die;
-							if(in_array($Admin['user_type'],$role_constant)){
-								$status_1 = 1;
-								$this->AppConstant->updateAll(array('AppConstant.is_update'=> "'".$status_1."'"),array('AppConstant.id'=>1));
-								$this->loadModel('NewUserDevice');
-								$new_user_device = $this->NewUserDevice->find('all');
-								//pr($new_user_device);die;
-								foreach($new_user_device as $key => $val){
-									$device_token = $val['NewUserDevice']['device_token'];
-									if(!empty($device_token) && $this->checkNotification($val['NewUserDevice']['device_id'])){
-										//$res = $this->sendPushNotificationNewAdminDataUpdate($device_token);
-										$res = $this->sendPushNotificationNewAdminDataUpdateV2($device_token);
-									}
+				    $staffuserAdmin=$this->User->find('list',array('conditions'=>array('User.office_id'=>$office_id),'fields'=>array('User.id')));
+    				$conditions['Pointdata.staff_id']=$staffuserAdmin;
+    				$this->Pointdata->unbindModel(array('hasMany' => array('VfPointdata'), 'belongsTo' => array('User','Patient','Test')));
+    				$data=$this->Pointdata->find('first',array('conditions'=>$conditions,'order' => 'Pointdata.id DESC')); 
+				    	
+				    $this->OfficeReportBackup->primaryKey = 'office_id';
+        			$officereport = $this->OfficeReportBackup->find('first',array('conditions'=>array('OfficeReportBackup.office_id'=>$office_id))); 
+        			$officereport['OfficeReportBackup']['office_id']=$office_id;
+        			//if(!empty($officereport['id'])){
+        				unset($officereport['OfficeReportBackup']['id']);
+        			//}
+        			$officereport['OfficeReportBackup']['last_backup']=(isset($data['Pointdata']))?$data['Pointdata']['id']:0; 
+        			$this->OfficeReportBackup->save($officereport); 
+
+					if(is_null($id)){
+						$this->Session->setFlash('Office has been created successfully.','message',array('class'=>'message'));
+					} else {
+						
+						$this->loadModel('AppConstant');
+						$Admin = $this->Session->read('Auth.Admin');
+						$role_constant = Configure::read('role_constant');
+						//pr($Admin['user_type']);die;
+						if(in_array($Admin['user_type'],$role_constant)){
+							$status_1 = 1;
+							$this->AppConstant->updateAll(array('AppConstant.is_update'=> "'".$status_1."'"),array('AppConstant.id'=>1));
+							$this->loadModel('NewUserDevice');
+							$new_user_device = $this->NewUserDevice->find('all');
+							//pr($new_user_device);die;
+							foreach($new_user_device as $key => $val){
+								$device_token = $val['NewUserDevice']['device_token'];
+								if(!empty($device_token) && $this->checkNotification($val['NewUserDevice']['device_id'])){
+									//$res = $this->sendPushNotificationNewAdminDataUpdate($device_token);
+									$res = $this->sendPushNotificationNewAdminDataUpdateV2($device_token);
 								}
 							}
-							$this->Session->setFlash("Office has been updated successfully.",'message',array('class' => 'message'));
 						}
-						$this->redirect(array('controller'=>'offices','action'=>'admin_manage_office'));
+						$this->Session->setFlash("Office has been updated successfully.",'message',array('class' => 'message'));
 					}
+					//die();
+					$this->redirect(array('controller'=>'offices','action'=>'admin_manage_office'));
+				}
+				//die();
 				if($this->request->data['Office']['archive_status'] == 0){ 
 					$conditions['Patient.status']= 	0;
 					$conditions['Patient.office_id']= 	$id;
@@ -246,45 +292,52 @@ class OfficesController extends AppController {
 				}
 				if($this->request->data['Office']['archive_status'] == 1){
 					$conditions['Patient.office_id']= 	$id;
-					//date_default_timezone_set("Asia/Kolkata");
-					date_default_timezone_set("America/Los_Angeles");
+					date_default_timezone_set("UTC");
 		   			$updateDAte=date('Y-m-d H:i:s');
-					$this->Patient->updateAll(array('Patient.status' => 1,'Patient.created_at_for_archive' => "'".$updateDAte."'"),array('Patient.office_id'=>$id));
+					$this->Patient->updateAll(array('Patient.status' => 1,'Patient.created_date_utc' => "'".$updateDAte."'"),array('Patient.office_id'=>$id));
 				}
-
 		}else{
 			$this->request->data = $editData;
 		}
 		//pr($this->request->data);die;
-		$this->set(compact('test_c','user_credit_total','password'));
+		$this->set(compact('test_c','user_credit_total','password','language'));
 	}else{
-			$this->redirect(WWW_BASE.'admin/dashboards/index');
+			$this->redirect('https://www.portal.micromedinc.com/admin/dashboards/index');
 		}
 	}
 	
 	//This function for adding offices
-	public function admin_subedit($id=null){ //pr($this->request->data['Office']); die;
+	public function admin_subedit($id=null){
 		$user_credit_total = 0;
 		$editData = "";
 		$test_c = $this->Test->find('list',array('fields'=>array('id','name')),array( 'conditions' =>  array('Test.is_delete' =>'0')));
+		//pr($test_c);die;
 		if($id){
-			$editData = $this->Office->find('first',array('conditions'=>array('Office.id'=>$id)));
-			
-			$user_c = $this->User->find('all',array( 'conditions' =>  array('User.office_id' =>$id)));
-			if(!empty($user_c)){
-				foreach($user_c as $c_value){
-					$user_credit_total = $user_credit_total+$c_value['User']['credits'];
-				}
-			}else{
-				$user_credit_total = 0;
+		$editData = $this->Office->find('first',array('conditions'=>array('Office.id'=>$id)));
+		$language = $this->Language->find('list',array('fields'=>array('id','name')), array('conditions' => array('Language.is_delete'=>0))); 
+		$user_c = $this->User->find('all',array( 'conditions' =>  array('User.office_id' =>$id)));
+		if(!empty($user_c)){
+			foreach($user_c as $c_value){
+				$user_credit_total = $user_credit_total+$c_value['User']['credits'];
+				//pr($c_value);die;
 			}
+		}else{
+			$user_credit_total = 0;
+		}
+		//pr($user_c);die;
 		}
 		if($this->request->is(array('post','put'))){
+			//pr($this->request->data); die;
 			unset($this->request->data['Office']['left_credits']);
+			//$this->request->data['Officereport'] = Hash::remove($this->request->data['Officereport'], '{n}[office_report=0]');
+			//pr($this->request->data);die;
+			$this->request->data['Officelanguage'] = Hash::remove($this->request->data['Officelanguage'], '{n}[language_id=0]');
 				if(empty($this->request->data['Office']['email'])){
 					$this->Office->validator()->remove('email');
 				}
 				if($this->request->data['Office']['archive_status'] == 0){
+					//$conditions['Patient.status']= 	0;
+					//$conditions['Patient.office_id']= 	$id;
 					date_default_timezone_set("UTC");
 	       			$updateDa=date('Y-m-d H:i:s');
 					$this->Patient->updateAll(array('Patient.status' => 1,'Patient.archived_date'=>null,'Patient.created_date_utc'=>"'".$updateDa."'"),array('Patient.office_id'=>$id));
@@ -306,9 +359,6 @@ class OfficesController extends AppController {
 						$this->Patient->updateAll(array('Patient.status' => 1,'Patient.created_date_utc' => "'".$updateDAtes."'",'Patient.delete_date' => "'".$updateDAtes."'"),array('Patient.office_id'=>$id,'Patient.is_delete'=>1));
 					}
 				}
-				/*if($this->request->data['Office']['weekdays'] == 0){
-					$this->Patient->updateAll(array('Patient.device_type' => NULL,'Patient.ihuunassigntime' => NULL,'Patient.progression_deatild' => NULL,'Patient.language' => NULL,'Patient.test_name' => NULL,'Patient.eye_type' => NULL), array('Patient.office_id'=>$id));
-				}*/
 				if($this->request->data['Office']['payable']=='no'){
 					$this->Office->validator()->remove('monthly_package');
 					$this->request->data['Office']['monthly_package'] = '';
@@ -316,47 +366,103 @@ class OfficesController extends AppController {
 				if($this->request->data['Office']['payable']=='yes'){
 					$this->request->data['Office']['restrict'] = 'non-restrict';
 				}
+				if($id){
+					//$deletedata = $this->Officereport->deleteAll(array('Officereport.office_id'=>$id),false);
+					//pr($deletedata);die;
+					//$this->Officelanguage->deleteAll(array('Officelanguage.office_id'=>$id),false);
+				}
+				//pr($this->request->data);die;
+				
+                                
 				if(isset($this->request->data['Office']['office_pic']['name'])&&(!empty($this->request->data['Office']['office_pic']['name']))){
+                                    //echo "bbbb";
 					$office_pic=time().$this->request->data['Office']['office_pic']['name'];
 					$image_type=strtolower(substr($office_pic,strrpos($office_pic,'.')+1));
+					
 					$uploadFiles = $this->request->data['Office']['office_pic'];
+					
 					$fileName = $office_pic;
 					$upload_path=getcwd()."/app/webroot/img/office/"; //@ON LIVE Need to check //getcwd()."/img/office/";//forlocal
+					
 					$data12 = array('type' => 'resize', 'size' => array(150, 150), 'output' => $image_type, 'quality' => 100);
+					
 					$status = $this->Upload->upload($uploadFiles,$upload_path, $fileName, $data12, null);
+                                       // pr($status);
+                                       // pr(array($uploadFiles,$upload_path, $fileName, $data12, null));
+                                       // die;
 					$this->request->data['Office']['office_pic']=$office_pic;
 				}else{
+                                    //echo "aaaa";
 					$this->Office->id=$this->request->data['Office']['id'];
 					$office_pic=$this->Office->field('office_pic');
 					$this->request->data['Office']['office_pic']=$office_pic;
 				} 
+                                
+                                //pr($this->request->data);  die;
+                                
 				if($this->Office->save($this->request->data)) {
+					$old_language = $this->Officelanguage->find('list',array( 'conditions' =>  array('Officelanguage.office_id' =>$id),'fields'=>array('id','language_id')));
+				    foreach($old_language as $key => $value){
+				        if(!empty($this->request->data['Officelanguage'])){
+    				        foreach($this->request->data['Officelanguage'] as $key2 =>$value2){
+    				            if($value==$value2['language_id']){
+    				                unset($old_language[$key]);
+    				                unset($this->request->data['Officelanguage'][$key2]);
+    				            }
+    				        }
+				        }
+				    }
+				    if(!empty($old_language)){
+				        $this->Officelanguage->deleteAll(array('Officelanguage.office_id'=>$id, 'Officelanguage.language_id'=>$old_language),false);   
+				    }
+				    if(!empty($this->request->data['Officelanguage'])){
+    					 foreach($this->request->data['Officelanguage'] as $key =>$value){
+    					      
+                        $datas['Officelanguage']['language_id']=$value['language_id'];
+                        $datas['Officelanguage']['office_id']=$id;
+                        $this->Officelanguage->create();
+                        $this->Officelanguage->save($datas);
+    					 }
+    					 
+				    }
+				    if(!empty($old_language) || !empty($this->request->data['Officelanguage'])){
+				        $this->Session->setFlash('You may need to restart the VF headset app to get the language packs updated.','message',array('class'=>'message'));
+				    }
 					if(is_null($id)){
 						$this->Session->setFlash('Office has been created successfully.','message',array('class'=>'message'));
 					} else {
+						
 						$this->loadModel('AppConstant');
 						$Admin = $this->Session->read('Auth.Admin');
 						$role_constant = Configure::read('role_constant');
+						//pr($Admin['user_type']);die;
 						if(in_array($Admin['user_type'],$role_constant)){
 							$status_1 = 1;
 							$this->AppConstant->updateAll(array('AppConstant.is_update'=> "'".$status_1."'"),array('AppConstant.id'=>1));
 							$this->loadModel('NewUserDevice');
 					 		$new_user_device = $this->NewUserDevice->find('all');
+							//pr($new_user_device);die;
 							foreach($new_user_device as $key => $val){
 								$device_token = $val['NewUserDevice']['device_token'];
 								if(!empty($device_token) && $this->checkNotification($val['NewUserDevice']['device_id'])){
+									//$res = $this->sendPushNotificationNewAdminDataUpdate($device_token);
 									$res = $this->sendPushNotificationNewAdminDataUpdateV2($device_token);
 								}
 							}
+							
 						}
+						
 						$this->Session->setFlash("Office has been updated successfully.",'message',array('class' => 'message'));
 					}
                                         $this->redirect($this->referer());
-                  }                      
+					//$this->redirect(array('controller'=>'offices','action'=>'admin_subedit', 'id'=> $id));
+                                        
+				} 
 		}else{
 			$this->request->data = $editData;
 		}
-		$this->set(compact('test_c','user_credit_total'));
+		//pr($this->request->data);die;
+		$this->set(compact('test_c','user_credit_total','language'));
 	}
         
         function admin_subedit_pic($id=null){
@@ -550,7 +656,7 @@ class OfficesController extends AppController {
 
 		$file_name = 'Offices_test_report_'.uniqid().'_'.date('Ymd');
 		 
-		$header = array('S.No','Office Name','Office Email','Total Test Current Week','Total Test Last Week','Avg','Created Date','Status');
+		$header = array('S.No','Office Name','Office Email','Device Type','Total Test Current Week','Total Test Last Week','Avg','Created Date','Status');
 		$csv = fopen("php://output", 'w');
 		header('Content-Type: application/csv; charset=utf-8');
 		header('Content-type: application/ms-excel');
@@ -560,6 +666,18 @@ class OfficesController extends AppController {
 		$second_last_sunday=date('Y-m-d',strtotime('last sunday -7 days')); 
 		$three_month_back = date('Y-m-d',strtotime(date('Y-m-d').' -3 months'));
 		$this->Office->unbindModel(array('hasMany' => array('Officereport')));
+		$this->Office->bindModel(
+			array(
+				'hasMany' => array(
+					'TestDevice' => array(
+						'className' => 'TestDevice',
+						'foreignKey' => 'office_id',
+					)
+				)
+			)
+		);
+		$type_option = array('0'=>'Gear','1'=>'GO','2'=>'PICO_NEO','3'=>'Quest','4'=>'PICO_G2','5'=>'PICO_NEO_3', '6' =>'PUPIL_NEO2','7'=>'PUPIL_NEO3','8'=>'PICO_G3','10'=>'Controller','11'=>'AppManager ','13'=>'Auto Download');
+			 
 		$this->Office->virtualFields['total_test_current_week'] ='select (select count(pointdatas.id) from mmd_pointdatas as pointdatas  INNER JOIN mmd_users ON (mmd_users.id=pointdatas.staff_id)  where mmd_users.office_id =Office.id  AND pointdatas.created >= "'.$last_sunday.'") + (select count(pointdatas.id) from mmd_dark_adaptions as pointdatas  INNER JOIN mmd_users ON (mmd_users.id=pointdatas.staff_id)  where mmd_users.office_id =Office.id AND pointdatas.created >= "'.$last_sunday.'") + (select count(pointdatas.id) from mmd_pointdatas as pointdatas  INNER JOIN mmd_users ON (mmd_users.id=pointdatas.staff_id)  where pointdatas.staff_id =Office.id AND pointdatas.created >= "'.$last_sunday.'") + (select count(pointdatas.id) from mmd_dark_adaptions as pointdatas  INNER JOIN mmd_users ON (mmd_users.id=pointdatas.staff_id)  where pointdatas.staff_id =Office.id AND pointdatas.created >= "'.$last_sunday.'" )';
 	 	$this->Office->virtualFields['total_test_last_week'] ='select (select count(pointdatas.id) from mmd_pointdatas as pointdatas  INNER JOIN mmd_users ON (mmd_users.id=pointdatas.staff_id)  where mmd_users.office_id =Office.id AND pointdatas.created >= "'.$second_last_sunday.'"  AND pointdatas.created < "'.$last_sunday.'" ) + (  select count(pointdatas.id) from mmd_dark_adaptions as pointdatas  INNER JOIN mmd_users ON (mmd_users.id=pointdatas.staff_id)  where mmd_users.office_id =Office.id AND pointdatas.created >= "'.$second_last_sunday.'"  AND pointdatas.created < "'.$last_sunday.'") + (select count(pointdatas.id) from mmd_pointdatas as pointdatas  INNER JOIN mmd_users ON (mmd_users.id=pointdatas.staff_id)  where pointdatas.staff_id =Office.id AND pointdatas.created >= "'.$second_last_sunday.'"  AND pointdatas.created < "'.$last_sunday.'" ) + (  select count(pointdatas.id) from mmd_dark_adaptions as pointdatas  INNER JOIN mmd_users ON (mmd_users.id=pointdatas.staff_id)  where pointdatas.staff_id =Office.id AND pointdatas.created >= "'.$second_last_sunday.'"  AND pointdatas.created < "'.$last_sunday.'")';
 	 	$this->Office->virtualFields['total_test_three_month'] ='select (select count(pointdatas.id) from mmd_pointdatas as pointdatas  INNER JOIN mmd_users ON (mmd_users.id=pointdatas.staff_id)  where mmd_users.office_id =Office.id AND pointdatas.created >= "'.$three_month_back.'" ) + (  select count(pointdatas.id) from mmd_dark_adaptions as pointdatas  INNER JOIN mmd_users ON (mmd_users.id=pointdatas.staff_id)  where mmd_users.office_id =Office.id AND pointdatas.created >= "'.$three_month_back.'") + (select count(pointdatas.id) from mmd_pointdatas as pointdatas  INNER JOIN mmd_users ON (mmd_users.id=pointdatas.staff_id)  where pointdatas.staff_id =Office.id AND pointdatas.created >= "'.$three_month_back.'" ) + (  select count(pointdatas.id) from mmd_dark_adaptions as pointdatas  INNER JOIN mmd_users ON (mmd_users.id=pointdatas.staff_id)  where pointdatas.staff_id =Office.id AND pointdatas.created >= "'.$three_month_back.'")';
@@ -570,6 +688,16 @@ class OfficesController extends AppController {
 			$record[] = $i;
 			$record[] = $key['Office']['name'];
 			$record[] = $key['Office']['email'];
+
+			$device_keys=array();
+			foreach($key['TestDevice'] as $device_key => $device_value){
+				if(isset($type_option[$device_value['device_type']])){
+					$device_keys[$device_value['device_type']] = $type_option[$device_value['device_type']];
+				}
+				
+
+			}
+			$record[] = implode(', ', $device_keys);
 			$record[] = $key['Office']['total_test_current_week'];
 			$record[] = $key['Office']['total_test_last_week'];
 			$record[] = (int) ($key['Office']['total_test_three_month']/12); 
@@ -580,7 +708,71 @@ class OfficesController extends AppController {
 			fputcsv($csv, $record);
 			$record = array();
 		}
-		fclose($csv);pr($data);
+		fclose($csv);
+		exit();
+	}
+
+	public function admin_export_device(){
+	 
+		$this->layout=false;
+		$this->autoRender=false;
+
+		$file_name = 'Offices_device_list_'.uniqid().'_'.date('Ymd');
+		 
+		$header = array('S.No','Office Name','Office Email','Serial Number', 'Device Name', 'Device Type', 'Created', 'Status');
+
+		$csv = fopen("php://output", 'w');
+		header('Content-Type: application/csv; charset=utf-8');
+		header('Content-type: application/ms-excel');
+		header('Content-Disposition: attachment; filename='.$file_name.'.csv');
+		fputcsv($csv, array_values($header));
+		$last_sunday= date('Y-m-d 00:00:00',strtotime('last sunday'));
+		$second_last_sunday=date('Y-m-d',strtotime('last sunday -7 days')); 
+		$three_month_back = date('Y-m-d',strtotime(date('Y-m-d').' -3 months'));
+		$this->Office->unbindModel(array('hasMany' => array('Officereport')));
+		$this->Office->bindModel(
+			array(
+				'hasMany' => array(
+					'TestDevice' => array(
+						'className' => 'TestDevice',
+						'foreignKey' => 'office_id',
+					)
+				)
+			)
+		);
+		$type_option = array('0'=>'Gear','1'=>'GO','2'=>'PICO_NEO','3'=>'Quest','4'=>'PICO_G2','5'=>'PICO_NEO_3', '6' =>'PUPIL_NEO2','7'=>'PUPIL_NEO3','8'=>'PICO_G3','10'=>'Controller','11'=>'AppManager ','13'=>'Auto Download');
+			 
+		 
+		$data = $this->Office->find('all',array('fields'=>array('name','email','created','status'),'order'=>array('Office.name'=>'DESC'),'conditions' => array('status' => 1)));
+		
+		$i = 1; 
+		foreach($data as $key => $value){ 
+			 $record = array(); 
+			foreach($value['TestDevice'] as $device_key => $device_value){ 
+				if($device_key==0){
+					$record[] = $i;
+					$record[] = $value['Office']['name'];
+					$record[] = $value['Office']['email'];
+				}else{
+					$record[] = '';
+					$record[] = '';
+					$record[] = '';
+				}
+				 
+				$record[] = $device_value['deviceSeraial'];
+				$record[] = $device_value['name'];
+				$record[] = isset($type_option[$device_value['device_type']])?($type_option[$device_value['device_type']]):'';
+				$record[] = $device_value['created'];
+				$record[] = ($device_value['status'] == 1)?'Active':'InActive';
+				fputcsv($csv, $record);
+				$record = array();
+			}
+			  
+			
+			$i++;
+			
+		}
+		fclose($csv);
 		exit();
 	}
 	public function admin_genratePassword(){

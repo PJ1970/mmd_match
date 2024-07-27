@@ -74,9 +74,17 @@ class User extends AppModel
 				'message' => 'Please enter your password.'
 
 			),
+			'complexity' => array(
+                'rule' => array('custom', '/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[\W_]).{8,16}$/'),
+                'message' => 'Please follow the password rule.'
+            ),
             'length' => array(
                 'rule'=> array('between',8,16),
-                'message'=> 'Your password must be between 8 and 16 characters.',
+                'message'=> 'Please follow the password rule.',
+            ),
+            'unique' => array(
+                'rule' => 'isUniquePassword',
+                'message' => 'You have already used this password. Please choose a different password.'
             )
         ),
 		'email' =>array(
@@ -104,6 +112,26 @@ class User extends AppModel
 			return true;
 		}
 		return false;
+	}
+	public function isUniquePassword($check) {
+		if(empty($this->data[$this->alias]['id'])){
+			return true;
+		} 
+		$password = array_values($check)[0];
+		$passwordHasher = new BlowfishPasswordHasher(); 
+            $oldPasswords = $this->find('first', array(
+            'conditions' => array('User.id' => $this->data[$this->alias]['id']),
+            'fields' => array('User.password')
+        ));
+         
+        if(empty($oldPasswords)){
+        	return true;
+        }else{
+        	if ($passwordHasher->check($this->data[$this->alias]['password'], $oldPasswords['User']['password'])) {
+        		return false;
+        	}
+        	return true;
+        }
 	}
 	public function beforeSave($options = array()){
 		if(isset($this->data[$this->alias]['password'])){

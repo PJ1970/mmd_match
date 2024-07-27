@@ -43,7 +43,7 @@ class CmsController extends AppController {
 		$this->set(compact('datas'));
 		//pr($datas); die;
 		}else{
-			$this->redirect(WWW_BASE.'admin/dashboards/index');
+			$this->redirect('https://www.portal.micromedinc.com/admin/dashboards/index');
 		}
 		 
 	} 
@@ -69,7 +69,7 @@ class CmsController extends AppController {
 			//pr($this->request->data); die;
 		}
 		}else{
-			$this->redirect(WWW_BASE.'admin/dashboards/index');
+			$this->redirect('https://www.portal.micromedinc.com/admin/dashboards/index');
 		}  
 	} 
 }

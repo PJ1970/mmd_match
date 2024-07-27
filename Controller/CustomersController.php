@@ -57,7 +57,7 @@ class CustomersController extends AppController {
 		//pr($datas); die;
 		$this->set(compact('datas'));
 		}else{
-            $this->redirect(WWW_BASE.'admin/dashboards/index');
+            $this->redirect('https://www.portal.micromedinc.com/admin/dashboards/index');
         } 
 	}
 	public function admin_add_office($id=null){
@@ -77,7 +77,7 @@ class CustomersController extends AppController {
 				
 		}
 		}else{
-            $this->redirect(WWW_BASE.'admin/dashboards/index');
+            $this->redirect('https://www.portal.micromedinc.com/admin/dashboards/index');
         } 
 		
 	}

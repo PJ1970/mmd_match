@@ -20,7 +20,7 @@ class UnityreportsController extends AppController
 
 	/*Test Report List*/
 	public function admin_unity_reports_list($reportType=""){
-		$vfTestNames = array("Central_20_Point", "Central_40_Point", "Esterman_120_point","Estrman_120_point", "76_Point_Pattern", "Central_80_Point", "Central_166_Point", "Armally_Central","Central_10_2", "Central_24_1", "Central_24_2", "Central_24_2C" , "Central_30_1", "Central_30_2","Superior_24_2", "Superior_30_2", "Superior_50_1", "Superior_64", "Neuro_20", "Neuro_35", "Full_Field_120_PTS","Kinetic_60_16", "Kinetic_30_16", "Kinetic_60_28", "Kinetic_30_28", "Ptosis_9_PT", "Ptosis_Auto_9_PT","Detailed_Progression_Central_20_Point","Detailed_Progression_Central_24_2","Detailed_Progression_Central_40_Point","C20-1", "C20-5", "N30-1", "N30-5","N30","AFVF_8_PT","Amsler_Grid_10_16");
+		$vfTestNames = array("Central_5_2","Central_20_Point", "Central_40_Point", "Esterman_120_point","Estrman_120_point", "76_Point_Pattern", "Central_80_Point", "Central_166_Point", "Armally_Central","Central_10_2", "Central_24_1", "Central_24_2", "Central_24_2C" , "Central_30_1", "Central_30_2","Superior_24_2", "Superior_30_2", "Superior_50_1", "Superior_64", "Neuro_20", "Neuro_35", "Full_Field_120_PTS","Kinetic_60_16", "Kinetic_30_16", "Kinetic_60_28", "Kinetic_30_28", "Ptosis_9_PT", "Ptosis_Auto_9_PT","Detailed_Progression_Central_20_Point","Detailed_Progression_Central_24_2","Detailed_Progression_Central_40_Point","C20-1", "C20-5", "N30-1", "N30-5","N30","AFVF_8_PT","Amsler_Grid_10_16","OPTIC_NERVE_TEST");
 		$fdtTestNames = array("C20-1", "C20-5", "N30-1", "N30-5","N30");
 		$vsTestNames = array("Vision Screening");
 		$PupTestNames = array("Pupolimeter");
@@ -79,16 +79,28 @@ class UnityreportsController extends AppController
 		$test_name = @$this->request->query['test_name'];
 		if (!empty($test_name))
 			$conditions['AND'][] = array('Pointdata.test_name like' => '%' . trim($test_name) . '%');
+		@$first_name = trim($this->request->query['first_name']);
+		@$middle_name = trim($this->request->query['middle_name']);
+		@$last_name = trim($this->request->query['last_name']);
+		@$id_number = trim($this->request->query['id_number']);
+		if (!empty($first_name))
+			$conditions['AND'][] = array('Lower(Patient.first_name) like' => '%' . strtolower($first_name) . '%');
+		if (!empty($id_number))
+			$conditions['AND'][] = array('Lower(Patient.id_number) like' => '%' . strtolower($id_number) . '%');
+		if (!empty($middle_name))
+			$conditions['AND'][] = array('Lower(Patient.middle_name) like' => '%' . strtolower($middle_name) . '%');
+		if (!empty($last_name))
+			$conditions['AND'][] = array('Lower(Patient.last_name) like' => '%' . strtolower($last_name) . '%');
 		if ($Admin['user_type'] == 'Admin') {
 			$version = @$this->request->query['version'];
 
 			$eye_select = @$this->request->query['eye_select'];
 			$patient_name = (!empty(@$this->request->query['patient_name'])) ? explode(" ", @$this->request->query['patient_name']) : [];
 			$include_patient_name = (!empty(@$this->request->query['include_patient_name'])) ? explode(" ", @$this->request->query['include_patient_name']) : [];
-			$patient_dob=@$this->request->query['patient_dob'];
+			//$patient_dob=@$this->request->query['patient_dob'];
 			$patient_age = @$this->request->query['patient_age'];
 			$race = @$this->request->query['race'];
-			$staff_name = '';
+
 			if ($eye_select != '' && $eye_select != 2)
 				$conditions['AND'][] = array('Pointdata.eye_select' => $eye_select);
 			if (!empty($version))
@@ -102,8 +114,8 @@ class UnityreportsController extends AppController
 				$conditions['AND'][] = array('DATEDIFF(CURDATE(), STR_TO_DATE(Patient.dob, "%d-%m-%Y"))>=' . $ageArray[0] * 365);
 			}
 			if (!empty($this->request->query['page_type'])) {
-				$vfTestname = array("Central_20_Point", "Central_40_Point", "Esterman_120_point","Estrman_120_point", "76_Point_Pattern", "Central_80_Point", "Central_166_Point", "Armally_Central", "Central_10_2", "Central_24_1", "Central_24_2", "Central_24_2C", "Central_30_1", "Central_30_2", "Superior_24_2", "Superior_30_2", "Superior_50_1", "Superior_64", "Neuro_20", "Neuro_35", "Full_Field_120_PTS", "Kinetic_60_16", "Kinetic_30_16", "Kinetic_60_28", "Kinetic_30_28", "Ptosis_9_PT", "Ptosis_Auto_9_PT","AFVF_8_PT");
-				$fdtTestname = array("C20-1", "C20-5", "N30-1", "N30-5", "N30","Amsler_Grid_10_16");
+				$vfTestname = array("Central_20_Point", "Central_40_Point", "Esterman_120_point","Estrman_120_point", "76_Point_Pattern", "Central_80_Point", "Central_166_Point", "Armally_Central", "Central_10_2", "Central_24_1", "Central_24_2", "Central_24_2C", "Central_30_1", "Central_30_2", "Superior_24_2", "Superior_30_2", "Superior_50_1", "Superior_64", "Neuro_20", "Neuro_35", "Full_Field_120_PTS", "Kinetic_60_16", "Kinetic_30_16", "Kinetic_60_28", "Kinetic_30_28", "Ptosis_9_PT", "Ptosis_Auto_9_PT","AFVF_8_PT","AFVF_8_PT","Amsler_Grid_10_16");
+				$fdtTestname = array("C20-1", "C20-5", "N30-1", "N30-5", "N30");
 				if ($this->request->query['page_type'] == 'vf') {
 					$conditions['AND'][] = array('Pointdata.test_name' => $vfTestname);
 				} else if ($this->request->query['page_type'] == 'fdt') {
@@ -147,7 +159,21 @@ class UnityreportsController extends AppController
 			$conditions['OR'][] = array('Patient.id_number' => $search);
 			$this->set(compact('search'));
 		}
-		$this->set(compact('test_name'));
+
+		if (!empty($this->request->query['page_no'])) {
+		    $this->request->params['named']['page'] = $this->request->query['page_no'];
+		    $page_no = $this->request->query['page_no'];
+		    $this->set(compact('page_no'));
+		}
+		
+		if (!empty($this->request->query['patientreport'])) {
+			$patientreport = trim($this->request->query['patientreport']); 
+			if (is_numeric($patientreport)) { 
+				$conditions['OR'][] = array('Pointdata.patient_id' => $patientreport); /* 3 dec Added new line */
+			}
+			$this->set(compact('patientreport'));
+		}
+		$this->set(compact('test_name','first_name','middle_name','last_name','id_number'));
 		//pr($conditions); die;
 		//creating virtual field for full name
 		$this->Pointdata->virtualFields['staff_name'] = "CONCAT(User.first_name,' ', User.last_name)";
@@ -159,9 +185,15 @@ class UnityreportsController extends AppController
 		$this->Pointdata->virtualFields['patient_age_days'] = "FLOOR( TIMESTAMPDIFF(DAY, STR_TO_DATE(Patient.dob, '%d-%m-%Y'), now())% 30.4375 )";
 		$this->Pointdata->virtualFields['race'] = "Patient.race";
 
+
+ 	$limit=10;
+    if(@$this->request->query['rempve_layout']==1){
+	       $limit=100;
+	   }
+
 		$params = array(
 			'conditions' => $conditions,
-			'limit' => 10,
+			'limit' => $limit,
 			'order' => array('Pointdata.created' => 'DESC') 
 			//'fields'=>array('Patient.first_name','Patient.last_name','Patient.middle_name','Patient.dob','Pointdata.file','Patient.id','Pointdata.id','Pointdata.patient_name','Pointdata.created','Pointdata.patient_id','Pointdata.patient_dob','Pointdata.test_name','Pointdata.eye_select','Pointdata.baseline','Pointdata.staff_id','Pointdata.staff_name','Pointdata.patient_age_years','Pointdata.version','Pointdata.diagnosys','Pointdata.source','Patient.id_number')
 		);
@@ -245,7 +277,7 @@ class UnityreportsController extends AppController
 		//------RELATED OS/OD REPORT
 		$download = array();
 		$downloads = array();
-
+		$download_new = array();
 		if (count($datas) > 0):
 			foreach ($datas as $ospt):
 				$first_name = @$ospt['Patient']['first_name'];// Hash::get($ospt, 'Patient.first_name');
@@ -289,7 +321,7 @@ class UnityreportsController extends AppController
 				} else {
 					$os_pdf = @$ospt['Pointdata']['file'];// Hash::get($ospt, 'Pointdata.file');
 				}
-				//$os_od_pdf = @$ospt['Pointdata']['file_merge'];
+
 				//$odpt
 				if (@$odpt['Pointdata']['eye_select'] == 1) { //Hash::get($odpt, 'Pointdata.eye_select')
 					if (empty($od_pdf)) {
@@ -300,12 +332,15 @@ class UnityreportsController extends AppController
 						$os_pdf = @$odpt['Pointdata']['file'];//Hash::get($odpt, 'Pointdata.file');
 					}
 				}
+				
 				$os_pdf_file = explode(".",$os_pdf)[0];
 				$od_pdf_file = explode(".",$od_pdf)[0];
 				$os_pdf_link = WWW_BASE . 'pointData/' . $os_pdf;
 				$od_pdf_link = WWW_BASE . 'pointData/' . $od_pdf;
+				$os_pdf_link = WWW_BASE . 'pointData/' . $os_pdf;
+				$od_pdf_link = WWW_BASE . 'pointData/' . $od_pdf;
 				if((!empty($os_pdf_file)) && (!empty($od_pdf_file))){
-					$os_od_pdf_link = WWW_BASE . 'pointData/' . $os_pdf_file.'_'.$od_pdf_file.'_merge.pdf';
+					$os_od_pdf_link = WWW_BASE . 'pointData/' . $od_pdf_file.'_'.$os_pdf_file.'_merge.pdf';
 				}else if($os_pdf){
 					$os_od_pdf_link = WWW_BASE . 'pointData/' . $os_pdf;
 				}else{
@@ -328,16 +363,25 @@ class UnityreportsController extends AppController
 				}else{
 					$p_id= 'NA';
 				}
+				$patinet_id = $ospt['Pointdata']['id'];
+				if (!empty($od_pdf)) {
+					$download[$os_pointdata_id]['pdf'][] = $od_pdf_link;
+					$download[$os_pointdata_id]['dicom'][] = $od_dicom_link . '?filename=' . $first_name . '-' . $last_name . '-' . $test_name . '-OD';
+					$download[$os_pointdata_id]['filename'][] = $first_name . '-' . $last_name . '-' . $test_name . '-OD-'.$p_id.'-' . time();
+
+					$download_new[$patinet_id][1]['pdf'][] = $od_pdf_link;
+					$download_new[$patinet_id][1]['dicom'][] = $od_dicom_link . '?filename=' . $first_name . '-' . $last_name . '-' . $test_name . '-OD';
+					$download_new[$patinet_id][1]['filename'][] = $first_name . '-' . $last_name . '-' . $test_name . '-OD-'.$p_id.'-' . time();
+
+				}
 				if (!empty($os_pdf)) {
 					$download[$os_pointdata_id]['pdf'][] = $os_pdf_link;
 					$download[$os_pointdata_id]['dicom'][] = $os_dicom_link . '?filename=' . $first_name . '-' . $last_name . '-' . $test_name . '-OS';
 					$download[$os_pointdata_id]['filename'][] = $first_name . '-' . $last_name . '-' . $test_name . '-OS-'.$p_id.'-'. time();
 
-				}
-				if (!empty($od_pdf)) {
-					$download[$os_pointdata_id]['pdf'][] = $od_pdf_link;
-					$download[$os_pointdata_id]['dicom'][] = $od_dicom_link . '?filename=' . $first_name . '-' . $last_name . '-' . $test_name . '-OD';
-					$download[$os_pointdata_id]['filename'][] = $first_name . '-' . $last_name . '-' . $test_name . '-OD-'.$p_id.'-' . time();
+					$download_new[$patinet_id][0]['pdf'][] = $os_pdf_link;
+					$download_new[$patinet_id][0]['dicom'][] = $os_dicom_link . '?filename=' . $first_name . '-' . $last_name . '-' . $test_name . '-OS';
+					$download_new[$patinet_id][0]['filename'][] = $first_name . '-' . $last_name . '-' . $test_name . '-OS-'.$p_id.'-'. time();
 
 				}
 				if ((!empty($os_pdf)) && (!empty($od_pdf))) {
@@ -346,6 +390,7 @@ class UnityreportsController extends AppController
 				}
 				$od_pointdata_id = @$odpt['Pointdata']['id'];//Hash::get($odpt, 'Pointdata.id');
 				$downloads[$os_pointdata_id]['tr_id'] = 'ptdata-' . $od_pointdata_id;
+
 				if (!empty($od_pointdata_id)):
 					$download[$os_pointdata_id]['tr_id'] = 'ptdata-' . $od_pointdata_id;
 				endif;
@@ -355,7 +400,12 @@ class UnityreportsController extends AppController
 
 		$TestNameArray = $this->Common->testNameArray();
 	
-		$this->set(compact('datas', 'check_payable', 'office', 'TestNameArray', 'download','downloads'));
+		$this->set(compact('datas', 'check_payable', 'office', 'TestNameArray', 'download','downloads','download_new'));
+
+		if(@$this->request->query['rempve_layout']==1){
+	       $this->layout = false;
+	       $this->render('unity_reports_list');
+	   }
 	}
 
 
@@ -524,7 +574,6 @@ class UnityreportsController extends AppController
 				$download[$os_pointdata_id]['filename'][] = $data['Patient']['first_name'] . '-' . $data['Patient']['last_name'] . '-' . $data['Pointdata']['test_name'] . '-OD-' . time();
 
 			}
-
 
 			$this->set(compact('data', 'data', 'download'));
 		}
@@ -936,7 +985,7 @@ class UnityreportsController extends AppController
 
 		$id = (!empty($dicomOptions['id_number'])) ? $dicomOptions['id_number'] : '0';
 		$output = shell_exec('pdf2dcm +t Morrison +cn "DICOM" "OF" "' . $pdf . '" +pn "' . $patientName . '" +pi ' . $id . ' +pb ' . date('Ymd', strtotime($dicomOptions['dob'])) . ' +ps M ' . $pdf_file . ' ' . $fileName);
-		//echo $fileName;
+		//echo $fileName;die;
 		if (file_exists($fileName)) {
 			header('Content-Description: File Transfer');
 			header('Content-Type: application/octet-stream');
@@ -1075,7 +1124,7 @@ class UnityreportsController extends AppController
 			readfile($fileName);
 			exit;
 		}
-		return $this->redirect(WWW_BASE.'pointDataImage/' . $jpgname . '.jpg');
+		return $this->redirect('http://www.vibesync.com/pointDataImage/' . $jpgname . '.jpg');
 		//echo $save_to; die;
 	}
 
@@ -1104,7 +1153,7 @@ class UnityreportsController extends AppController
 		//save image file
 		$img->writeImage($save_to);
 		//pr($img); die;
-		return $this->redirect(WWW_BASE.'stbDataImage/' . $jpgname . '.jpg');
+		return $this->redirect('https://www.vibesync.com/stbDataImage/' . $jpgname . '.jpg');
 		//echo $save_to; die;
 	}
 
@@ -1144,7 +1193,7 @@ class UnityreportsController extends AppController
 			readfile($fileName);
 			exit;
 		}
-		return $this->redirect(WWW_BASE.'pointDataImageda/' . $jpgname . '.jpg');
+		return $this->redirect('http://www.vibesync.com/pointDataImageda/' . $jpgname . '.jpg');
 		//echo $save_to; die;
 	}
 
@@ -1154,10 +1203,12 @@ class UnityreportsController extends AppController
 		$Admin = $this->Auth->user();
 		//pr($Admin);die;
 		if ($Admin['user_type'] == 'Admin' || $Admin['user_type'] == 'Subadmin') {
-			$delete_record = $this->Pointdata->updateAll(
-				array('Pointdata.is_delete' => '1'),
-				array('Pointdata.id' => $id)
-			);
+			date_default_timezone_set('UTC');
+			$UTCDate = date('Y-m-d H:i:s');
+			$pointdata['Pointdata']['deleted_date_utc']=$UTCDate;
+			$pointdata['Pointdata']['is_delete']=1;
+			$pointdata['Pointdata']['id']=$id;
+			$delete_record = $this->Pointdata->save($pointdata); 
 			if ($delete_record) {
 				$this->Session->setFlash("Point data Record deleted successfully.", 'message', array('class' => 'message'));
 			} else {
@@ -1169,21 +1220,71 @@ class UnityreportsController extends AppController
 			die;
 		}
 	}
-
-
-
 	public function admin_creat_view(){
 		$datas=$this->Office->find('all');
+		$checked_data = array(30,31,32,33,34,35,40,41,42);
+				$this->loadModel('Officelanguage');
 		foreach($datas as $key => $value){ 
 			
+				foreach($checked_data as $key2 =>$value2){
+    				    $datas['Officelanguage']['language_id']=$value2;
+                        $datas['Officelanguage']['office_id']=$value['Office']['id'];
+                        $this->Officelanguage->create();
+                        $this->Officelanguage->save($datas);
+    				        }
 			//$currentOrderAlert  		=  $this->Office->query("DROP VIEW mmd_pointdatas_".$value['Office']['id']);
 			
 
-			$currentOrderAlert  		=  $this->Office->query("CREATE OR REPLACE VIEW mmd_pointdatas_".$value['Office']['id']." AS  SELECT  `id`, `test_type_id`, `test_name`, `numpoints`, `color`, `backgroundcolor`, `stmsize`, `file`, `staff_id`, `patient_id`, `eye_select`, `baseline`, `is_delete`, `master_key`, `test_color_fg`, `test_color_bg`, `mean_dev`, `pattern_std`, `mean_sen`, `mean_def`, `pattern_std_hfa`, `loss_var`, `mean_std`, `psd_hfa_2`, `psd_hfa`, `vission_loss`, `false_p`, `false_n`, `false_f`, `threshold`, `strategy`, `ght`, `latitude`, `longitude`, `unique_id`, `version`, `diagnosys`, `age_group`, `device_id`, `office_id`, `source`, `stereopsis`, `created`  FROM   `mmd_pointdatas` WHERE mmd_pointdatas.staff_id in (SELECT id from mmd_users where office_id=".$value['Office']['id'].")");
+		//	$currentOrderAlert  		=  $this->Office->query("CREATE OR REPLACE VIEW mmd_patients_".$value['Office']['id']." AS  SELECT  `id`, `unique_id`, `user_id`, `first_name`,`middle_name`, `last_name`,`email`,`phone`,`id_number`,`office_id`,`dob`, `is_delete`,`merge_status`,`merge_date`,`delete_date`,`notes`,`status`,`archived_date`,`p_profilepic`, `od_left`,`od_right`, `os_left`,`os_right`,`race`,`created_date_utc`,`created`,`created_at_for_archive` from `mmd_patients` where `user_id` in (select `mmd_users`.`id` from `mmd_users` where `mmd_users`.`office_id`=".$value['Office']['id'].")");
+    
+    
+			//$currentOrderAlert  		=  $this->Office->query("CREATE OR REPLACE VIEW mmd_pointdatas_".$value['Office']['id']." AS  SELECT  `id`, `test_type_id`, `test_name`, `numpoints`, `color`, `backgroundcolor`, `stmsize`, `file`, `staff_id`, `patient_id`, `eye_select`, `baseline`, `is_delete`, `master_key`, `test_color_fg`, `test_color_bg`, `mean_dev`, `pattern_std`, `mean_sen`, `mean_def`, `pattern_std_hfa`, `loss_var`, `mean_std`, `psd_hfa_2`, `psd_hfa`, `vission_loss`, `false_p`, `false_n`, `false_f`, `threshold`, `strategy`, `ght`, `latitude`, `longitude`, `unique_id`, `version`, `diagnosys`, `age_group`, `device_id`, `office_id`, `source`, `stereopsis`, `created`  FROM   `mmd_pointdatas` WHERE mmd_pointdatas.staff_id in (SELECT id from mmd_users where office_id=".$value['Office']['id'].")");
+	
 		} 
 		//pr($datas);
 		die();
 	}
+	public function admin_video_listing(){ 
+		$this->loadModel('Video');
+		$this->loadModel('PatientVideoViews');
+ 		$patient_id = trim($this->request->query['search']);
+ 		$Admin = $this->Auth->user(); 
+		$office_id = $this->User->find('first', array('conditions' => array('User.id' => $Admin['id']), 'fields' => array('User.office_id')));
+	    $office_ids = $office_id['User']['office_id'];
+		$save_data = array();
+		$this->Video->virtualFields['viewes'] = 0;
+		$this->Video->bindModel(
+			array(
+				'hasOne' => array(
+					'PatientVideoView' => array(
+						'className' => 'PatientVideoView',
+						'foreignKey' => 'video_id',
+						'fields' => array('PatientVideoView.id','PatientVideoView.video_id','PatientVideoView.patient_id','PatientVideoView.type','PatientVideoView.id','PatientVideoView.video_len_sec','PatientVideoView.video_watched_sec','PatientVideoView.video_status','PatientVideoView.created_at','PatientVideoView.updated_at'),
+						'conditions' => array('PatientVideoView.patient_id' => $patient_id)
+					)
+				)
+			)
+		);
+		$conditions = array();
+		$conditions[] = array('Video.office_id' => $office_ids);
+		$datas = $this->Video->find('all', array('conditions' => $conditions,'order' => array('Video.id' => 'ASC') ));
+		$datas_new = array();
+		$conditions_patient =  array('Patient.id' => $patient_id);
+		$this->Patient->recursive = -1;
+		$patient = $this->Patient->find('first', array('conditions' => $conditions_patient));
+		foreach ($datas as $key => $value) {
+			$value['Video']['viewes'] = (isset($value['PatientVideoView']['id']))?1:0;
+			$value['Video']['viewed_date'] = (isset($value['PatientVideoView']['updated_at']))?$value['PatientVideoView']['updated_at']:'';
+			$value['Video']['video_len_sec'] = (isset($value['PatientVideoView']['video_len_sec']))?$value['PatientVideoView']['video_len_sec']:'';
+			$value['Video']['video_watched_sec'] = (isset($value['PatientVideoView']['video_watched_sec']))?$value['PatientVideoView']['video_watched_sec']:'';
+			$value['Video']['video_status'] = (isset($value['PatientVideoView']['video_status']))?$value['PatientVideoView']['video_status']:'';
+			$datas_new[] = $value['Video'];
+		}
+		$this->set(compact('datas_new','office_ids','patient_id','patient'));
+		$this->layout = false;
+	    $this->render('video_listing');
+	}
+	
 }
 
 ?>

@@ -28,7 +28,7 @@
                    
           <!-- <script src='<?php //echo WWW_BASE.'js/admin/api.js';?>'></script> -->
           <script src='https://www.google.com/recaptcha/api.js'></script>
-          <div class="g-recaptcha" data-sitekey="6LeHwYkiAAAAAJAVmup1K4N-3VFU311jU9sYC4Io"></div>
+          <div class="g-recaptcha" data-sitekey="6Le15VAUAAAAAEgfp9XCTpIzJIWokXlzZrnM1z_N"></div>
           <?php echo isset($capchaError)?$capchaError:'';?>
           </div>
         <div class="form-group">

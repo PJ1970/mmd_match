@@ -51,18 +51,8 @@ class TestDevice extends AppModel
 			'className'     => 'Office',
 			'foreignKey'    => false,
 			'conditions' => array('TestDevice.office_id = Office.id')  
-		),
-/*		'Patient' => array(
-			'className' => 'Patient',
-			'foreignKey' => false,
-			'fields' => array('Patient.first_name','Patient.middle_name','Patient.last_name'),
-			'conditions' => array('TestDevice.name = Patient.device_type')  
-
-		)*/
+		)
 	);
-
-
-
 	public function afterSave($created, $options = Array()){ 
 		Cache::delete('test_device_list'.$this->data['TestDevice']['office_id'], '_cake_model_');
 	}

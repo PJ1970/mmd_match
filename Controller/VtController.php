@@ -48,6 +48,14 @@ class VtController extends AppController
 			$conditions['OR'][] = array('Patient.id' => $search);
 			$this->set(compact('search'));
 		}
+
+		if (!empty($this->request->query['patientreport'])) {
+			$patientreport = trim($this->request->query['patientreport']); 
+			if (is_numeric($patientreport)) { 
+				$conditions['OR'][] = array('Patient.id' => $patientreport); /* 3 dec Added new line */
+			}
+			$this->set(compact('patientreport'));
+		}
 		//pr($conditions);die();
 		$params = array(
 			'conditions' => $conditions,

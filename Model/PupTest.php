@@ -22,9 +22,15 @@ class PupTest extends AppModel
 		'PupPointdata' => array(
 			'className' => 'PupPointdata',
 			'foreignKey' => 'pup_test_id'
+		),
+		'PupDiagnosis' => array(
+			'className' => 'PupDiagnosis',
+			'foreignKey' => 'pup_id'
 		)
 	);
 
+
+	
 	public $validate = array(
 		'unique_id' => array(
 			'rule' => 'isUnique',

@@ -203,6 +203,48 @@ input:checked + .slider:before {
                                             //echo $this->Form->select('Officereports.office_report', $arr, array('multiple' => 'checkbox'));
                                             ?>
                                         </div>
+                                        
+                                        
+                                        <div class="form-group">
+                                            <label> Office Language</label><br/>
+                                            <?php
+                                            $checked_data = array();
+                                            if (isset($this->request->data['Officelanguage'])) {
+                                                $checked_data = Hash::extract($this->request->data['Officelanguage'], '{n}.language_id'); 
+                                            }
+                                            if(!count($checked_data)){
+                                                    $checked_data = array(30,31,32,33,34,35,40,41,42);
+                                                }
+                                            $checked = '';
+                                            $arr = $test_c;
+                                            $i = 0;
+                                            foreach ($language as $key => $val) {
+                                                if (in_array($key, $checked_data)) {
+                                                    $checked = 'checked';
+                                                } else {
+                                                    $checked = '';
+                                                }
+                                                 $readonly = '0';
+                                                if($val =='English'){
+                                                    $readonly  = '1';
+                                                    $checked = 'checked';
+                                                }
+                                                ?>
+                                                <div class="change_checkbox">
+                                                    <?php
+                                                     echo $this->Form->input("Officelanguage.$i.language_id", array('value' => $key, 'label' => array('text' => $val), 'type' => 'checkbox', $checked, 'disabled' => $readonly));
+                                                    if($val =='English'){
+                                                        echo $this->Form->input('Officelanguage.$i.language_id', array('type' => 'hidden', 'class' => 'form-control', 'label' => false, 'div' => false, 'value' => $key  ));
+                                                   }
+                                        
+                                                    $i++;
+                                                    ?>
+                                                </div>
+                                                <?php
+                                            }
+                                            //echo $this->Form->select('Officereports.office_report', $arr, array('multiple' => 'checkbox'));
+                                            ?>
+                                        </div>
                                         <div class="form-group">
                                             <label>Address</label>
                                             <div>
@@ -273,16 +315,25 @@ input:checked + .slider:before {
                                                 </label>
                                             </div>
                                         </div>
+                                        <div class="form-group">
+                                            <label>High Security</label>
+                                            <div>
+                                               <label class="switch">
+                                                <?php echo $this->Form->input("high_security", array('label' => false, 'div' => false, 'type' => 'checkbox', 'class' => 'checkbox')); ?>
+                                                   <span class="slider round"></span>
+                                                </label>
+                                            </div>
+                                        </div>
                                         <div class="form-group archived_time" style="display: none;">
                                         <label>Archived time (Days)</label>
                                         <?php echo $this->Form->input('p_archived_date', array('type' => 'text', 'class' => ' archive_time form-control', 'label' => false, 'div' => false, 'placeholder' => "Enter archive Days", 'required' => true )); ?>
                                     </div>
-                                     <div class="form-group">
+                                    <div class="form-group">
                                         <label>Reassign Device Time (Days)</label>
                                         <?php echo $this->Form->input('weekdays', array('type' => 'number', 'class' => 'ihudevices form-control', 'label' => false, 'div' => false, 'placeholder' => "Enter Days", 'required' => true )); ?>
                                     </div>
                                         <div class="form-group">
-                                            <label>Upload Office Logo <span style="color:red;"> * Image file size shoud be 150X150</span></label>
+                                            <label>Upload Office Logo <span style="color:red;"> * Image file size shoud be 90-180X90-180</span></label>
                                             <div>
                                                 <?php /* echo $this->Form->input('office_pic', array('type' => 'file', 'label' => false, "class" => 'form-control', 'onchange' => 'readURL(this)', 'accept' => 'image/*')); ?>
                                                 <!--span class="user_dsply image" style="margin: 10px 10px;float:left;"-->
@@ -392,7 +443,7 @@ input:checked + .slider:before {
                         var image = new Image();
                         image.src = reader.result;
                         image.onload = function () {
-                            if ((image.height >= 90 && image.height <= 220) && (image.width >= 90 && image.width <= 220)) {
+                            if ((image.height >= 25 && image.height <= 220) && (image.width >= 25 && image.width <= 220)) {
 
                                 $('#preview').attr('src', $that.result);
                                 $(".imgread").removeClass("hidden");
@@ -400,7 +451,7 @@ input:checked + .slider:before {
                                 //$('#preview').attr('src', '#');
                                 $("#OfficeOfficePic").val('');
                                 //$(".imgread").addClass("hidden");
-                                alert("Height and Width must not exceed 150*150.");
+                                alert("Height and Width must not exceed 90-180*90-180.");
                             }
                         };
                     }
@@ -437,7 +488,7 @@ input:checked + .slider:before {
   }
   $('#preview').attr('src', '#');
   $("#OfficeOfficePic").val('');
-  alert("Height and Width must not exceed 150*150.");
+  alert("Height and Width must not exceed 90-180*90-180.");
   _URL.revokeObjectURL(objectUrl);
   return false;
   };

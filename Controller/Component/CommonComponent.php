@@ -356,7 +356,7 @@ class CommonComponent  extends Component{
 				];
 
 	}
-	public function TestTypethresholdArray(){  
+		public function TestTypethresholdArray(){  
 
 		return [ 
 

@@ -58,8 +58,8 @@ input:checked + .slider:before {
 .slider.round:before {
   border-radius: 50%;
 }
-.ihudevice, .ihudevices{width: 30%;}
 .archive_time{width:30%;}
+.ihudevice, .ihudevices{width: 30%;}
 .profile-img{}
 .delete-img{vertical-align: bottom;margin: 9px;color:red;font-weight: bolder;}
 </style>
@@ -112,18 +112,14 @@ input:checked + .slider:before {
                                         <label>Archived time (Days)</label>
                                         <?php echo $this->Form->input('p_archived_date', array('type' => 'text', 'class' => ' archive_time form-control', 'label' => false, 'div' => false, 'placeholder' => "Enter archive Days", 'required' => true, 'allowEmpty' => true)); ?>
                                     </div>
-                                   <!--  <div class="form-group">
-                                        <label>Reassign Device Time (Days)</label>
-                                        <?php echo $this->Form->input('weekdays', array('type' => 'number', 'class' => 'ihudevices form-control', 'label' => false, 'div' => false, 'placeholder' => "Enter Days", 'required' => true )); ?>
-                                    </div> -->
                                     <div class="form-group">
                                         <label>Email</label>
                                         <?php echo $this->Form->input('email', array('type' => 'text', 'class' => 'form-control', 'label' => false, 'div' => false, 'placeholder' => "Email", 'required' => true)); ?>
                                     </div>
                                     <div class="form-group">
-                                        <label>Secondary Email</label>
-                                        <?php echo $this->Form->input('second_email', array('type' => 'email', 'class' => 'form-control', 'label' => false, 'div' => false, 'placeholder' => "Second Email", 'required' => false)); ?>
-                                    </div>
+                                            <label>Secondary Email</label>
+                                            <?php echo $this->Form->input('second_email', array('type' => 'text', 'class' => 'form-control', 'label' => false, 'div' => false, 'placeholder' => "Second Email", 'required' => false)); ?>
+                                        </div>
                                     <div class="form-group">
                                         <label>Phone</label>
                                         <?php echo $this->Form->input('phone', array('type' => 'text', 'class' => 'form-control', 'label' => false, 'div' => false, 'placeholder' => "Phone", 'required' => true)); ?>
@@ -160,8 +156,49 @@ input:checked + .slider:before {
                                             <?php echo $this->Form->input('address', array('type' => 'textarea', 'class' => 'form-control', 'label' => false, 'div' => false, 'placeholder' => "Address", 'required' => true)); ?>
                                         </div>
                                     </div>
+                                     <div class="form-group">
+                                            <label> Office Language</label><br><span style="color:#ff0000">Office Language update In Development. Changes will not apply until update 1.4.20 for headset goes live. Language Selections Will Only Apply After Restarting VR Headset.</span> <br/>
+                                            
+                                            <?php
+                                            $checked_data = array();
+                                            if (isset($this->request->data['Officelanguage'])) {
+                                                $checked_data = Hash::extract($this->request->data['Officelanguage'], '{n}.language_id'); 
+                                            }
+                                            if(!count($checked_data)){
+                                                    $checked_data = array(30,31,32,33,34,35,40,41,42);
+                                                }
+                                            $checked = '';
+                                            $arr = $test_c;
+                                            $i = 0;
+                                            foreach ($language as $key => $val) {
+                                                if (in_array($key, $checked_data)) {
+                                                    $checked = 'checked';
+                                                } else {
+                                                    $checked = '';
+                                                }
+                                                 $readonly = '0';
+                                                if($val =='English'){
+                                                    $readonly  = '1';
+                                                    $checked = 'checked';
+                                                }
+                                                ?>
+                                                <div class="change_checkbox">
+                                                    <?php
+                                                     echo $this->Form->input("Officelanguage.$i.language_id", array('value' => $key, 'label' => array('text' => $val), 'type' => 'checkbox', $checked, 'disabled' => $readonly));
+                                                    if($val =='English'){
+                                                        echo $this->Form->input('Officelanguage.$i.language_id', array('type' => 'hidden', 'class' => 'form-control', 'label' => false, 'div' => false, 'value' => $key  ));
+                                                   }
+                                        
+                                                    $i++;
+                                                    ?>
+                                                </div>
+                                                <?php
+                                            }
+                                            //echo $this->Form->select('Officereports.office_report', $arr, array('multiple' => 'checkbox'));
+                                            ?>
+                                        </div>
                                     <div class="form-group">
-                                        <label>Upload Office Logo <span style="color:red;"> * Image file size shoud be 150X150</span></label>
+                                        <label>Upload Office Logo <span style="color:red;"> * Image file size shoud be 90-180X90-180</span></label>
                                         <div class="profile-img">
                                             <?php
                                             $cls_hidden = "";
@@ -258,7 +295,7 @@ input:checked + .slider:before {
                             //$('#preview').attr('src', '#');
                             $("#OfficeOfficePic").val('');
                             //$(".imgread").addClass("hidden");
-                            alert("Height and Width must not exceed 150*150.");
+                            alert("Height and Width must not exceed 90-180*90-180.");
                         }
                     };
                 }
@@ -269,7 +306,6 @@ input:checked + .slider:before {
         $(".archive_on").click(function(){
   $('.archived_time').show();
 });
-
 $(".ihudevice").on("input", function() {
        var getV = $(this).val(); 
        if(getV == 0 && getV != ''){
@@ -278,4 +314,5 @@ $(".ihudevice").on("input", function() {
         $(".showMsg").hide();
        }
 });
-</script>   
+
+    </script>   

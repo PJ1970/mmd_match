@@ -4,7 +4,7 @@ App::uses('CakeEmail', 'Network/Email');
 
 class PupController extends AppController
 {
-	public $uses = array('User', 'PupTest','Patients', 'Tests', 'Practice', 'Office', 'Files', 'VfPointdata', 'Pointdata', 'Masterdata', 'MasterPointdata', 'DevicePreference', 'Diagnosis', 'Cms', 'DarkAdaption', 'DaPointData', 'ActTest', 'ActPointdata');
+	public $uses = array('User', 'PupTest','Patient', 'Tests', 'Practice', 'Office', 'Files', 'VfPointdata', 'Pointdata', 'Masterdata', 'MasterPointdata', 'DevicePreference', 'Diagnosis', 'Cms', 'DarkAdaption', 'DaPointData', 'ActTest', 'ActPointdata');
 
 	var $helpers = array('Html', 'Form', 'Js' => array('Jquery'), 'Custom');
 
@@ -48,10 +48,23 @@ class PupController extends AppController
 			$conditions['OR'][] = array('Patient.id' => $search);
 			$this->set(compact('search'));
 		}
+
+		if (!empty($this->request->query['patientreport'])) {
+			$patientreport = trim($this->request->query['patientreport']); 
+			if (is_numeric($patientreport)) { 
+				$conditions['OR'][] = array('Patient.id' => $patientreport); /* 3 dec Added new line */
+			}
+			$this->set(compact('patientreport'));
+		}
+		//pr($conditions);die();
+		 $limit=10;
+			if(@$this->request->query['rempve_layout']==1){
+	       $limit=100;
+	   }
 		//pr($conditions);die();
 		$params = array(
 			'conditions' => $conditions,
-			'limit' => 10,
+			'limit' => $limit,
 			'order' => array('PupTest.id' => 'DESC')
 		);
 
@@ -97,6 +110,11 @@ class PupController extends AppController
 
 		$TestNameArray = $this->Common->testNameArray();
 		$this->set(compact('datas', 'check_payable', 'TestNameArray'));
+
+		if(@$this->request->query['rempve_layout']==1){
+	       $this->layout = false;
+	       $this->render('pup_list');
+	   }
 	}
 
 	/*Unity report view*/
@@ -109,52 +127,73 @@ class PupController extends AppController
 			$this->set(compact(['data']));
 		}
 	}
-
-	public function admin_export($id = null)
-	{
-
-		$this->layout = false;
-		$this->autoRender = false;
-
-		if (empty($this->request->query['url'])) {
-			$file_name = uniqid() . '_' . date('Ymd');
-		} else {
+ 
+public function admin_export($id=null){
+	 
+		$this->layout=false;
+		$this->autoRender=false;
+		if(empty($this->request->query['url'])){
+			$file_name = uniqid().'_'.date('Ymd');
+		}else{
 			$file_name = $this->request->query['url'];
 		}
-
-		$header = array('X', 'Y', 'Z', 'Eye', 'Test State', 'locationX', 'locationY', 'locationZ', 'TargetSize');
-		$csv = fopen("php://output", 'w');
-		header('Content-Type: application/csv; charset=utf-8');
-		header('Content-type: application/ms-excel');
-		if (!empty($id)) {
-			$data = $this->PupTest->findById($id);
+		 
+		$header = array('Pupil Diam OS', 'Pupil Diam OD', 'Test State', 'Time', 'Diagnosis', 'Age', 'Sex','Race');
+		 $csv = fopen("php://output", 'w');
+		 header('Content-Type: application/csv; charset=utf-8');
+		 header('Content-type: application/ms-excel');
+			if(!empty($id)){
+		$data = $this->PupTest->findById($id);
 			$file_name = str_replace(" ", "_", $data['PupTest']['patient_name']) . "_" . date('YmdHis', strtotime($data['PupTest']['created']));
 			header('Content-Disposition: attachment; filename=' . $file_name . '.csv');
-			fputcsv($csv, array_values($header));
+			$diagnosis = $this->Diagnosis->find('list',array('fields'=>array('id','name')),array( 'conditions' =>  array('Diagnosis.is_delete' =>0)));
+			$this->loadModel('PatientDiagnosis');
+			$this->loadModel('Diagnosis'); 
+		 $patientDiagnosis = $this->PatientDiagnosis->find('list', array('conditions' => array('PatientDiagnosis.patient_id' => $data['PupTest']['patient_id']), 'fields' => array('diagnosis_id')));
+		 $patientDiagnosisList = array();
+		 foreach($patientDiagnosis as $key => $value){
+		 	$patientDiagnosisList[] = $value;
+		 }
+		$diagnosis = $this->Diagnosis->find('list',array('fields'=>array('id','name')),array( 'conditions' =>  array('Diagnosis.is_delete' =>0)));
+		
+		 $d1 = new DateTime($data['PupTest']['created']);
+		$d2 = new DateTime($data['Patient']['dob']);
 
+		$diff = $d2->diff($d1);
 
-			//pr($data); die;
-			foreach ($data['StbPointdata'] as $pdata) {
-				$record[] = $pdata['x'];
-				$record[] = $pdata['y'];
-				$record[] = $pdata['z'];
-				$record[] = ($pdata['eye']) ? 'OD' : 'OS';
+		fputcsv($csv, array_values($header));
+			 
+			foreach ($data['PupPointdata'] as $key => $pdata) {
+				$record[] = $pdata['pupilDiam_OS'];
+				$record[] = $pdata['pupilDiam_OD'];
 				$record[] = $pdata['testState'];
-				$record[] = $pdata['locationX'];
-				$record[] = $pdata['locationY'];
-				$record[] = $pdata['locationZ'];
-				$record[] = $pdata['TargetSize'];
+				$record[] = $pdata['time'];
+					
+				if(isset($patientDiagnosisList[$key]) && isset($diagnosis[$patientDiagnosisList[$key]])){
+					$record[]= $diagnosis[$patientDiagnosisList[$key]];
+				}else{
+					$record[] ='';
+				}
+				if($key==0){
+					$record[] = $diff->y;
+					$record[] = isset($data['Patient']['gender'])?$data['Patient']['gender']:'';
+					$record[] = isset($data['Patient']['race'])?$data['Patient']['race']:'';
+				}else{
+					$record[] ='';
+					$record[] ='';
+					$record[] ='';
+				}
 				fputcsv($csv, $record);
 				$record = array();
+			
 			}
 			fclose($csv);
 			exit();
-		} else {
-			header('Content-Disposition: attachment; filename=' . $file_name . '.csv');
-			fputcsv($csv, array_values($header));
+		}else{
+		    	header('Content-Disposition: attachment; filename='.$file_name.'.csv');
+				fputcsv($csv, array_values($header));
 		}
 	}
-
 	public function admin_delete($id = NULL)
 	{
 		$Admin = $this->Auth->user();

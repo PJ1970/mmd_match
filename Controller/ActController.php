@@ -48,6 +48,28 @@ class ActController extends AppController
 			$conditions['OR'][] = array('Patient.id' => $search);
 			$this->set(compact('search'));
 		}
+
+		if (!empty($this->request->query['search'])) {
+			$staff_name = explode(" ", @$this->request->query['search']);
+			$search = strtolower(trim($this->request->query['search']));
+			$conditions['OR'][] = array('Lower(ActTest.patient_name) like' => '%' . $search . '%');
+			foreach ($staff_name as $key => $value) {
+				$conditions['OR'][] = array('User.first_name like' => '%' . trim($value) . '%');
+				$conditions['OR'][] = array('User.middle_name like' => '%' . trim($value) . '%');
+				$conditions['OR'][] = array('User.last_name like' => '%' . trim($value) . '%');
+			}
+			$conditions['OR'][] = array('Patient.id_number' => $search);
+			$conditions['OR'][] = array('Patient.id' => $search);
+			$this->set(compact('search'));
+		}
+
+		if (!empty($this->request->query['patientreport'])) {
+			$patientreport = trim($this->request->query['patientreport']); 
+			if (is_numeric($patientreport)) { 
+				$conditions['OR'][] = array('Patient.id' => $patientreport); /* 3 dec Added new line */
+			}
+			$this->set(compact('patientreport'));
+		}
 		//pr($conditions);die();
 		$params = array(
 			'conditions' => $conditions,

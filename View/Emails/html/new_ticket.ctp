@@ -5,7 +5,9 @@
 		<p style="color:#555555; font-size:13px; margin:0px;">You have recieved new support ticket from <?php echo $Office['name'] ; ?><br /> 
 		<p style="color:#555555; font-size:13px; margin:0px;">Ticket added by <?php echo $User['username'] ; ?><br /><br /> 
 		<b>Posted By:</b> <?php	echo $User['first_name'].' '.$User['middle_name'].' '.$User['last_name'];?><br/>
+		<b>Office Name:</b> <?php	echo $Office['name'];?><br/>
 		<b>Title:</b> <?php echo $Support['title'] ;?><br/>
+		<b>Refrance No.:</b> <?php echo $Support['refrance_no'] ;?><br/>
 		<b>Category:</b> <?php echo $Category['name'];?><br/>
         <b>Device Serial No.:</b>  <?php if(!empty($Support['device_serial_no'])){ echo $Support['device_serial_no']; }?><br/>
 		<b>Model:</b>  <?php if(!empty($Support['model'])){ echo $Support['model']; }?><br/>

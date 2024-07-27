@@ -61,7 +61,7 @@ class TestreportsController extends AppController {
 		$datas = $this->paginate('Testreport');
 		$this->set(compact('datas'));
 		}else{
-            $this->redirect(WWW_BASE.'admin/dashboards/index');
+            $this->redirect('https://www.portal.micromedinc.com/admin/dashboards/index');
         }
 	} 
 	

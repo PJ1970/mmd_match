@@ -70,7 +70,7 @@ class MasterReportsController extends AppController{
 		$this->set(compact('datas'));
 		//pr($datas);die; 
 		}else{
-            $this->redirect(WWW_BASE.'admin/dashboards/index');
+            $this->redirect('https://www.portal.micromedinc.com/admin/dashboards/index');
         }
 	} 
 	
@@ -188,7 +188,7 @@ class MasterReportsController extends AppController{
     		$type="";
 			 if($device['TestDevice']['device_type']==1){
 			  $type="_Go"; 
-			 }else if($device['TestDevice']['device_type']==2 || $device['TestDevice']['device_type']==4){
+			 }else if($device['TestDevice']['device_type']==2 || $device['TestDevice']['device_type']==4 || $device['TestDevice']['device_type']==5 || $device['TestDevice']['device_type']==6 || $device['TestDevice']['device_type']==8 ){
 			  $type="_PICO";   
 			 }else if($device['TestDevice']['device_type']==3){
 			  $type="_Quest";   
@@ -232,7 +232,7 @@ class MasterReportsController extends AppController{
     		$type="";
 			 if($device['TestDevice']['device_type']==1){
 			  $type="_Go"; 
-			 }else if($device['TestDevice']['device_type']==2 || $device['TestDevice']['device_type']==4){
+			 }else if($device['TestDevice']['device_type']==2 || $device['TestDevice']['device_type']==4 || $device['TestDevice']['device_type']==5 || $device['TestDevice']['device_type']==6 || $device['TestDevice']['device_type']==6 ){
 			  $type="_PICO";   
 			 }else if($device['TestDevice']['device_type']==3){
 			  $type="_Quest";   
@@ -290,12 +290,14 @@ if($_GET['testType']==2)
     		$type="";  /// set defalt for device type 0 ans 4 (Geare master record )
 			 if($device['TestDevice']['device_type']==1){
 			  $type="_Go"; 
-			 }else if($device['TestDevice']['device_type']==2  || $device['TestDevice']['device_type']==4){
+			 }else if($device['TestDevice']['device_type']==2  || $device['TestDevice']['device_type']==4 || $device['TestDevice']['device_type']==5  || $device['TestDevice']['device_type']==6 || $device['TestDevice']['device_type']==8){
 			  $type="_PICO";   
 			 }else if($device['TestDevice']['device_type']==3){
 			  $type="_Quest";   
 			 }
-			if($_GET['testTypeName']=='Vision Screening'){
+
+			  if($_GET['testTypeName']=='Vision Screening'){
+
 			  	$data=$this->Masterdata->find('first',array('conditions'=>array('Masterdata.age_group'=>$_GET['ageGroup'],'Masterdata.test_name'=>$_GET['testTypeName'])));
 			     $this->loadModel('Pointdata');
 			  }else{
@@ -307,15 +309,23 @@ if($_GET['testType']==2)
 							$data['VfMasterdata'][$key2]['x'] = $value2['x']*-1;
 						}
    				}*/
-	            $this->Pointdata->unbindModel(array('belongsTo' => array('User','Patient','Test')));
-				if($_GET['testType']==2){
-      				$data['previousTest']= $this->Pointdata->find('all', array('order' => 'Pointdata.created ASC','conditions' => array('Pointdata.patient_id' => $_GET['patient_id'],'Pointdata.test_name' => $_GET['testTypeName'],'Pointdata.eye_select' =>  $_GET['eye'],'Pointdata.baseline'=>1)));     
-   				} 
-				echo json_encode($data);
+			
+            
+              $this->Pointdata->unbindModel(
+    array('belongsTo' => array('User','Patient','Test'))
+);
+
+if($_GET['testType']==2)
+   {
+      $data['previousTest']= $this->Pointdata->find('all', array(
+            'order' => 'Pointdata.created ASC','conditions' => array('Pointdata.patient_id' => $_GET['patient_id'],'Pointdata.test_name' => $_GET['testTypeName'],'Pointdata.eye_select' =>  $_GET['eye'],'Pointdata.baseline'=>1)));     
+   } 
+			echo json_encode($data);
 			exit();
+			 
 		}	
-			echo 0;
-			exit();
+		echo 0;
+		exit();
 	}
 	
 		/*Unity report view*/
