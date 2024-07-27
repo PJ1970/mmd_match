@@ -1,0 +1,52 @@
+<table width="100%" cellpadding="0" cellspacing="0" border="0">
+
+    <tr><td height="10px"> </td></tr>
+	<tr>
+		<td align="center">
+	
+	<table border="1" class="table_section">
+	<tr class="th_align">
+		<th><?php echo $this->Paginator->sort('RequestInformation.first_name','User Name'); ?></th>
+		<th><?php echo $this->Paginator->sort('University.name','College Name'); ?></th>
+	
+		<th style="text-align:center;">Action</th>	
+	</tr>
+	<?php if(!empty($data)) { 
+	$row_count = 1;
+	foreach ($data as $rec): ?>
+	<tr>
+		<td><?php echo $rec['RequestInformation']['first_name']; ?></td>
+		<td><?php echo $rec['University']['name']; ?></td>
+
+		
+			
+		<td style="text-align:center;"align="center" class="action_sec">
+		<?php echo $this->Html->link('<i class="fa fa-eye"></i>',array('action'=>'view',$rec['RequestInformation']['id']),array('escape'=>false,'title'=>'view'));  
+		?>  
+		<?php echo $this->Html->link('<i class="fa fa-trash-o"></i>',array('controller'=>'request_infos','action'=>'delete',$rec['RequestInformation']['id']),array('escape'=>false,'class'=>'confirmLink'));?>
+		</td>
+	</tr>
+	<?php $row_count++;  endforeach; ?>
+		<?php unset($cat); ?>
+		<?php if($this->params['paging']['RequestInformation']['pageCount']>1){?>
+		<tr>
+			<td colspan='5' align="center">
+				<!-- Shows the next and previous links -->
+				<?php echo $this->Paginator->prev(); ?> &nbsp;
+				<!-- Shows the page numbers -->
+				<?php echo $this->Paginator->numbers(); ?> &nbsp;
+				<?php echo $this->Paginator->next(); ?> &nbsp;<br>
+				<!-- prints X of Y, where X is current page and Y is number of pages -->
+				<?php echo $this->Paginator->counter();echo "&nbsp Page"; ?>
+			</td>
+		</tr>
+		<?php } ?>
+		<?php } else {?>
+	<tr>
+		<td align="center" colspan="5">No records found.</td>
+	</tr>
+	<?php } ?>
+	</table>
+	   </td>
+	</tr>
+</table>
